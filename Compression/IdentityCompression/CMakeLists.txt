@@ -1,0 +1,2 @@
+add_library(IdentityCompression IdentityCompression.cpp IdentityCompression.hpp)
+

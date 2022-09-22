@@ -1,0 +1,9 @@
+add_library(DeltaTransform DeltaTransform.hpp DeltaTransform.cpp)
+add_library(DeltaXORTransform DeltaXORTransform.hpp DeltaXORTransform.cpp)
+add_library(RunLengthTransform RunLengthTransform.hpp RunLengthTransform.cpp)
+add_library(SplitTransform SplitTransform.hpp SplitTransform.cpp)
+add_library(StackTransform StackTransform.hpp StackTransform.cpp)
+add_library(StrideTransform StrideTransform.hpp StrideTransform.cpp)
+add_library(SubtractAverageTransform SubtractAverageTransform.hpp SubtractAverageTransform.cpp)
+add_library(SubtractXORAverageTransform SubtractXORAverageTransform.hpp SubtractXORAverageTransform.cpp)
+

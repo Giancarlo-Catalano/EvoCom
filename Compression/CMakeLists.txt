@@ -1,0 +1,6 @@
+add_subdirectory(HuffmanCompression)
+add_subdirectory(RunLengthCompression)
+add_subdirectory(IdentityCompression)
+
+add_library(Compression Compression.hpp Compression.cpp)
+
