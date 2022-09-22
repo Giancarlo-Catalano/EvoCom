@@ -74,7 +74,6 @@ namespace GC {
 
         static Block readBlock(size_t size, FileBitReader &reader);
 
-
         static Block decodeSingleBlock(FileBitReader &reader);
 
         static void undoTransformCode(const TransformCode &tc, Block &block);
