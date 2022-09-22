@@ -130,7 +130,7 @@ namespace GC {
         if (br.difference3Features.average > 64) return T_StrideTransform_3;
         if (br.difference4Features.average > 64) return T_StrideTransform_4;
         if (br.unitFeatures.average > 128) return T_SubtractAverageTransform;
-        if (br.uniqueSymbolsAmount + 8 < br.unitFeatures.maximum) return T_StackTransfrom;
+        if (br.uniqueSymbolsAmount < br.unitFeatures.maximum) return T_StackTransfrom;
     }
 
     void SimpleCompressor::readBlockAndEncode(size_t size, FileBitReader &reader, FileBitWriter &writer) {
