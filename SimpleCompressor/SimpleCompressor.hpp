@@ -10,6 +10,7 @@
 #include "../Transformation/Transformation.hpp"
 #include "../Compression/Compression.hpp"
 #include "../BlockReport/BlockReport.hpp"
+#include "../Individual/Individual.hpp"
 
 namespace GC {
 
@@ -17,24 +18,8 @@ namespace GC {
 
     public:
         using FileName = std::string;
-        enum TransformCode {
-            T_DeltaTransform,
-            T_DeltaXORTransform,
-            T_RunLengthTransform,
-            T_SplitTransform,
-            T_StackTransfrom,
-            T_StrideTransform_2,
-            T_StrideTransform_3,
-            T_StrideTransform_4,
-            T_SubtractAverageTransform,
-            T_SubtractXORAverageTransform
-        };
-
-        enum CompressionCode {
-            C_HuffmanCompression,
-            C_RunLengthCompression,
-            C_IdentityCompression
-        };
+        using TransformCode = Individual::TCode;
+        using CompressionCode = Individual::CCode;
 
         std::string to_string();
 
