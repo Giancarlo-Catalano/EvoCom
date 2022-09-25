@@ -17,21 +17,6 @@ namespace GC {
 
     public:
         using FileName = std::string;
-
-        std::string to_string();
-
-
-        SimpleCompressor() {};
-        static void compress(const FileName& fileToCompress, const FileName& outputFile);
-        static void decompress(const FileName& fileToDecompress, const FileName& outputFile);
-
-    private:
-        static const size_t bitSizeForTransformCode = 4;
-        static const size_t bitSizeForCompressionCode = 4;
-
-        static const size_t maxTransoformsPerBlock = 5;
-        static const size_t bitsForAmountOfTransforms = 4;
-
         enum TransformCode {
             T_DeltaTransform,
             T_DeltaXORTransform,
@@ -50,6 +35,22 @@ namespace GC {
             C_RunLengthCompression,
             C_IdentityCompression
         };
+
+        std::string to_string();
+
+
+        SimpleCompressor() {};
+        static void compress(const FileName& fileToCompress, const FileName& outputFile);
+        static void decompress(const FileName& fileToDecompress, const FileName& outputFile);
+
+    private:
+        static const size_t bitSizeForTransformCode = 4;
+        static const size_t bitSizeForCompressionCode = 4;
+
+        static const size_t maxTransoformsPerBlock = 5;
+        static const size_t bitsForAmountOfTransforms = 4;
+
+
 
 
         static void applyTransformCode(const TransformCode& tc, Block& block);
