@@ -16,6 +16,7 @@ add_subdirectory(HuffmanCoder)
 add_subdirectory(SimpleCompressor)
 add_subdirectory(DecisionTree)
 add_subdirectory(Breeder)
+add_subdirectory(Individual)
 
 add_executable(Diss_SimplePrototype main.cpp Utilities names.hpp)
 
