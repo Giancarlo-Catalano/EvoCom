@@ -1,6 +1,8 @@
 #include <iostream>
 #include "Utilities/utilities.hpp"
 #include "Individual/Individual.hpp"
+#include "Random/RandomInt.hpp"
+#include "Random/RandomElement.hpp"
 
 
 int main() {
@@ -31,6 +33,7 @@ int main() {
     LOG("In short: ", getFileSize(fileToBeCompressed), "bytes -> ", getFileSize(compressedFile), "bytes");
 #endif
 
+#if 0 // individuals
     GC::Individual ind;
     LOG(ind.to_string());
     ind.integerInterpretationCriteria = GC::Individual::TwoBytes;
@@ -39,6 +42,33 @@ int main() {
     ind.cCode = GC::Individual::C_HuffmanCompression;
 
     LOG(ind.to_string());
+#endif
+
+#if 0 //randomness tests
+    GC::RandomInt intGen(0, 6);
+    auto showRandom = [&]() {
+        LOG("Generated ", intGen());
+    };
+
+    repeat(30, showRandom);
+
+
+    enum Colour {
+        Purple,Red,Orange,Yellow,Green,Blue
+    };
+    GC::RandomElement<Colour> randColour ({Purple, Red, Orange,Yellow,Green,Blue});
+
+    auto colour_to_string = [&](const Colour c) -> std::string {
+        std::vector<std::string> asStrings = {"Purple", "Red", "Orange", "Yellow", "Green", "Blue"};
+        return asStrings[static_cast<size_t>(c)];
+    };
+
+    auto showRandColour = [&]() {
+        LOG("Random colour:", colour_to_string(randColour()));
+    };
+
+    repeat(20, showRandColour);
+#endif
 
     return 0;
 }
