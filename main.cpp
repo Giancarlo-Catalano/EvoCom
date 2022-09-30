@@ -83,7 +83,7 @@ int main() {
 #endif
 
 
-
+#if 0 //breeder tests
     GC::Individual A;
     GC::Individual B;
 
@@ -96,7 +96,7 @@ int main() {
     };
 
     repeat(10, fuckemup);
-
+#endif
 
     return 0;
 }
