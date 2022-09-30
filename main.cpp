@@ -3,6 +3,7 @@
 #include "Individual/Individual.hpp"
 #include "Random/RandomInt.hpp"
 #include "Random/RandomElement.hpp"
+#include "Random/RandomChance.hpp"
 
 
 int main() {
@@ -68,6 +69,16 @@ int main() {
     };
 
     repeat(20, showRandColour);
+
+
+
+    GC::RandomChance randChance;
+    for (size_t i=0;i<30;i++) {
+        auto maybeShowI = [&] {
+            randChance.doWithChance(0.9, [&](){LOG("i =", i, "succeeded!");});
+        };
+        maybeShowI();
+    }
 #endif
 
     return 0;
