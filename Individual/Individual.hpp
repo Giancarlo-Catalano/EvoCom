@@ -50,13 +50,7 @@ namespace GC {
             tList(),
             cCode(C_IdentityCompression) {}
 
-        decltype(tList) getTList();
-        TCode getTItem(const size_t index) {return tList[index];}
-        CCode getCCode() {return cCode;};
-
-
-
-
+        TList& getTList() { return tList;}
 
         std::string to_string() {
             std::stringstream ss;
@@ -100,7 +94,7 @@ namespace GC {
 
 
             showTList();ss<<", ";
-            showCCode();ss<<", ";
+            showCCode();
             return ss.str();
         }
 
@@ -108,6 +102,32 @@ namespace GC {
         void setTItem(const TCode tCode, const size_t index) {
             ASSERT(index < tList.size());
             tList[index] = tCode;
+        }
+
+        TCode& getTCode(const size_t index) {
+            ASSERT(index < tList.size());
+            return tList[index];
+        }
+
+        CCode& getCCode() {
+            return cCode;
+        }
+
+        TCode readTCode(const size_t index) const {
+            ASSERT(index < tList.size());
+            return tList[index];
+        }
+
+        CCode readCCode() const {
+            return cCode;
+        }
+
+        void copyTCodeFrom(const size_t index, const Individual& A) {
+            getTCode(index) = A.readTCode(index);
+        }
+
+        void copyCCodeFrom(const Individual& A) {
+            getCCode() = A.readCCode();
         }
 
 

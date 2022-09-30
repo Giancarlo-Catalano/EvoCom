@@ -19,10 +19,12 @@ namespace GC {
         RandomInt<size_t> intGenerator;
 
     public:
-        RandomElement(std::initializer_list<T> initList) :
+        template <class List>
+        RandomElement(const List& initList):
             elements(initList),
-            intGenerator(0, initList.size()-1)
-        {};
+            intGenerator(0, initList.size()-1){
+
+        };
 
 
         T choose() {

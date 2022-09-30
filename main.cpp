@@ -4,6 +4,7 @@
 #include "Random/RandomInt.hpp"
 #include "Random/RandomElement.hpp"
 #include "Random/RandomChance.hpp"
+#include "Breeder/Breeder.hpp"
 
 
 int main() {
@@ -80,6 +81,22 @@ int main() {
         maybeShowI();
     }
 #endif
+
+
+
+    GC::Individual A;
+    GC::Individual B;
+
+    GC::Breeder breeder(0.5, 0.5);
+    LOG("initially A =", A.to_string(), "B =", B.to_string());
+    auto fuckemup= [&](){
+        LOG("A =", A.to_string(), "B =", B.to_string());
+        A = breeder.mutate(A);
+        B = breeder.mutate(breeder.crossover(A, B));
+    };
+
+    repeat(10, fuckemup);
+
 
     return 0;
 }
