@@ -5,6 +5,7 @@
 #ifndef DISS_SIMPLEPROTOTYPE_BREEDER_HPP
 #define DISS_SIMPLEPROTOTYPE_BREEDER_HPP
 #include "../Utilities/utilities.hpp"
+#include "../Individual/Individual.hpp"
 
 
 namespace GC {

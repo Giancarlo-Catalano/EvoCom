@@ -51,11 +51,11 @@ namespace GC {
         };
 
         using BlockDelimitingCriteria = std::variant<FixedLengthBlocksSize, SimilarityBasedBlocks>;
-        enum IntegerInterpretationCriteria {OneByte,TwoBytes};
+        //enum IntegerInterpretationCriteria {OneByte,TwoBytes};
 
     public: //attributes, these are all public
         BlockDelimitingCriteria blockDelimitingCriteria;
-        IntegerInterpretationCriteria integerInterpretationCriteria;
+        //IntegerInterpretationCriteria integerInterpretationCriteria;
         TList tList;
         CCode cCode;
 
@@ -63,7 +63,7 @@ namespace GC {
     public: //methods
         Individual() :
             blockDelimitingCriteria(FixedLengthBlocksSize{256}),
-            integerInterpretationCriteria(OneByte),
+            //integerInterpretationCriteria(OneByte),
             tList(),
             cCode(C_IdentityCompression) {}
 
@@ -73,11 +73,11 @@ namespace GC {
         decltype(FixedLengthBlocksSize::blockSize) getFixedLengthBlockSize() {return std::get<FixedLengthBlocksSize>(blockDelimitingCriteria).blockSize;}
         bool hasSimilarityBasedBlocks() {return !hasFixedLengthBlockSize();}
         decltype(SimilarityBasedBlocks::thresholdForSimilarity) getBlockSimilarityThreshold() {return std::get<SimilarityBasedBlocks>(blockDelimitingCriteria).thresholdForSimilarity;}
-        decltype(integerInterpretationCriteria) getIntegerInterpretationCriteria(){return integerInterpretationCriteria;}
-        size_t getByteSizeOfIntegers() {
+        //decltype(integerInterpretationCriteria) getIntegerInterpretationCriteria(){return integerInterpretationCriteria;}
+        /*size_t getByteSizeOfIntegers() {
             if (getIntegerInterpretationCriteria() == OneByte) return 1;
             else return 2;
-        }
+        }*/
         decltype(tList) getTList();
         TCode getTItem(const size_t index) {return tList[index];}
         CCode getCCode() {return cCode;};
@@ -98,10 +98,10 @@ namespace GC {
                 ss<<"}";
             };
 
-            auto showIntegerRepresentationCriteria = [&]() {
+           /* auto showIntegerRepresentationCriteria = [&]() {
                 size_t byteSize = getByteSizeOfIntegers();
                 ss<<"IntegerInterpretationCriteria: "<<byteSize<<" byte"<<(byteSize == 1 ? "" : "s");
-            };;
+            };;*/
 
             auto showTCode = [&](const TCode tc) {
                 std::vector<std::string> asStrings = {
@@ -142,8 +142,8 @@ namespace GC {
 
             showTList();ss<<", ";
             showCCode();ss<<", ";
-            showBlockDelimitingCriteria();ss<<", ";
-            showIntegerRepresentationCriteria();
+            showBlockDelimitingCriteria();
+            //showIntegerRepresentationCriteria();
 
             return ss.str();
         }
