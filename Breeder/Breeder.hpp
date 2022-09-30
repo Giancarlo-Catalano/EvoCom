@@ -5,6 +5,7 @@
 #ifndef DISS_SIMPLEPROTOTYPE_BREEDER_HPP
 #define DISS_SIMPLEPROTOTYPE_BREEDER_HPP
 #include "../Utilities/utilities.hpp"
+#include "../names.hpp"
 #include "../Individual/Individual.hpp"
 
 
@@ -18,7 +19,13 @@ namespace GC {
             SubSequence,
             SwapEnds
         };
-        Breeder(size_t mutationSize, CrossOverType crossOverType);
+
+        Breeder(Chance mutationChance, CrossOverType crossOverType);
+
+
+        Individual mutate(const Individual& individual) {
+            std::vector<
+        }
 
 
 
