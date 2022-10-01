@@ -5,6 +5,7 @@
 #include "Random/RandomElement.hpp"
 #include "Random/RandomChance.hpp"
 #include "Breeder/Breeder.hpp"
+#include "Selector/Selector.hpp"
 
 
 int main() {
@@ -84,18 +85,53 @@ int main() {
 
 
 #if 1 //breeder tests
-    GC::Individual A;
-    GC::Individual B;
 
-    GC::Breeder breeder(0.5, 0.5);
-    LOG("initially A =", A.to_string(), "B =", B.to_string());
-    auto fuckemup= [&](){
-        LOG("A =", A.to_string(), "B =", B.to_string());
-        A = breeder.mutate(A);
-        B = breeder.mutate(breeder.crossover(A, B));
+    GC::RandomIndividual randomIndividualMaker;
+    GC::Individual Adam = randomIndividualMaker.makeIndividual();
+    GC::Individual Eve = randomIndividualMaker.makeIndividual();
+
+    GC::Breeder breeder(0.3, 0.5);
+    LOG("initially Adam =", Adam.to_string(), "Eve =", Eve.to_string());
+    LOG("the breeder is", breeder.to_string());
+
+    std::vector<GC::Individual> population {Adam, Eve};
+    auto makeNewIndividual = [&](){
+        GC::RandomElement<GC::Individual> parentChooser(population);
+        population.push_back(breeder.mutate(breeder.crossover(parentChooser(), parentChooser())));
     };
 
-    repeat(10, fuckemup);
+    size_t incestAmount = 300;
+    repeat(incestAmount, makeNewIndividual);
+
+    LOG("At the end of this morally ambiguous process, the population is ");
+    for (auto ind : population) {
+        LOG(ind.to_string());
+    }
+
+    GC::Individual GodsImage;
+    //TODO make the fitness function that measures the distance from God's image
+    auto pseudoFitnessFunction = [&](const GC::Individual& ind) {
+        return 1.0-ind.similarityWith(GodsImage);
+    };
+
+    using Sel = GC::Selector;
+
+    auto generousTournamentSelection = Sel::TournamentSelection(0.5);
+    GC::Selector selector(Sel::SelectionKind(generousTournamentSelection), pseudoFitnessFunction);
+    selector.preparePool(population);
+    LOG("The population has been preapared:");
+    selector.LOGPool();
+
+    LOG("then we select a few individuals");
+    auto selectAndShow = [&]() {
+        auto ind = selector.select();
+        LOG("selected ", ind.to_string());
+    };
+
+    LOG("The target individual is", GodsImage.to_string());
+    repeat(10, selectAndShow);
+
+
 #endif
 
     return 0;

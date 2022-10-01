@@ -9,6 +9,7 @@
 #include "../Individual/Individual.hpp"
 #include "../Random/RandomChance.hpp"
 #include "../Random/RandomElement.hpp"
+#include <sstream>
 
 
 namespace GC {
@@ -61,6 +62,15 @@ namespace GC {
             chooseCCodeCrossover.doWithChance([&]{child.copyCCodeFrom(alternative);});
 
             return child;
+        }
+
+
+        std::string to_string() {
+            std::stringstream ss;
+            ss<<"Breeder {";
+            ss<<"MutationChance:"<<std::setprecision(2)<<randomChanceOfMutation.getChance();
+            ss<<"}";
+            return ss.str();
         }
 
     };

@@ -102,3 +102,5 @@ size_t getFileSize(const std::string &fileName) {
     std::ifstream in(fileName, std::ifstream::ate | std::ifstream::binary);
     return in.tellg();
 }
+
+

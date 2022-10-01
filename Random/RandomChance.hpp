@@ -55,6 +55,8 @@ namespace GC {
             return false;
         }
 
+        Chance getChance() { return chanceOfTrue;}
+
     };
 
 

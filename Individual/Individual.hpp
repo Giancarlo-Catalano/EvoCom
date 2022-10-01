@@ -10,16 +10,22 @@
 #include <array>
 #include <vector>
 #include <algorithm>
+#include <functional>
 #include "../Utilities/utilities.hpp"
 #include "TCodes.hpp"
 #include "CCodes.hpp"
 #include "../Random/RandomElement.hpp"
+#include <optional>
 
 namespace GC {
 
     class Individual {
 
     public: //types
+        using Fitness = double; //will be a ratio
+        using FitnessFunction = std::function<Fitness(Individual)>;
+        using FitnessOfIndividualOnBlock = std::function<Fitness(Individual, Block)>;
+
         static const size_t TListLength = 6;
 
 
@@ -28,24 +34,29 @@ namespace GC {
     public: //attributes, these are all public
         TList tList;
         CCode cCode;
+        std::optional<Fitness> fitness;
 
     public: //methods
         Individual() :
             tList(),
-            cCode(C_IdentityCompression) {}
+            cCode(C_IdentityCompression),
+            fitness(std::nullopt){}
 
 
         Individual(const TList& tList, const CCode cCode) :
             tList(tList),
-            cCode(cCode) {}
+            cCode(cCode),
+            fitness(std::nullopt){}
 
         TList& getTList() { return tList;}
 
         std::string to_string() {
+#define GC_PRINT_TCODE_NAMES 0
+#define GC_PRINT_CCODE_NAMES 0
             std::stringstream ss;
             ss<<"{";
 
-            auto showTCode = [&](const TCode tc) {
+            auto showTCodeWithNames = [&](const TCode tc) {
                 std::vector<std::string> asStrings = {
                         "T_DeltaTransform",
                         "T_DeltaXORTransform",
@@ -61,18 +72,27 @@ namespace GC {
                 ss << asStrings[static_cast<int>(tc)];
             };
 
+            auto showTCodeWithNumbers = [&](const TCode tc) {
+                ss << static_cast<int>(tc);
+            };
+
             auto showTList = [&]() {
                 ss<<"TList:{";
                 bool isFirst = true;
                 std::for_each(tList.begin(), tList.end(), [&](auto t) {
                     if (!isFirst)ss<<", ";
                     isFirst = false;
-                    showTCode(t);
+#if GC_PRINT_TCODE_NAMES ==1
+                    showTCodeWithNames(t);
+#else
+                    showTCodeWithNumbers(t);
+#endif
+
                 } );
                 ss<<"}";
             };
 
-            auto showCCode = [&]() {
+            auto showCCodeWithNames = [&]() {
                 std::vector<std::string> asStrings = {
                         "C_HuffmanCompression",
                         "C_RunLengthCompression",
@@ -81,9 +101,28 @@ namespace GC {
                 ss<<"Compr:"<<asStrings[static_cast<int>(cCode)];
             };
 
+            auto showCCodeWithNumbers = [&]() {
+                ss << static_cast<int>(cCode);
+            };
+
+            auto showFitness = [&]() {
+                ss<<"Fitness:";
+                if (fitness.has_value())
+                    ss<<std::setprecision(2)<<fitness.value();
+                else
+                    ss<<"Not assessed yet";
+            };
+
 
             showTList();ss<<", ";
-            showCCode();
+#if GC_PRINT_CCODE_NAMES == 1
+            showCCodeWithNames();
+#else
+            showCCodeWithNumbers();
+#endif
+            ss << ", ";
+            showFitness();
+
             return ss.str();
         }
 
@@ -117,6 +156,34 @@ namespace GC {
 
         void copyCCodeFrom(const Individual& A) {
             getCCode() = A.readCCode();
+        }
+
+        bool isFitnessAssessed() const{
+            return fitness.has_value();
+        }
+
+        Fitness getFitness() const {
+            ASSERT(isFitnessAssessed());
+            return fitness.value();
+        }
+
+        void setFitness(const Fitness newFitness) {
+            fitness = newFitness;
+        }
+
+
+        double similarityWith(const Individual& other) const {
+            auto discreteMetric = [&](auto A, auto B) -> double {
+                return (double)(A==B);
+            };
+
+            double currentSum = 0.0;
+            ASSERT_EQUALS(tList.size(), other.tList.size());
+            for (size_t i = 0;i < tList.size();i++)
+                currentSum += discreteMetric(readTCode(i), other.readTCode(i));
+
+            currentSum += discreteMetric(readCCode(), other.readCCode());
+            return currentSum / (double(tList.size() + 1)); //the average
         }
     };
 

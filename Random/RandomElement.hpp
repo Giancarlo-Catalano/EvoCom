@@ -19,6 +19,13 @@ namespace GC {
         RandomInt<size_t> intGenerator;
 
     public:
+
+        RandomElement(): //here we'll expect the elements list to be filled at some point..
+            elements(),
+            intGenerator(0, 1){
+        }
+
+
         template <class List>
         RandomElement(const List& initList):
             elements(initList),
@@ -28,6 +35,7 @@ namespace GC {
 
         template <class List>
         void setElementPool(const List& list) {
+            ASSERT_NOT_EMPTY(list);
             elements = list;
             intGenerator.setBounds(0, list.size()-1);
         }

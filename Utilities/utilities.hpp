@@ -10,9 +10,27 @@
 #include <iomanip>
 #include <sstream>
 #include <algorithm>
+#include <functional>
 #include "../names.hpp"
 
 #define GC_DEBUG 1
+
+
+#define GC_NODISCARD [[nodiscard]]
+
+
+#if GC_DEBUG == 1
+#define LOG(...) printMany(true, __VA_ARGS__);printNewLine()
+#define LOG_NONEWLINE(...) printMany(true, __VA_ARGS__)
+#define LOG_NOSPACES(...) printMany(false, __VA_ARGS__);printNewLine()
+#define LOG_NONEWLINE_NOSPACES(...) printMany(false, __VA_ARGS__)
+#define ASSERT(var) assert(var)
+#define ASSERT_EQUALS(var, expected) assert(var == expected)
+#define ASSERT_NOT_EQUALS(var, notexpected) assert(var != notexpected)
+#define ASSERT_NOT_EMPTY(var) ASSERT_NOT_EQUALS(var.size(), 0)
+#define ASSERT_GREATER(var, min_accepted) ASSERT(var >= min_accepted)
+#define ERROR_NOT_IMPLEMENTED(message) LOG("ERROR! NOT IMPLEMENTED:", message); ASSERT(false);
+#endif
 
 
     template<class T>
@@ -115,24 +133,31 @@ size_t getFileSize(const std::string& fileName);
 
 
 
+template<class Item, class ScoreFunction>
+Item getMinimumBy(const std::vector<Item> &list, const ScoreFunction func) {
+    //I just don't like how the standard function works, because that requires
+    // forward iterators begin and end, IDGAF about that
+    // compare function, not usually what I need
+    //plus it gets recalculated over and over, it's very inefficient for my purposes
+    ASSERT_NOT_EMPTY(list);
+    Item lowestSoFar = list[0];
+    auto lowestScore = func(lowestSoFar);
+    auto updateLower = [&](const Item newItem) {
+        auto newScore = func(newItem);
+        if (newScore < lowestScore) {
+            lowestSoFar = newItem;
+            lowestScore = newScore;
+        }
+    };
 
-#define GC_NODISCARD [[nodiscard]]
+    for (size_t i=1;i<list.size();i++) updateLower(list[i]);
+
+    return lowestSoFar;
+}
 
 
-#if GC_DEBUG == 1
-#define LOG(...) printMany(true, __VA_ARGS__);printNewLine()
-#define LOG_NONEWLINE(...) printMany(true, __VA_ARGS__)
-#define LOG_NOSPACES(...) printMany(false, __VA_ARGS__);printNewLine()
-#define LOG_NONEWLINE_NOSPACES(...) printMany(false, __VA_ARGS__)
-#define ASSERT(var) assert(var)
-#define ASSERT_EQUALS(var, expected) assert(var == expected)
-#define ASSERT_NOT_EQUALS(var, notexpected) assert(var != notexpected)
-#define ASSERT_NOT_EMPTY(var) ASSERT_NOT_EQUALS(var.size(), 0)
-#define ASSERT_GREATER(var, min_accepted) ASSERT(var >= min_accepted)
-#endif
 
 
 #endif //DISS_SIMPLEPROTOTYPE_UTILITIES_HPP
-
 
 
