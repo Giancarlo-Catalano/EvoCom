@@ -87,6 +87,7 @@ namespace GC {
             if (isTournamentSelection()) {
                 //there's nothing special to do...
                 pool = totalPopulation;
+                forceFitnessCalculationOnPool();
             }
             else if (isFitnessProportionateSelection()) {
                 ERROR_NOT_IMPLEMENTED("FitnessProportionateSelection is not implemented yet!");
@@ -97,7 +98,6 @@ namespace GC {
         }
 
         Individual tournamentSelect() {
-            forceFitnessCalculationOnPool();
             std::vector<Individual> tournament;//TODO: this copies the individuals into the tournament, which is very inefficient, in the future this should just reference them in some way
             randomIndividualChooser.setElementPool(pool);
             auto addRandomIndividual = [&]() {

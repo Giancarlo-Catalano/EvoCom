@@ -6,6 +6,7 @@
 #include "Random/RandomChance.hpp"
 #include "Breeder/Breeder.hpp"
 #include "Selector/Selector.hpp"
+#include "Evolver/Evolver.hpp"
 
 
 int main() {
