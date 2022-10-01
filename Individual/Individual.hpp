@@ -13,6 +13,7 @@
 #include "../Utilities/utilities.hpp"
 #include "TCodes.hpp"
 #include "CCodes.hpp"
+#include "../Random/RandomElement.hpp"
 
 namespace GC {
 
@@ -32,6 +33,11 @@ namespace GC {
         Individual() :
             tList(),
             cCode(C_IdentityCompression) {}
+
+
+        Individual(const TList& tList, const CCode cCode) :
+            tList(tList),
+            cCode(cCode) {}
 
         TList& getTList() { return tList;}
 
@@ -112,11 +118,22 @@ namespace GC {
         void copyCCodeFrom(const Individual& A) {
             getCCode() = A.readCCode();
         }
+    };
 
 
-
-
-
+    class RandomIndividual {
+    private:
+        RandomElement<TCode> randomTCode{availableTCodes};
+        RandomElement<CCode> randomCCode{availableCCodes};
+    public:
+        RandomIndividual() = default;
+        Individual makeIndividual() {
+            Individual::TList tList;
+            for (TCode& tCode: tList)
+                randomTCode.assignRandomValue(tCode);
+            CCode cCode = randomCCode.choose();
+            return Individual(tList, cCode);
+        }
     };
 
 } // GC
