@@ -61,18 +61,18 @@ namespace GC {
 
     void SimpleCompressor::applyTransformCode(const SimpleCompressor::TransformCode &tc, Block &block) {
         switch (tc) {
-            case Individual::T_DeltaTransform: DeltaTransform().apply(block); break;
-            case Individual::T_DeltaXORTransform: DeltaXORTransform().apply(block); break;
-            case Individual::T_RunLengthTransform: RunLengthTransform().apply(block);break;
+            case T_DeltaTransform: DeltaTransform().apply(block); break;
+            case T_DeltaXORTransform: DeltaXORTransform().apply(block); break;
+            case T_RunLengthTransform: RunLengthTransform().apply(block);break;
             default: return; //ie do nothing
         }
     }
 
     void SimpleCompressor::undoTransformCode(const TransformCode& tc, Block& block) {
         switch (tc) {
-            case Individual::T_DeltaTransform: DeltaTransform().undo(block); break;
-            case Individual::T_DeltaXORTransform: DeltaXORTransform().undo(block); break;
-            case Individual::T_RunLengthTransform: RunLengthTransform().undo(block);break;
+            case T_DeltaTransform: DeltaTransform().undo(block); break;
+            case T_DeltaXORTransform: DeltaXORTransform().undo(block); break;
+            case T_RunLengthTransform: RunLengthTransform().undo(block);break;
             default: return; //ie do nothing
         }
     }
@@ -80,8 +80,8 @@ namespace GC {
     void SimpleCompressor::applyCompressionCode(const SimpleCompressor::CompressionCode &cc, Block &block,
                                                 FileBitWriter &writer) {
         switch (cc) {
-            case Individual::C_HuffmanCompression: HuffmanCompression().compress(block, writer);break;
-            case Individual::C_RunLengthCompression: RunLengthCompression().compress(block, writer);break;
+            case C_HuffmanCompression: HuffmanCompression().compress(block, writer);break;
+            case C_RunLengthCompression: RunLengthCompression().compress(block, writer);break;
             default: IdentityCompression().compress(block, writer);break;
         }
     }
@@ -89,8 +89,8 @@ namespace GC {
 
     Block SimpleCompressor::undoCompressionCode(const SimpleCompressor::CompressionCode &cc,FileBitReader& reader) {
         switch (cc) {
-            case Individual::C_HuffmanCompression: return HuffmanCompression().decompress(reader);
-            case Individual::C_RunLengthCompression: return RunLengthCompression().decompress(reader);
+            case C_HuffmanCompression: return HuffmanCompression().decompress(reader);
+            case C_RunLengthCompression: return RunLengthCompression().decompress(reader);
             default: return IdentityCompression().decompress(reader);
         }
     }
@@ -116,21 +116,21 @@ namespace GC {
     }
 
     SimpleCompressor::CompressionCode SimpleCompressor::decideCompressionCode(const BlockReport &br) {
-        if (br.runLengthFeatures.average > 2) return Individual::C_RunLengthCompression;
-        if (br.frequencyFeatures.maximum >= 0.0625) return Individual::C_HuffmanCompression;
-        return Individual::C_IdentityCompression;
+        if (br.runLengthFeatures.average > 2) return C_RunLengthCompression;
+        if (br.frequencyFeatures.maximum >= 0.0625) return C_HuffmanCompression;
+        return C_IdentityCompression;
     }
 
     SimpleCompressor::TransformCode SimpleCompressor::decideTransfomCode(const BlockReport &br) {
-        if (br.runLengthFeatures.mode > 2) return Individual::T_RunLengthTransform;
-        if (br.unitFeatures.minimum > 32) return Individual::T_SubtractAverageTransform; //this could be sub minimum
+        if (br.runLengthFeatures.mode > 2) return T_RunLengthTransform;
+        if (br.unitFeatures.minimum > 32) return T_SubtractAverageTransform; //this could be sub minimum
         //if (br.xorAverage != 0) return T_SubtractXORAverageTransform;
-        if (br.difference2Features.mode <= 32) return Individual::T_DeltaTransform;
-        if (br.difference2Features.average > 64) return Individual::T_StrideTransform_2;
-        if (br.difference3Features.average > 64) return Individual::T_StrideTransform_3;
-        if (br.difference4Features.average > 64) return Individual::T_StrideTransform_4;
-        if (br.unitFeatures.average > 128) return Individual::T_SubtractAverageTransform;
-        if (br.uniqueSymbolsAmount < br.unitFeatures.maximum) return Individual::T_StackTransform;
+        if (br.difference2Features.mode <= 32) return T_DeltaTransform;
+        if (br.difference2Features.average > 64) return T_StrideTransform_2;
+        if (br.difference3Features.average > 64) return T_StrideTransform_3;
+        if (br.difference4Features.average > 64) return T_StrideTransform_4;
+        if (br.unitFeatures.average > 128) return T_SubtractAverageTransform;
+        if (br.uniqueSymbolsAmount < br.unitFeatures.maximum) return T_StackTransform;
     }
 
     void SimpleCompressor::readBlockAndEncode(size_t size, FileBitReader &reader, FileBitWriter &writer) {
@@ -224,11 +224,11 @@ namespace GC {
     std::string SimpleCompressor::to_string() {
         std::stringstream ss;
         ss<<"Legend of codes:"<<"\n";
-        ss<<Individual::T_DeltaTransform<<"=T_DeltaTransform"<<"\n";
-        ss<<Individual::T_RunLengthTransform<<"=T_RunLengthTransform"<<"\n";
-        ss<<Individual::T_SubtractAverageTransform<<"=T_SubtractAverageTransform"<<"\n";
-        ss<<Individual::T_StackTransform<<"=T_StackTransform"<<"\n";
-        ss<<Individual::T_StrideTransform_2<<"=T_StrideTransform2<<"<<"\n";
+        ss<<T_DeltaTransform<<"=T_DeltaTransform"<<"\n";
+        ss<<T_RunLengthTransform<<"=T_RunLengthTransform"<<"\n";
+        ss<<T_SubtractAverageTransform<<"=T_SubtractAverageTransform"<<"\n";
+        ss<<T_StackTransform<<"=T_StackTransform"<<"\n";
+        ss<<T_StrideTransform_2<<"=T_StrideTransform2<<"<<"\n";
         return ss.str();
     }
 } // GC

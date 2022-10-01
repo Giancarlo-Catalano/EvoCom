@@ -18,8 +18,8 @@ namespace GC {
 
     public:
         using FileName = std::string;
-        using TransformCode = Individual::TCode;
-        using CompressionCode = Individual::CCode;
+        using TransformCode = TCode;
+        using CompressionCode = CCode;
 
         std::string to_string();
 

@@ -15,24 +15,7 @@ namespace GC {
 
     class Breeder {
     public: //types
-        using TCode = Individual::TCode;
         using TList = Individual::TList;
-        using CCode = Individual::CCode;
-
-        const std::vector<TCode> availableTCodes = {Individual::T_DeltaTransform,
-                                                           Individual::T_DeltaXORTransform,
-                                                           Individual::T_RunLengthTransform,
-                                                           Individual::T_SplitTransform,
-                                                           Individual::T_StackTransform,
-                                                           Individual::T_StrideTransform_2,
-                                                           Individual::T_StrideTransform_3,
-                                                           Individual::T_StrideTransform_4,
-                                                           Individual::T_SubtractAverageTransform,
-                                                           Individual::T_SubtractXORAverageTransform};
-
-        const std::vector<CCode> availableCCodes = {Individual::C_HuffmanCompression,
-                                                    Individual::C_IdentityCompression,
-                                                    Individual::C_RunLengthCompression};
 
     private:
         //for mutation

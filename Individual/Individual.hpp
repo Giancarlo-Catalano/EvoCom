@@ -11,6 +11,8 @@
 #include <vector>
 #include <algorithm>
 #include "../Utilities/utilities.hpp"
+#include "TCodes.hpp"
+#include "CCodes.hpp"
 
 namespace GC {
 
@@ -18,25 +20,6 @@ namespace GC {
 
     public: //types
         static const size_t TListLength = 6;
-
-        enum TCode {
-            T_DeltaTransform,
-            T_DeltaXORTransform,
-            T_RunLengthTransform,
-            T_SplitTransform,
-            T_StackTransform,
-            T_StrideTransform_2,
-            T_StrideTransform_3,
-            T_StrideTransform_4,
-            T_SubtractAverageTransform,
-            T_SubtractXORAverageTransform
-        };
-
-        enum CCode {
-            C_HuffmanCompression,
-            C_RunLengthCompression,
-            C_IdentityCompression
-        };
 
 
 
