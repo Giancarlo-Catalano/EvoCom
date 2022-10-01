@@ -26,6 +26,12 @@ namespace GC {
 
         };
 
+        template <class List>
+        void setElementPool(const List& list) {
+            elements = list;
+            intGenerator.setBounds(0, list.size()-1);
+        }
+
 
         T choose() {
             return elements[intGenerator()];

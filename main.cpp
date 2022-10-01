@@ -58,7 +58,7 @@ int main() {
     enum Colour {
         Purple,Red,Orange,Yellow,Green,Blue
     };
-    GC::RandomElement<Colour> randColour ({Purple, Red, Orange,Yellow,Green,Blue});
+    GC::RandomElement<Colour> randColour(std::vector<Colour>{Purple, Red, Orange,Yellow,Green,Blue});
 
     auto colour_to_string = [&](const Colour c) -> std::string {
         std::vector<std::string> asStrings = {"Purple", "Red", "Orange", "Yellow", "Green", "Blue"};
@@ -73,10 +73,10 @@ int main() {
 
 
 
-    GC::RandomChance randChance;
+    GC::RandomChance randChance(0.9);
     for (size_t i=0;i<30;i++) {
         auto maybeShowI = [&] {
-            randChance.doWithChance(0.9, [&](){LOG("i =", i, "succeeded!");});
+            randChance.doWithChance([&](){LOG("i =", i, "succeeded!");});
         };
         maybeShowI();
     }

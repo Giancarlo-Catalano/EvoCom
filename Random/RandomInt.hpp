@@ -32,6 +32,10 @@ namespace GC {
         I operator()(){
             return choose();
         }
+
+        void setBounds(const I min,const I max) {
+            distr = std::uniform_int_distribution<I>(min, max);
+        }
     };
 
 } // GC
