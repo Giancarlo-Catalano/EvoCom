@@ -172,9 +172,9 @@ namespace GC {
         }
 
 
-        double similarityWith(const Individual& other) const {
+        double distanceFrom(const Individual& other) const {
             auto discreteMetric = [&](auto A, auto B) -> double {
-                return (double)(A==B);
+                return (double)(A!=B);
             };
 
             double currentSum = 0.0;

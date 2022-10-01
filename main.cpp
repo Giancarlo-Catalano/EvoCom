@@ -85,8 +85,7 @@ int main() {
 #endif
 
 
-#if 1 //breeder tests
-
+#if 0 //breeder & selector tests
     GC::RandomIndividual randomIndividualMaker;
     GC::Individual Adam = randomIndividualMaker.makeIndividual();
     GC::Individual Eve = randomIndividualMaker.makeIndividual();
@@ -131,9 +130,28 @@ int main() {
 
     LOG("The target individual is", GodsImage.to_string());
     repeat(10, selectAndShow);
-
-
 #endif
 
+#if 1 //evolver tests
+    GC::Individual GodsImage;
+    auto pseudoFitnessFunction = [&](const GC::Individual& ind) {
+        return ind.distanceFrom(GodsImage);
+    };
+    GC::Evolver::EvolutionSettings evolutionSettings;
+    evolutionSettings.populationSize = 100;
+    evolutionSettings.generationCount = 200;
+    GC::Evolver evolver(evolutionSettings, pseudoFitnessFunction);
+
+    auto showBestIndividual = [&]() {
+        GC::Individual best = evolver.evolveBest();
+        evolver.reset();
+        LOG("the best for this attempt is", best.to_string());
+    };
+
+    GodsImage.setFitness(pseudoFitnessFunction(GodsImage));
+    LOG("God's image is currently", GodsImage.to_string());
+    repeat(6, showBestIndividual);
+
+#endif
     return 0;
 }

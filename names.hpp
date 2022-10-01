@@ -10,6 +10,7 @@ using Byte = unsigned char;
 using Unit = Byte;
 using Block = std::vector<Unit>;
 using Chance = double;
+using Proportion = double;
 
 
 #endif //DISS_SIMPLEPROTOTYPE_NAMES_HPP

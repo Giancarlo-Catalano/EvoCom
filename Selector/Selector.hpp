@@ -8,6 +8,7 @@
 #include "../Individual/Individual.hpp"
 #include "../Random/RandomElement.hpp"
 #include "../Utilities/utilities.hpp"
+#include "../names.hpp"
 #include <sstream>
 
 namespace GC {
@@ -16,7 +17,6 @@ namespace GC {
     public:
         using Fitness = Individual::Fitness;
         using FitnessFunction = Individual::FitnessFunction;
-        using Proportion = double;
 
         struct TournamentSelection {
             const Proportion proportionToKeep;
