@@ -138,8 +138,8 @@ int main() {
         return ind.distanceFrom(GodsImage);
     };
     GC::Evolver::EvolutionSettings evolutionSettings;
-    evolutionSettings.populationSize = 100;
-    evolutionSettings.generationCount = 200;
+    evolutionSettings.populationSize = 36;
+    evolutionSettings.generationCount = 12;
     GC::Evolver evolver(evolutionSettings, pseudoFitnessFunction);
 
     auto showBestIndividual = [&]() {
@@ -150,7 +150,8 @@ int main() {
 
     GodsImage.setFitness(pseudoFitnessFunction(GodsImage));
     LOG("God's image is currently", GodsImage.to_string());
-    repeat(6, showBestIndividual);
+    repeat(12, showBestIndividual);
+
 
 #endif
     return 0;

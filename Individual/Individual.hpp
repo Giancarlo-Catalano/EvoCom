@@ -26,7 +26,7 @@ namespace GC {
         using FitnessFunction = std::function<Fitness(Individual)>;
         using FitnessOfIndividualOnBlock = std::function<Fitness(Individual, Block)>;
 
-        static const size_t TListLength = 6;
+        static const size_t TListLength = 12;
 
 
 
@@ -184,6 +184,10 @@ namespace GC {
 
             currentSum += discreteMetric(readCCode(), other.readCCode());
             return currentSum / (double(tList.size() + 1)); //the average
+        }
+
+        void invalidateFitness() {
+            fitness = std::nullopt;
         }
     };
 

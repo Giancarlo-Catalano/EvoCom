@@ -47,6 +47,7 @@ namespace GC {
                 randomChanceOfMutation.doWithChance([&]{randomTCode.assignRandomValue(tCode);});
 
             randomCCode.assignRandomValue(child.getCCode());
+            child.invalidateFitness();
             return child;
         }
 
@@ -61,6 +62,7 @@ namespace GC {
 
             chooseCCodeCrossover.doWithChance([&]{child.copyCCodeFrom(alternative);});
 
+            child.invalidateFitness();
             return child;
         }
 
