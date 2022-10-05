@@ -19,6 +19,19 @@ namespace GC {
         T_SubtractXORAverageTransform
     };
 
+    std::vector<std::string> TCodesAsStrings = {
+            "T_DeltaTransform",
+            "T_DeltaXORTransform",
+            "T_RunLengthTransform",
+            "T_SplitTransform",
+            "T_StackTransform",
+            "T_StrideTransform_2",
+            "T_StrideTransform_3",
+            "T_StrideTransform_4",
+            "T_SubtractAverageTransform",
+            "T_SubtractXORAverageTransform"
+    };
+
     const std::vector<TCode> availableTCodes = {T_DeltaTransform,
                                                 T_DeltaXORTransform,
                                                 T_RunLengthTransform,
@@ -29,6 +42,8 @@ namespace GC {
                                                 T_StrideTransform_4,
                                                 T_SubtractAverageTransform,
                                                 T_SubtractXORAverageTransform};
+
+
 }
 
 #endif //DISS_SIMPLEPROTOTYPE_TCODES_HPP

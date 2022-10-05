@@ -56,53 +56,29 @@ namespace GC {
             std::stringstream ss;
             ss<<"{";
 
-            auto showTCodeWithNames = [&](const TCode tc) {
-                std::vector<std::string> asStrings = {
-                        "T_DeltaTransform",
-                        "T_DeltaXORTransform",
-                        "T_RunLengthTransform",
-                        "T_SplitTransform",
-                        "T_StackTransform",
-                        "T_StrideTransform_2",
-                        "T_StrideTransform_3",
-                        "T_StrideTransform_4",
-                        "T_SubtractAverageTransform",
-                        "T_SubtractXORAverageTransform"
+            auto showTList = [&](bool withNames) {
+                auto showTCode = [&](const TCode tc) {
+                    if (withNames)
+                        ss << TCodesAsStrings[static_cast<int>(tc)];
+                    else
+                        ss << static_cast<int>(tc);
+
                 };
-                ss << asStrings[static_cast<int>(tc)];
-            };
-
-            auto showTCodeWithNumbers = [&](const TCode tc) {
-                ss << static_cast<int>(tc);
-            };
-
-            auto showTList = [&]() {
                 ss<<"TList:{";
                 bool isFirst = true;
                 std::for_each(tList.begin(), tList.end(), [&](auto t) {
                     if (!isFirst)ss<<", ";
                     isFirst = false;
-#if GC_PRINT_TCODE_NAMES ==1
-                    showTCodeWithNames(t);
-#else
-                    showTCodeWithNumbers(t);
-#endif
-
+                    showTCode(t);
                 } );
                 ss<<"}";
             };
 
-            auto showCCodeWithNames = [&]() {
-                std::vector<std::string> asStrings = {
-                        "C_HuffmanCompression",
-                        "C_RunLengthCompression",
-                        "C_IdentityCompression"
-                };
-                ss<<"Compr:"<<asStrings[static_cast<int>(cCode)];
-            };
-
-            auto showCCodeWithNumbers = [&]() {
-                ss << static_cast<int>(cCode);
+            auto showCCode = [&](bool withNames) {
+                if (withNames)
+                    ss<<"Compr:"<<CCodesAsStrings[static_cast<int>(cCode)];
+                else
+                    ss << static_cast<int>(cCode);
             };
 
             auto showFitness = [&]() {
@@ -114,13 +90,8 @@ namespace GC {
             };
 
 
-            showTList();ss<<", ";
-#if GC_PRINT_CCODE_NAMES == 1
-            showCCodeWithNames();
-#else
-            showCCodeWithNumbers();
-#endif
-            ss << ", ";
+            showTList(GC_PRINT_TCODE_NAMES);ss<<", ";
+            showCCode(GC_PRINT_CCODE_NAMES);ss<<", ";
             showFitness();
 
             return ss.str();
