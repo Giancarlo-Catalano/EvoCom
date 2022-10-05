@@ -16,7 +16,7 @@ namespace GC {
         std::string to_string() const { return "{SubtractAverageTransform}";}
 
         Block apply_copy(const Block& block) const {
-            Unit average = BlockReport::getUnitFeatures(block).average;
+            Unit average = StatisticalFeatures<Unit>(block).average;
             Block result;
             result.push_back(average);
             for (const auto& unit: block)

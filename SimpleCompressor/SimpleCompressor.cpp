@@ -10,6 +10,11 @@
 #include "../Compression/RunLengthCompression/RunLengthCompression.hpp"
 #include "../Compression/IdentityCompression/IdentityCompression.hpp"
 #include "../Evolver/Evolver.hpp"
+#include "../Transformation/Transformations/SplitTransform.hpp"
+#include "../Transformation/Transformations/StackTransform.hpp"
+#include "../Transformation/Transformations/SubtractAverageTransform.hpp"
+#include "../Transformation/Transformations/SubtractXORAverageTransform.hpp"
+#include "../Transformation/Transformations/StrideTransform.hpp"
 #include <vector>
 
 namespace GC {
@@ -36,6 +41,7 @@ namespace GC {
 
             auto readBlockAndCompressOnFile = [&](size_t sizeOfBlock) {
                 Block block = readBlock(sizeOfBlock, reader);
+                LOG("Evolving the best individual");
                 Individual bestIndividual = evolveBestIndividualForBlock(block);
                 LOG("For this block, the best individual is", bestIndividual.to_string());
                 encodeIndividual(bestIndividual, writer);
@@ -62,10 +68,19 @@ namespace GC {
     }
 
     Block SimpleCompressor::applyTransformCode(const SimpleCompressor::TransformCode &tc, const Block &block) {
-        switch (tc) { //TODO add all of them
-            case T_DeltaTransform: return DeltaTransform().apply_copy(block);
-            case T_DeltaXORTransform: return DeltaXORTransform().apply_copy(block);
-            case T_RunLengthTransform: return RunLengthTransform().apply_copy(block);
+#define GC_APPLY_T_CASE(TRANS, ...) case T_##TRANS : return TRANS(__VA_ARGS__).apply_copy(block)
+#define GC_APPLY_T_STRIDE_CASE(NUM) case T_StrideTransform_##NUM : return StrideTransform(NUM).apply_copy(block)
+        switch (tc) {
+            GC_APPLY_T_CASE(DeltaTransform);
+            GC_APPLY_T_CASE(DeltaXORTransform);
+            GC_APPLY_T_CASE(RunLengthTransform);
+            GC_APPLY_T_CASE(SplitTransform);
+            GC_APPLY_T_CASE(StackTransform);
+            GC_APPLY_T_STRIDE_CASE(2);
+            GC_APPLY_T_STRIDE_CASE(3);
+            GC_APPLY_T_STRIDE_CASE(4);
+            GC_APPLY_T_CASE(SubtractAverageTransform);
+            GC_APPLY_T_CASE(SubtractXORAverageTransform);
             default: return block; //ie do nothing
         }
     }
@@ -106,10 +121,20 @@ namespace GC {
     }
 
     void SimpleCompressor::undoTransformCode(const TransformCode& tc, Block& block) {
+
+#define GC_UNDO_T_CASE(TRANS, ...) case T_##TRANS : TRANS(__VA_ARGS__).undo(block);break;
+#define GC_UNDO_T_STRIDE_CASE(NUM) case T_StrideTransform_##NUM : StrideTransform(NUM).undo(block);break;
         switch (tc) {
-            case T_DeltaTransform: DeltaTransform().undo(block); break;
-            case T_DeltaXORTransform: DeltaXORTransform().undo(block); break;
-            case T_RunLengthTransform: RunLengthTransform().undo(block);break;
+            GC_UNDO_T_CASE(DeltaTransform);
+            GC_UNDO_T_CASE(DeltaXORTransform);
+            GC_UNDO_T_CASE(RunLengthTransform);
+            GC_UNDO_T_CASE(SplitTransform);
+            GC_UNDO_T_CASE(StackTransform);
+            GC_UNDO_T_STRIDE_CASE(2);
+            GC_UNDO_T_STRIDE_CASE(3);
+            GC_UNDO_T_STRIDE_CASE(4);
+            GC_UNDO_T_CASE(SubtractAverageTransform);
+            GC_UNDO_T_CASE(SubtractXORAverageTransform);
             default: return; //ie do nothing
         }
     }
@@ -207,7 +232,7 @@ namespace GC {
     Individual SimpleCompressor::evolveBestIndividualForBlock(const Block & block) {
         Evolver::EvolutionSettings settings;
         settings.generationCount = 6;
-        settings.populationSize = 4;
+        settings.populationSize = 6;
         auto getFitnessOfIndividual = [&](const Individual& i){
             return compressionRatioForIndividualOnBlock(i, block);
         };

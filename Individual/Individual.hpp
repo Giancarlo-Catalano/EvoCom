@@ -26,7 +26,7 @@ namespace GC {
         using FitnessFunction = std::function<Fitness(Individual)>;
         using FitnessOfIndividualOnBlock = std::function<Fitness(Individual, Block)>;
 
-        static const size_t TListLength = 1;
+        static const size_t TListLength = 6;
 
 
 
