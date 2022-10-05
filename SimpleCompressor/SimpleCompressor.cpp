@@ -231,8 +231,8 @@ namespace GC {
 
     Individual SimpleCompressor::evolveBestIndividualForBlock(const Block & block) {
         Evolver::EvolutionSettings settings;
-        settings.generationCount = 6;
-        settings.populationSize = 6;
+        settings.generationCount = 100;
+        settings.populationSize = 40;
         auto getFitnessOfIndividual = [&](const Individual& i){
             return compressionRatioForIndividualOnBlock(i, block);
         };

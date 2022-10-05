@@ -6,4 +6,4 @@ add_library(StackTransform StackTransform.hpp StackTransform.cpp)
 add_library(StrideTransform StrideTransform.hpp StrideTransform.cpp)
 add_library(SubtractAverageTransform SubtractAverageTransform.hpp SubtractAverageTransform.cpp)
 add_library(SubtractXORAverageTransform SubtractXORAverageTransform.hpp SubtractXORAverageTransform.cpp)
-
+add_library(IdentityTransform IdentityTransform.cpp IdentityTransform.hpp)

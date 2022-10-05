@@ -7,6 +7,7 @@
 
 namespace GC {
     enum TCode {
+        T_IdentityTransform,
         T_DeltaTransform,
         T_DeltaXORTransform,
         T_RunLengthTransform,
@@ -20,6 +21,7 @@ namespace GC {
     };
 
     const std::vector<std::string> TCodesAsStrings = {
+            "T_IdentityTransform",
             "T_DeltaTransform",
             "T_DeltaXORTransform",
             "T_RunLengthTransform",
@@ -32,7 +34,8 @@ namespace GC {
             "T_SubtractXORAverageTransform"
     };
 
-    const std::vector<TCode> availableTCodes = {T_DeltaTransform,
+    const std::vector<TCode> availableTCodes = {T_IdentityTransform,
+                                                T_DeltaTransform,
                                                 T_DeltaXORTransform,
                                                 T_RunLengthTransform,
                                                 T_SplitTransform,
