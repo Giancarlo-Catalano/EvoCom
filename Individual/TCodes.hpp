@@ -19,7 +19,7 @@ namespace GC {
         T_SubtractXORAverageTransform
     };
 
-    std::vector<std::string> TCodesAsStrings = {
+    const std::vector<std::string> TCodesAsStrings = {
             "T_DeltaTransform",
             "T_DeltaXORTransform",
             "T_RunLengthTransform",

@@ -7,6 +7,7 @@
 
 #include "../Compression.hpp"
 #include "../../Utilities/utilities.hpp"
+#include "../../names.hpp"
 
 namespace GC {
 
@@ -20,10 +21,11 @@ namespace GC {
             return "{RunLengthCompression}";
         }
 
-        void writeRLPair(const RLPair& pair, FileBitWriter& writer) const {
+        Bits bitsOfRLPair(const RLPair& pair) const {
             ASSERT_NOT_EQUALS(pair.second, 0);
-            writer.writeAmount(pair.first, bitsInType<Unit>());
-            writer.writeRiceEncoded(pair.second-1);
+            Bits result = FileBitWriter::getAmountBits(pair.first, bitsInType<Unit>());
+            concatenate(result, FileBitWriter::getRiceEncodedBits(pair.second-1));
+            return result;
         }
 
         static std::vector<std::pair<Unit, RunLength>> getRLPairs(const Block& block) {
@@ -52,16 +54,11 @@ namespace GC {
             return result;
         }
 
-        void compress(const Block& block, FileBitWriter& writer) const {
+        Bits compressIntoBits(const Block& block) const {
             std::vector<RLPair> pairs = getRLPairs(block);
-            LOG("The RL pairs are:");
-            for (auto item: pairs) {
-                LOG_NONEWLINE_NOSPACES("{", ((int)item.first), "; ", item.second, "},");
-            }
-            LOG("");
-            LOG("The size of the pairs is ", pairs.size());
-            writer.writeRiceEncoded(pairs.size());
-            for (const auto& item: pairs) writeRLPair(item, writer);
+            Bits result = FileBitWriter::getRiceEncodedBits(pairs.size());
+            for (const auto& item: pairs) concatenate(result, bitsOfRLPair(item));
+            return result;
         }
 
         static RLPair readPair(FileBitReader& reader) {
@@ -91,7 +88,7 @@ namespace GC {
         Block decompress(FileBitReader& reader) const{
             Block result;
             size_t expectedVectorSize = reader.readRiceEncoded();
-            LOG("read that there are ", expectedVectorSize);
+            LOG("read that there are ", expectedVectorSize, "RL pairs");
             std::vector<RLPair> pairs = readPairs(expectedVectorSize, reader);
             LOG("The decoded pairs are");
             LOG("The RL pairs are:");

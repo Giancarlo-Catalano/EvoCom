@@ -26,7 +26,7 @@ namespace GC {
         using FitnessFunction = std::function<Fitness(Individual)>;
         using FitnessOfIndividualOnBlock = std::function<Fitness(Individual, Block)>;
 
-        static const size_t TListLength = 12;
+        static const size_t TListLength = 1;
 
 
 
@@ -50,9 +50,9 @@ namespace GC {
 
         TList& getTList() { return tList;}
 
-        std::string to_string() {
-#define GC_PRINT_TCODE_NAMES 0
-#define GC_PRINT_CCODE_NAMES 0
+        std::string to_string() const{
+#define GC_PRINT_TCODE_NAMES 1
+#define GC_PRINT_CCODE_NAMES 1
             std::stringstream ss;
             ss<<"{";
 

@@ -131,6 +131,13 @@ size_t floor_log2(const size_t input);
 size_t getFileSize(const std::string& fileName);
 
 
+template <class T>
+void concatenate(std::vector<T>& A, const std::vector<T>& B) {
+    A.insert(A.begin(), B.begin(), B.end());
+}
+
+
+
 
 
 template<class Item, class ScoreFunction>

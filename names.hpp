@@ -11,6 +11,7 @@ using Unit = Byte;
 using Block = std::vector<Unit>;
 using Chance = double;
 using Proportion = double;
+using Bits = std::vector<bool>;
 
 
 #endif //DISS_SIMPLEPROTOTYPE_NAMES_HPP

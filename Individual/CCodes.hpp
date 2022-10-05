@@ -12,7 +12,7 @@ namespace GC {
         C_RunLengthCompression,
     };
 
-    std::vector<std::string> CCodesAsStrings = {
+    const std::vector<std::string> CCodesAsStrings = {
             "C_IdentityCompression",
             "C_HuffmanCompression",
             "C_RunLengthCompression"

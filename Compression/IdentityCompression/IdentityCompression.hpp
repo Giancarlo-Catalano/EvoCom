@@ -15,13 +15,14 @@ namespace GC {
 
         std::string to_string() const {return "{IdentityCompression}";}
 
-        void compress(const Block& block, FileBitWriter& writer) const {
-            auto writeUnit = [&](const Unit& unit) {
-                writer.writeAmount(unit, bitsInType<Unit>());
+        Bits compressIntoBits(const Block& block) const {
+            auto bitsOfUnit = [&](const Unit& unit) {
+                return FileBitWriter::getAmountBits(unit, bitsInType<Unit>());
             };
 
-            writer.writeRiceEncoded(block.size()); //needs to encode its size
-            for (const auto& unit: block) writeUnit(unit);
+            Bits result = FileBitWriter::getRiceEncodedBits(block.size()); //needs to encode its size
+            for (const auto& unit: block) concatenate(result, bitsOfUnit(unit));
+            return result;
         }
 
         Block decompress(FileBitReader& reader) const {

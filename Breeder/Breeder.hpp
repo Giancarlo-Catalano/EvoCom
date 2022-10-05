@@ -42,6 +42,7 @@ namespace GC {
 
 
         Individual mutate(const Individual& individual) {
+            //LOG("Mutating an individual");
             Individual child = individual;
             for (TCode& tCode : child.getTList())
                 randomChanceOfMutation.doWithChance([&]{randomTCode.assignRandomValue(tCode);});
@@ -52,6 +53,7 @@ namespace GC {
         }
 
         Individual crossover(const Individual& A, const Individual& B) {
+            //LOG("Crossing individuals");
             bool AGoesFirst = crossoverFirstChooser.flip();
 
             Individual child = (AGoesFirst ? A : B);

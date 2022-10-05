@@ -19,7 +19,10 @@ namespace GC {
     public:
         using FileName = std::string;
         using TransformCode = TCode;
+        using TList = Individual::TList;
         using CompressionCode = CCode;
+        using Bits = std::vector<bool>;
+        using Fitness = Individual::Fitness;
 
         std::string to_string();
 
@@ -31,42 +34,41 @@ namespace GC {
     private:
         static const size_t bitSizeForTransformCode = 4;
         static const size_t bitSizeForCompressionCode = 4;
-
-        static const size_t maxTransoformsPerBlock = 5;
         static const size_t bitsForAmountOfTransforms = 4;
-
-
-
-
-        static void applyTransformCode(const TransformCode& tc, Block& block);
-
-        static void applyCompressionCode(const CompressionCode& cc, Block& block, FileBitWriter& writer);
-
-        static void encodeTransformCode(const TransformCode& tc, FileBitWriter& writer);
-
-        static void encodeCompressionCode(const CompressionCode& cc, FileBitWriter& writer);
-
-        static TransformCode decodeTransformCode(FileBitReader& reader);
-
-        static CompressionCode decodeCompressionCode(FileBitReader& reader);
-
-        static bool decideWhetherToCompress(const BlockReport& blockReport);
-
-        static CompressionCode decideCompressionCode(const BlockReport& blockReport);
-
-        static TransformCode decideTransfomCode(const BlockReport& br);
-
-        static void readBlockAndEncode(size_t size, FileBitReader &reader, FileBitWriter &writer);
 
         static Block readBlock(size_t size, FileBitReader &reader);
 
-        static Block decodeSingleBlock(FileBitReader &reader);
+        static Block applyTransformCode(const TransformCode &tc, const Block &block);
+
+        static Bits applyCompressionCode(const CompressionCode &cc, const Block &block);
+
+        static Bits applyIndividual(const Individual &individual, const Block &block);
+
+        static Bits getBinaryRepresentationOfIndividual(const Individual &individual);
+
+        static void encodeIndividual(const Individual &individual, FileBitWriter &writer);
 
         static void undoTransformCode(const TransformCode &tc, Block &block);
 
         static Block undoCompressionCode(const CompressionCode &cc, FileBitReader &reader);
 
+        static TransformCode decodeTransformCode(FileBitReader &reader);
+
+        static CompressionCode decodeCompressionCode(FileBitReader &reader);
+
+        static void readBlockAndEncode(size_t size, FileBitReader &reader, FileBitWriter &writer);
+
+        static Block decodeSingleBlock(FileBitReader &reader);
+
         static void writeBlock(Block &block, FileBitWriter &writer);
+
+        static Fitness compressionRatioForIndividualOnBlock(const Individual &individual, const Block &block);
+
+        static Individual evolveBestIndividualForBlock(const Block &block);
+
+        static void encodeUsingIndividual(const Individual &individual, const Block &block, FileBitWriter &writer);
+
+        static void compressBlockUsingEvolution(const Block &block, FileBitWriter &writer);
     };
 
 } // GC

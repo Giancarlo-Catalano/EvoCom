@@ -39,11 +39,14 @@ namespace GC {
 
 
         void forceFitnessCalculationOnPool() {
+            //LOG("Assessing individuals..");
             auto forceAssessmentOnSingle = [&](Individual& individual) {
+                //LOG("Assessing a new individual!");
                 if (!individual.isFitnessAssessed())
                     individual.setFitness(fitnessFunction(individual));
             };
             std::for_each(pool.begin(), pool.end(), forceAssessmentOnSingle);
+            //LOG("Assessment complete!..");
         }
     public:
 
@@ -84,10 +87,11 @@ namespace GC {
 
         template <class List>
         void preparePool(const List& totalPopulation) {
+            //LOG("Preparing the population");
             if (isTournamentSelection()) {
+                //LOG("(Using tournament selection)");
                 //there's nothing special to do...
                 pool = totalPopulation;
-                forceFitnessCalculationOnPool();
             }
             else if (isFitnessProportionateSelection()) {
                 ERROR_NOT_IMPLEMENTED("FitnessProportionateSelection is not implemented yet!");
@@ -95,6 +99,7 @@ namespace GC {
             else {
                 ERROR_NOT_IMPLEMENTED("The requested selection kind hasn't been implemented");
             }
+            forceFitnessCalculationOnPool();
         }
 
         Individual tournamentSelect() {
@@ -105,7 +110,7 @@ namespace GC {
             };
 
             size_t howManyToSelect = (double)(getTournamentProportion()*(double)pool.size());
-            //LOG("proportion is ", getTournamentProportion(), ", will select", howManyToSelect, "individuals, from the pool of size", pool.size());
+            ////LOG("proportion is ", getTournamentProportion(), ", will select", howManyToSelect, "individuals, from the pool of size", pool.size());
             repeat(howManyToSelect, addRandomIndividual);
 
 
@@ -115,6 +120,7 @@ namespace GC {
 
 
         Individual select() {
+            //LOG("Selector is selecting");
             if (isTournamentSelection())
                 return tournamentSelect();
             else {

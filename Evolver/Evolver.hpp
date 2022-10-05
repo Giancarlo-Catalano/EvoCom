@@ -66,9 +66,11 @@ namespace GC {
             repeat(populationSize, addRandomIndividual);
         }
         void evolveSingleGeneration() {
+            //LOG("Starting a new generation");
             Population children;
             selector.preparePool(population);
             auto addNewIndividual = [&]() {
+                //LOG("Adding a new member to the population");
                 children.emplace_back(breeder.mutate(breeder.crossover(selector.select(), selector.select())));
             };
             repeat(populationSize, addNewIndividual);
@@ -106,7 +108,7 @@ namespace GC {
 
         Individual evolveBest() {
             evolveForGenerations();
-            //LOG("After evolving a population, the result is");
+            ////LOG("After evolving a population, the result is");
             //LOGPopulation();
             return getBestOfPopulation();
         }

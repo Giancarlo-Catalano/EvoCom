@@ -45,13 +45,18 @@ namespace GC {
         }
 
         void writeAmount(std::size_t amount, std::size_t amountOfBits) {
-            if (amountOfBits < 1) {
-                LOG("WARNING: called writeAmount(amount=", amount, ", amountOfBits=", amountOfBits);
-                return;
-            }
-            for (int i = amountOfBits - 1; i >= 0; i--)
-                pushBit((amount >> i) & 1);
+            writeVector(getAmountBits(amount, amountOfBits));
         }
+
+        static Bits getAmountBits(std::size_t amount, std::size_t amountOfBits) {
+            Bits result;
+            ASSERT_GREATER(amountOfBits, 0);
+            for (int i = amountOfBits - 1; i >= 0; i--)
+                result.push_back((amount >> i) & 1);
+            return result;
+        }
+
+
 
         void forceLast() {
             if (occupied != 0) {
@@ -70,11 +75,21 @@ namespace GC {
         }
 
         void writeUnary(const size_t input) {
-            repeat(input, [&](){ pushBit(0);});
-            pushBit(1);
+            writeVector(getUnaryBits(input));
+        }
+
+        static Bits getUnaryBits(const size_t input) {
+            Bits result;
+            repeat(input, [&](){ result.push_back(0);});
+            result.push_back(1);
+            return result;
         }
 
         void writeRiceEncoded(size_t input) {
+            writeVector(getRiceEncodedBits(input));
+        }
+
+        static Bits getRiceEncodedBits(size_t input) {
             auto getFutureBitLength = [&](const size_t n) {
                 auto log4 = [&](const size_t x) { return floor_log2(x)/2; };
                 return log4((n+2)*3)*2;
@@ -88,8 +103,12 @@ namespace GC {
             };
 
             size_t bitLength = getFutureBitLength(input);
-            writeUnary((bitLength/2)-1);
-            writeAmount(input-getOffset(bitLength), bitLength);
+            Bits unaryLengthHint = getUnaryBits((bitLength/2)-1);
+            Bits amountHint = getAmountBits(input-getOffset(bitLength), bitLength);
+            Bits result;
+            result.insert(result.end(), unaryLengthHint.begin(), unaryLengthHint.end());
+            result.insert(result.end(), amountHint.begin(), amountHint.end());
+            return result;
         }
     };
 

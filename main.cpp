@@ -7,6 +7,7 @@
 #include "Breeder/Breeder.hpp"
 #include "Selector/Selector.hpp"
 #include "Evolver/Evolver.hpp"
+#include "SimpleCompressor/SimpleCompressor.hpp"
 
 
 int main() {
@@ -24,7 +25,7 @@ int main() {
 
 
 
-#if 0 //compression
+#if 1 //compression
     std::string fileToBeCompressed = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/fencingLogoSimple.png";
     std::string compressedFile = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/compressed.gac";
     std::string decompressedFile = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/decompressedFencingLogoSimple.png";
@@ -132,7 +133,7 @@ int main() {
     repeat(10, selectAndShow);
 #endif
 
-#if 1 //evolver tests
+#if 0 //evolver tests
     GC::Individual GodsImage;
     auto pseudoFitnessFunction = [&](const GC::Individual& ind) {
         return ind.distanceFrom(GodsImage);
