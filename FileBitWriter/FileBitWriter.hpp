@@ -44,11 +44,11 @@ namespace GC {
             pushBit_unsafe(b);
         }
 
-        void writeAmount(std::size_t amount, std::size_t amountOfBits) {
+        void writeAmount(const std::size_t amount, const std::size_t amountOfBits) {
             writeVector(getAmountBits(amount, amountOfBits));
         }
 
-        static Bits getAmountBits(std::size_t amount, std::size_t amountOfBits) {
+        static Bits getAmountBits(const size_t amount, const std::size_t amountOfBits) {
             Bits result;
             ASSERT_GREATER(amountOfBits, 0);
             for (int i = amountOfBits - 1; i >= 0; i--)
@@ -85,11 +85,11 @@ namespace GC {
             return result;
         }
 
-        void writeRiceEncoded(size_t input) {
+        void writeRiceEncoded(const size_t input) {
             writeVector(getRiceEncodedBits(input));
         }
 
-        static Bits getRiceEncodedBits(size_t input) {
+        static Bits getRiceEncodedBits(const size_t input) {
             auto getFutureBitLength = [&](const size_t n) {
                 auto log4 = [&](const size_t x) { return floor_log2(x)/2; };
                 return log4((n+2)*3)*2;

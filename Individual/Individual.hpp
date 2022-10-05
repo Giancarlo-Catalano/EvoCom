@@ -48,6 +48,14 @@ namespace GC {
             cCode(cCode),
             fitness(std::nullopt){}
 
+        Individual(const std::vector<TCode>& tVector, const CCode cCode) :
+            cCode(cCode),
+            tList(),
+            fitness(std::nullopt){
+            ASSERT_EQUALS(tVector.size(), tList.size());
+            std::copy(tVector.begin(), tVector.end(), tList.begin());
+        }
+
         TList& getTList() { return tList;}
 
         std::string to_string() const{

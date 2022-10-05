@@ -69,6 +69,10 @@ namespace GC {
         static void encodeUsingIndividual(const Individual &individual, const Block &block, FileBitWriter &writer);
 
         static void compressBlockUsingEvolution(const Block &block, FileBitWriter &writer);
+
+        static Individual decodeIndividual(FileBitReader &reader);
+
+        static Block decodeUsingIndividual(const Individual &individual, FileBitReader &reader);
     };
 
 } // GC

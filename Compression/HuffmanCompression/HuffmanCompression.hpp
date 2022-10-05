@@ -107,7 +107,6 @@ namespace GC {
             Bits result;
             HuffmanCoder<Symbol, Weight>::Encoder encoder = huffmanCoder.getEncoder([&](bool b){result.push_back(b);});
 
-
             concatenate(result, bitsOfSmallFrequencyReport());
             concatenate(result, bitsOfBlockSize());
             encoder.encodeAll(block);

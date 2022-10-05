@@ -16,9 +16,7 @@ namespace GC {
     void SimpleCompressor::compress(const SimpleCompressor::FileName &fileToCompress,
                                     const SimpleCompressor::FileName &outputFile) {
 
-            //LOG("Attempting to compress the file", fileToCompress);
             size_t originalFileSize = getFileSize(fileToCompress);
-            //LOG("It has size", originalFileSize);
 
             if (originalFileSize == 0) {
                 //LOG("I refuse to compress such a small file");
@@ -28,7 +26,7 @@ namespace GC {
             const size_t blockSize = 256; //for no reason in particular
             const size_t blockAmount = (originalFileSize < blockSize ? 1 : originalFileSize/blockSize);
             const size_t sizeOfLastBlock = (originalFileSize < blockSize ? originalFileSize : blockSize+(originalFileSize%blockSize));
-            //LOG_NOSPACES("Each block has size ", blockSize, ", meaning that there will be ", blockAmount, " blocks, with the last one having size ", sizeOfLastBlock);
+            LOG_NOSPACES("Each block has size ", blockSize, ", meaning that there will be ", blockAmount, " blocks, with the last one having size ", sizeOfLastBlock);
 
             std::ifstream inStream(fileToCompress);
             FileBitReader reader(inStream);
@@ -36,14 +34,19 @@ namespace GC {
             std::ofstream outStream(outputFile);
             FileBitWriter writer(outStream);
 
-            auto processNormalBlock = [&]() {
-                readBlockAndEncode(blockSize, reader, writer);
+            auto readBlockAndCompressOnFile = [&](size_t sizeOfBlock) {
+                Block block = readBlock(sizeOfBlock, reader);
+                Individual bestIndividual = evolveBestIndividualForBlock(block);
+                LOG("For this block, the best individual is", bestIndividual.to_string());
+                encodeIndividual(bestIndividual, writer);
+                encodeUsingIndividual(bestIndividual, block, writer);
             };
 
-            //LOG("And now the blocks will be compressed");
+            //start of actual compression
+            LOG("There are", blockAmount, "blocks to be encoded");
             writer.writeRiceEncoded(blockAmount);
-            repeat(blockAmount-1, processNormalBlock);
-            readBlockAndEncode(sizeOfLastBlock, reader, writer);
+            repeat(blockAmount-1, [&](){readBlockAndCompressOnFile(blockSize);});
+            readBlockAndCompressOnFile(sizeOfLastBlock);
 
             writer.forceLast();
     }
@@ -90,7 +93,6 @@ namespace GC {
         auto getBitsOfCompression = [&](const CCode& cc) {
             return FileBitWriter::getAmountBits(cc, bitSizeForCompressionCode);
         };
-
         Bits result = FileBitWriter::getAmountBits(individual.tList.size(), bitsForAmountOfTransforms);
         for (auto tCode : individual.tList) concatenate(result, getBitsOfTransform(tCode));
         concatenate(result, getBitsOfCompression(individual.cCode));
@@ -98,7 +100,9 @@ namespace GC {
     }
 
     void SimpleCompressor::encodeIndividual(const Individual& individual, FileBitWriter& writer) {
-        writer.writeVector(getBinaryRepresentationOfIndividual(individual));
+        Bits individualAsBits = getBinaryRepresentationOfIndividual(individual);
+        LOG("Encoding the individual, it is:", containerToString(individualAsBits));
+        writer.writeVector(individualAsBits);
     }
 
     void SimpleCompressor::undoTransformCode(const TransformCode& tc, Block& block) {
@@ -129,7 +133,9 @@ namespace GC {
     void SimpleCompressor::readBlockAndEncode(size_t size, FileBitReader &reader, FileBitWriter &writer) {
         //LOG("preparing to compress a block");
         Block block = readBlock(size, reader);
-        compressBlockUsingEvolution(block, writer);
+        Individual bestIndividual = evolveBestIndividualForBlock(block);
+        LOG("For this block, the best individual is", bestIndividual.to_string());
+        encodeUsingIndividual(bestIndividual, block, writer);
     }
 
     void SimpleCompressor::decompress(const SimpleCompressor::FileName &fileToDecompress,
@@ -141,14 +147,14 @@ namespace GC {
         FileBitReader reader(inStream);
         FileBitWriter writer(outStream);
 
-        const size_t blockAmount = reader.readRiceEncoded();
-        //LOG("Read that there will be ", blockAmount, "blocks");
-
-
         auto decodeAndWriteOnFile = [&]() {
-            Block decodedBlock = decodeSingleBlock(reader);
+            Individual individual = decodeIndividual(reader);
+            Block decodedBlock = decodeUsingIndividual(individual, reader);
             writeBlock(decodedBlock, writer);
         };
+
+        const size_t blockAmount = reader.readRiceEncoded();
+        LOG("Read that there will be ", blockAmount, "blocks");
 
         //LOG("starting the decoding of blocks");
         repeat(blockAmount, decodeAndWriteOnFile);
@@ -156,26 +162,27 @@ namespace GC {
 
     }
 
-    Block SimpleCompressor::decodeSingleBlock(FileBitReader &reader) {
-        std::vector<TransformCode> transformCodes;
-        CompressionCode compressionCode;
-
-        auto decodeAndPushTransformCode = [&](){
-            transformCodes.push_back(decodeTransformCode(reader));
+    Individual SimpleCompressor::decodeIndividual(FileBitReader& reader) {
+        std::vector<TCode> tList;
+        auto addTCode = [&](){
+            tList.push_back(static_cast<TCode>(reader.readAmount(bitSizeForTransformCode)));
         };
 
-        size_t amountOfTransformations = reader.readAmount(bitsForAmountOfTransforms);
-        repeat(amountOfTransformations, decodeAndPushTransformCode);
-        compressionCode = decodeCompressionCode(reader);
+        auto extractCCode = [&]() -> CCode{
+            return static_cast<CCode>(reader.readAmount(bitSizeForCompressionCode));
+        };
 
-        LOG("Read that there are", amountOfTransformations, "transformations:");
-        LOG(containerToString(transformCodes));
-        LOG("and the compression is #", compressionCode);
+        size_t amountOfTransforms = reader.readAmount(bitsForAmountOfTransforms);
+        LOG("Read that there will be", amountOfTransforms, "transforms");
+        repeat(amountOfTransforms, addTCode);
+        return Individual(tList, extractCCode());
+    }
 
-        Block decodedBlock = undoCompressionCode(compressionCode, reader);
-        std::for_each(transformCodes.rbegin(), transformCodes.rend(), [&](auto tc){undoTransformCode(tc, decodedBlock);});
-
-        return decodedBlock;
+    Block SimpleCompressor::decodeUsingIndividual(const Individual& individual, FileBitReader& reader) {
+        Block transformedBlock = undoCompressionCode(individual.cCode, reader);
+        std::for_each(individual.tList.rbegin(), individual.tList.rend(), [&](auto tc){
+            undoTransformCode(tc, transformedBlock);});
+        return transformedBlock;
     }
 
     void SimpleCompressor::writeBlock(Block &block, FileBitWriter &writer) {
@@ -209,16 +216,7 @@ namespace GC {
     }
 
     void SimpleCompressor::encodeUsingIndividual(const Individual& individual, const Block& block, FileBitWriter& writer) {
-        //LOG("First we encode the individual itself");
-        encodeIndividual(individual, writer);
-        //LOG("then we write the result of applying the individual onto a block");
         writer.writeVector(applyIndividual(individual, block));
     }
 
-    void SimpleCompressor::compressBlockUsingEvolution(const Block &block, FileBitWriter &writer) {
-        //LOG("First, we find the best individual through evolution");
-        Individual bestIndividual = evolveBestIndividualForBlock(block);
-        LOG("For this block, the best individual is", bestIndividual.to_string());
-        encodeUsingIndividual(bestIndividual, block, writer);
-    }
 } // GC

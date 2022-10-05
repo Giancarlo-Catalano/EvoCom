@@ -133,7 +133,7 @@ size_t getFileSize(const std::string& fileName);
 
 template <class T>
 void concatenate(std::vector<T>& A, const std::vector<T>& B) {
-    A.insert(A.begin(), B.begin(), B.end());
+    A.insert(A.end(), B.begin(), B.end());
 }
 
 
