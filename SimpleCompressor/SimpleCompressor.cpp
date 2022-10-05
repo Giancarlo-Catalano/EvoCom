@@ -236,8 +236,18 @@ namespace GC {
         auto getFitnessOfIndividual = [&](const Individual& i){
             return compressionRatioForIndividualOnBlock(i, block);
         };
-        Evolver evolver(settings, getFitnessOfIndividual);
-        return evolver.evolveBest();
+
+        Individual identityIndividual;
+        LOG("The identityIndividual is", identityIndividual.to_string());
+        std::vector<Individual> hintsForEvolver{identityIndividual};
+        Evolver evolver(settings, getFitnessOfIndividual, hintsForEvolver);
+        Individual bestIndividual = evolver.evolveBest();
+        if (bestIndividual.getFitness() >= 1.0) {
+            LOG("The best individual's fitness (", bestIndividual.getFitness(), ") is counterproductive, returning identity");
+            return identityIndividual;
+        }
+        else
+            return bestIndividual;
     }
 
     void SimpleCompressor::encodeUsingIndividual(const Individual& individual, const Block& block, FileBitWriter& writer) {

@@ -55,6 +55,14 @@ namespace GC {
             return false;
         }
 
+        template <class Function>
+        bool doWithChanceOrElse(Function ifTrue, Function ifFalse) {
+            bool isTrue = flip();
+            if (isTrue) ifTrue();
+            else ifFalse();
+            return isTrue;
+        }
+
         Chance getChance() { return chanceOfTrue;}
 
     };

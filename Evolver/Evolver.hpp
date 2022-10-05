@@ -56,6 +56,16 @@ namespace GC {
             }
 
 
+        Evolver(const EvolutionSettings settings, const FitnessFunction fitnessFunction, std::vector<Individual>& hint) :
+                populationSize(settings.populationSize),
+                amountOfGenerations(settings.generationCount),
+                fitnessFunction(fitnessFunction),
+                breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
+                selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion)), fitnessFunction)
+        {
+            LOG("Called evolver using the hint!");
+            initialiseHintedPopulation(hint);
+        }
         void initialiseRandomPopulation() {
             RandomIndividual randomIndividualMaker;
             population = std::vector<Individual>();
@@ -64,6 +74,21 @@ namespace GC {
             };
 
             repeat(populationSize, addRandomIndividual);
+        }
+
+        void initialiseHintedPopulation(const std::vector<Individual>& hint) {
+            RandomElement<Individual> randomHint(hint);
+            RandomIndividual randomIndividualMaker;
+            RandomChance chooseIfRandom(0.5);//(1.0/(hint.size()+1));
+            population = std::vector<Individual>();
+
+            auto makeIndividual = [&]() -> Individual {
+                if (chooseIfRandom.flip()) return randomIndividualMaker.makeIndividual();
+                else return randomHint.choose();
+            };
+
+            repeat(populationSize, [&](){population.push_back(makeIndividual());});
+            //LOG("at the end, the population is"); LOGPopulation();
         }
         void evolveSingleGeneration() {
             //LOG("Starting a new generation");
