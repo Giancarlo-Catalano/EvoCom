@@ -17,7 +17,6 @@ namespace GC {
     public:
         using FitnessScore = PseudoFitness::FitnessScore;
         using Reliability = PseudoFitness::Reliability;
-        using WeightPair = std::pair<double, double>;
         using Similarity = PseudoFitness::Similarity;
         using FitnessFunction = std::function<FitnessScore(Individual)>;
 
@@ -26,8 +25,6 @@ namespace GC {
         mutable RandomChance randomEvaluationChooser;
         FitnessFunction fitnessFunction;
 
-        FitnessScore getFitnessScore(const Individual& I) const {return I.getFitness();}
-        Reliability getReliability(const Individual& I) const {return I.getFitnessReliability();}
         Similarity getSimilarity(const Individual& A, const Individual& B) const {
             return 1-A.distanceFrom(B);
         }
@@ -40,39 +37,28 @@ namespace GC {
             I.getPseudoFitness().setReliability(r);
         }
 
-        WeightPair getWeightsOfParents(const Individual& A, const Individual& B, const Individual& child) {
-            Reliability rA = getReliability(A);
-            Reliability rB = getReliability(B);
-            Similarity sA = getSimilarity(child, A);
-            Similarity sB = getSimilarity(child, B);
-
-            auto normalize = [&](const WeightPair& values) -> WeightPair {
-                double sum = values.first + values.second;
-                if (sum == 0.0) {return values;}
-                return {values.first / sum, values.second / sum};
-            };
-
-            return normalize({rA*sA, rB*sB}); //so that their sum is 1
+        FitnessScore combineFitnesses(const FitnessScore fA, const FitnessScore fB, const Reliability rA, const Reliability rB, Similarity sA, const Similarity sB) {
+            return ((sA*rA*fA)+(sB*rB*fB))/(sA*rA + sB*rB);
         }
 
-        FitnessScore combineFitnesses(const FitnessScore fA, const FitnessScore fB, const WeightPair& weights) {
-            return fA*weights.first + fB*weights.second;
-        }
-
-        Reliability combineReliabilities(const Reliability rA, const Reliability rB, const WeightPair& weights) {
-            return rA*weights.first + rB*weights.second;
+        Reliability combineReliabilities(const Reliability rA, const Reliability rB, const Similarity sA, const Similarity sB) {
+            return (square(sA*rA)+ square(sB*rB))/(sA*rA+sB*rB);
         }
 
         void assignInheritedFitnessToChild(Individual& child, const Individual& A, const Individual& B) {
-            WeightPair weights = getWeightsOfParents(A, B, child);
-            FitnessScore newFitness = combineFitnesses(getFitnessScore(A), getFitnessScore(B), weights);
-            Reliability newReliability = combineReliabilities(getReliability(A), getReliability(B), weights);
-            setFitnessScore(child, newFitness);
-            setReliability(child, newReliability);
+            FitnessScore fA = A.getFitness();
+            FitnessScore fB = B.getFitness();
+            Reliability rA = A.getFitnessReliability();
+            Reliability rB = B.getFitnessReliability();
+            Similarity sA = getSimilarity(child, A);
+            Similarity sB = getSimilarity(child, B);
+
+            setFitnessScore(child, combineFitnesses(fA, fB, rA, rB, sA, sB));
+            setReliability(child, combineReliabilities(rA, rB, sA, sB));
         }
 
         bool reliabilityTooLow(const Individual& I) const {
-            return getReliability(I) < reliabilityThreshold;
+            return I.getFitnessReliability() < reliabilityThreshold;
         }
 
 

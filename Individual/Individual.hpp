@@ -58,8 +58,8 @@ namespace GC {
         TList& getTList() { return tList;}
 
         std::string to_string() const{
-#define GC_PRINT_TCODE_NAMES 1
-#define GC_PRINT_CCODE_NAMES 1
+#define GC_PRINT_TCODE_NAMES 0
+#define GC_PRINT_CCODE_NAMES 0
             std::stringstream ss;
             ss<<"{";
 

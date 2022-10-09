@@ -147,6 +147,7 @@ Item getMinimumBy(const std::vector<Item> &list, const ScoreFunction func) {
     // compare function, not usually what I need
     //plus it gets recalculated over and over, it's very inefficient for my purposes
     ASSERT_NOT_EMPTY(list);
+
     Item lowestSoFar = list[0];
     auto lowestScore = func(lowestSoFar);
     auto updateLower = [&](const Item newItem) {
@@ -162,6 +163,9 @@ Item getMinimumBy(const std::vector<Item> &list, const ScoreFunction func) {
     return lowestSoFar;
 }
 
+
+template <class T>
+T square(const T x) {return x*x;}
 
 
 

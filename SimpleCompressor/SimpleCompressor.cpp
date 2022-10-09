@@ -221,10 +221,11 @@ namespace GC {
 
         Individual identityIndividual;
         std::vector<Individual> hintsForEvolver{identityIndividual};
-        Evolver evolver(settings, getFitnessOfIndividual, hintsForEvolver);
+        Evolver evolver(settings, getFitnessOfIndividual);
         Individual bestIndividual = evolver.evolveBest();
         if (bestIndividual.getFitness() >= 1.0) {
             LOG("The best individual's fitness (", bestIndividual.getFitness(), ") is counterproductive, returning identity");
+            evolver.forceEvaluation(identityIndividual);
             return identityIndividual;
         }
         else

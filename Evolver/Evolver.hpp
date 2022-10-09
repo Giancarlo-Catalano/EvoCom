@@ -121,6 +121,10 @@ namespace GC {
                           [&](Individual& i){evaluator.forceEvaluation(i);});
         }
 
+        void forceEvaluation(Individual& i) {
+            evaluator.forceEvaluation(i);
+        }
+
         void LOGPopulation() {
             LOG("The evolver's population is ");
             std::for_each(population.begin(), population.end(), [&](Individual i){LOG(i.to_string());});
@@ -146,6 +150,15 @@ namespace GC {
 
         void reset() {
             initialiseRandomPopulation();
+        }
+
+
+        bool isPoolIsFullyAssessed() {
+            auto isAssessed = [&](const Individual& i) {
+                return i.getFitnessReliability() > 0.01;
+            };
+
+            return std::all_of(population.begin(), population.end(), isAssessed);
         }
 
 

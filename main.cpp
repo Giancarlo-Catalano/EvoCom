@@ -8,6 +8,8 @@
 #include "Selector/Selector.hpp"
 #include "Evolver/Evolver.hpp"
 #include "SimpleCompressor/SimpleCompressor.hpp"
+#include "Individual/TCodes.hpp"
+#include "Evaluator/Evaluator.hpp"
 
 
 int main() {
@@ -39,14 +41,29 @@ int main() {
 #endif
 
 #if 0 // individuals
-    GC::Individual ind;
-    LOG(ind.to_string());
-    ind.integerInterpretationCriteria = GC::Individual::TwoBytes;
-    ind.blockDelimitingCriteria = GC::Individual::SimilarityBasedBlocks(0.5);
-    ind.setTItem(GC::Individual::T_RunLengthTransform, 2);
-    ind.cCode = GC::Individual::C_HuffmanCompression;
+    GC::Individual a;
+    GC::Individual b;
+    b.setTItem(GC::T_DeltaTransform, 0);
+    b.setTItem(GC::T_RunLengthTransform, 1);
 
-    LOG(ind.to_string());
+    GC::Individual c;
+    c.setTItem(b.readTCode(0), 0);
+
+    a.getPseudoFitness().setReliability(1);
+    a.getPseudoFitness().setFitnessScore(0.3);
+
+    b.getPseudoFitness().setReliability(1);
+    b.getPseudoFitness().setFitnessScore(0.6);
+
+    LOG("a=", a.to_string());
+    LOG("b=", b.to_string());
+    LOG("c=", c.to_string());
+
+
+    GC::Evaluator evaluator([](const GC::Individual& i) {return 666.0;});
+    evaluator.decideFitness(c, a, b);
+    LOG("After evaluation, c=", c.to_string());
+
 #endif
 
 #if 0 //randomness tests
