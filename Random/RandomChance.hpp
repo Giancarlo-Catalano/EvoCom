@@ -46,6 +46,10 @@ namespace GC {
             return chanceOfTrue >= randomDouble();
         }
 
+        bool shouldDo() {
+            return flip();
+        }
+
         template <class Function>
         bool doWithChance(Function func) {
             if (flip()) {

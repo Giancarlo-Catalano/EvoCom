@@ -4,9 +4,9 @@
 
 #ifndef DISS_SIMPLEPROTOTYPE_PSEUDOFITNESS_HPP
 #define DISS_SIMPLEPROTOTYPE_PSEUDOFITNESS_HPP
-#include "../Random/RandomChance.hpp"
 #include <sstream>
 #include <iomanip>
+#include <cmath>
 
 namespace GC {
 
@@ -30,13 +30,14 @@ namespace GC {
             return ss.str();
         }
 
+    public:
         Reliability getReliability() const {return reliability;}
         FitnessScore getFitnessScore() const {return fitnessScore;}
         bool isActualFitness() const {return reliability == 1.0;}
 
 
         PseudoFitness():
-            fitnessScore(MAXFLOAT),
+            fitnessScore(10000), //TODO find an appropriate DOUBLE_MAX
             reliability(0){
         }
 
