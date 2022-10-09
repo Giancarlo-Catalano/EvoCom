@@ -21,11 +21,12 @@ add_subdirectory(Random)
 add_subdirectory(Selector)
 add_subdirectory(Evolver)
 add_subdirectory(PseudoFitness)
+add_subdirectory(Evaluator)
 
 add_executable(Diss_SimplePrototype main.cpp Utilities names.hpp)
 
 #declare which directories are used for linking
-target_link_libraries(${PROJECT_NAME} Utilities Individual SimpleCompressor Breeder Random Selector Evolver PseudoFitness)
+target_link_libraries(${PROJECT_NAME} Utilities Individual SimpleCompressor Breeder Random Selector Evolver PseudoFitness Evaluator)
 
 
 
