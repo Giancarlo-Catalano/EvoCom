@@ -22,9 +22,9 @@ namespace GC {
     class Individual {
 
     public: //types
-        using Fitness = double; //will be a ratio
-        using FitnessFunction = std::function<Fitness(Individual)>;
-        using FitnessOfIndividualOnBlock = std::function<Fitness(Individual, Block)>;
+        using FitnessScore = double; //will be a ratio
+        using FitnessFunction = std::function<FitnessScore(Individual)>;
+        using FitnessOfIndividualOnBlock = std::function<FitnessScore(Individual, Block)>;
 
         static const size_t TListLength = 6;
 
@@ -34,7 +34,7 @@ namespace GC {
     public: //attributes, these are all public
         TList tList;
         CCode cCode;
-        std::optional<Fitness> fitness;
+        std::optional<FitnessScore> fitness;
 
     public: //methods
         Individual() :
@@ -141,12 +141,12 @@ namespace GC {
             return fitness.has_value();
         }
 
-        Fitness getFitness() const {
+        FitnessScore getFitness() const {
             ASSERT(isFitnessAssessed());
             return fitness.value();
         }
 
-        void setFitness(const Fitness newFitness) {
+        void setFitness(const FitnessScore newFitness) {
             fitness = newFitness;
         }
 

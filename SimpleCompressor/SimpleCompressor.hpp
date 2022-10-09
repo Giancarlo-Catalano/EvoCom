@@ -22,7 +22,7 @@ namespace GC {
         using TList = Individual::TList;
         using CompressionCode = CCode;
         using Bits = std::vector<bool>;
-        using Fitness = Individual::Fitness;
+        using Fitness = Individual::FitnessScore;
 
         std::string to_string();
 

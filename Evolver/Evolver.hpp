@@ -30,7 +30,7 @@ namespace GC {
                 tournamentSelectionProportion(0.80){}
         };
 
-        using Fitness = Individual::Fitness;
+        using Fitness = Individual::FitnessScore;
         using FitnessFunction = Individual::FitnessFunction;
 
     private:

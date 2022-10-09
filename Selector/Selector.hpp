@@ -15,7 +15,7 @@ namespace GC {
 
     class Selector {
     public:
-        using Fitness = Individual::Fitness;
+        using Fitness = Individual::FitnessScore;
         using FitnessFunction = Individual::FitnessFunction;
 
         struct TournamentSelection {
