@@ -204,7 +204,7 @@ namespace GC {
     }
 
     SimpleCompressor::Fitness SimpleCompressor::compressionRatioForIndividualOnBlock(const Individual& individual, const Block& block) {
-        size_t originalSize = block.size();
+        size_t originalSize = block.size()*8;
         size_t compressedSize = applyIndividual(individual, block).size() + getBinaryRepresentationOfIndividual(individual).size();
         ASSERT_NOT_EQUALS(compressedSize, 0);
         ASSERT_NOT_EQUALS(originalSize, 0);
@@ -225,6 +225,9 @@ namespace GC {
         Individual bestIndividual = evolver.evolveBest();
         if (bestIndividual.getFitness() >= 1.0) {
             LOG("The best individual's fitness (", bestIndividual.getFitness(), ") is counterproductive, returning identity");
+            LOG("the block is ", containerToString(block));
+            LOG("the best individual is ", bestIndividual.to_string());
+            LOG("When applying the ind, it is", containerToString(applyIndividual(bestIndividual, block)));
             evolver.forceEvaluation(identityIndividual);
             return identityIndividual;
         }
