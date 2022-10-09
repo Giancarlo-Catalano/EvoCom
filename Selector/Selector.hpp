@@ -8,15 +8,20 @@
 #include "../Individual/Individual.hpp"
 #include "../Random/RandomElement.hpp"
 #include "../Utilities/utilities.hpp"
+#include "../Evaluator/Evaluator.hpp"
 #include "../names.hpp"
 #include <sstream>
 
 namespace GC {
 
+    /**
+     * This class will hold a pool of individuals, and will be used to select them, based on their fitness
+     * It does not care about how the fitness is stored or calculated, and just assumes that the individuals will always have a fitness score precalculated and embedded in them
+     */
     class Selector {
     public:
-        using Fitness = Individual::FitnessScore;
-        using FitnessFunction = Individual::FitnessFunction;
+        using Fitness = PseudoFitness::FitnessScore;
+        using FitnessFunction = Evaluator::FitnessFunction;
 
         struct TournamentSelection {
             const Proportion proportionToKeep;
@@ -33,26 +38,14 @@ namespace GC {
     private:
         std::vector<Individual> pool;
         SelectionKind selectionKind;
-        FitnessFunction fitnessFunction;
 
         RandomElement<Individual> randomIndividualChooser;
 
-
-        void forceFitnessCalculationOnPool() {
-            //LOG("Assessing individuals..");
-            auto forceAssessmentOnSingle = [&](Individual& individual) {
-                //LOG("Assessing a new individual!");
-                if (!individual.isFitnessAssessed())
-                    individual.setFitness(fitnessFunction(individual));
-            };
-            std::for_each(pool.begin(), pool.end(), forceAssessmentOnSingle);
-            //LOG("Assessment complete!..");
-        }
     public:
 
-        Selector(const SelectionKind& selectionKind, FitnessFunction fitnessFunction) :
-            selectionKind(selectionKind),
-            fitnessFunction(fitnessFunction){};
+        Selector(const SelectionKind& selectionKind) :
+            selectionKind(selectionKind)
+            {};
 
         bool isTournamentSelection() {
             return std::holds_alternative<TournamentSelection>(selectionKind);
@@ -99,7 +92,6 @@ namespace GC {
             else {
                 ERROR_NOT_IMPLEMENTED("The requested selection kind hasn't been implemented");
             }
-            forceFitnessCalculationOnPool();
         }
 
         Individual tournamentSelect() {

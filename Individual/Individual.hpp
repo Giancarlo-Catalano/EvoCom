@@ -16,16 +16,15 @@
 #include "CCodes.hpp"
 #include "../Random/RandomElement.hpp"
 #include <optional>
+#include "../PseudoFitness/PseudoFitness.hpp"
 
 namespace GC {
 
     class Individual {
 
     public: //types
-        using FitnessScore = double; //will be a ratio
-        using FitnessFunction = std::function<FitnessScore(Individual)>;
-        using FitnessOfIndividualOnBlock = std::function<FitnessScore(Individual, Block)>;
-
+        using Fitness = PseudoFitness;
+        using FitnessScore = PseudoFitness::FitnessScore;
         static const size_t TListLength = 6;
 
 
@@ -34,24 +33,24 @@ namespace GC {
     public: //attributes, these are all public
         TList tList;
         CCode cCode;
-        std::optional<FitnessScore> fitness;
+        Fitness fitness;
 
     public: //methods
         Individual() :
             tList(),
             cCode(C_IdentityCompression),
-            fitness(std::nullopt){}
+            fitness(){}
 
 
         Individual(const TList& tList, const CCode cCode) :
             tList(tList),
             cCode(cCode),
-            fitness(std::nullopt){}
+            fitness(){}
 
         Individual(const std::vector<TCode>& tVector, const CCode cCode) :
             cCode(cCode),
             tList(),
-            fitness(std::nullopt){
+            fitness(){
             ASSERT_EQUALS(tVector.size(), tList.size());
             std::copy(tVector.begin(), tVector.end(), tList.begin());
         }
@@ -89,18 +88,10 @@ namespace GC {
                     ss << static_cast<int>(cCode);
             };
 
-            auto showFitness = [&]() {
-                ss<<"Fitness:";
-                if (fitness.has_value())
-                    ss<<std::setprecision(2)<<fitness.value();
-                else
-                    ss<<"Not assessed yet";
-            };
-
 
             showTList(GC_PRINT_TCODE_NAMES);ss<<", ";
             showCCode(GC_PRINT_CCODE_NAMES);ss<<", ";
-            showFitness();
+            ss<<fitness.to_string();
 
             return ss.str();
         }
@@ -138,17 +129,16 @@ namespace GC {
         }
 
         bool isFitnessAssessed() const{
-            return fitness.has_value();
+            return fitness.isActualFitness();
         }
 
         FitnessScore getFitness() const {
-            ASSERT(isFitnessAssessed());
-            return fitness.value();
+            return fitness.getFitnessScore();
         }
 
-        void setFitness(const FitnessScore newFitness) {
-            fitness = newFitness;
-        }
+        Fitness& getPseudoFitness() {return fitness;}
+
+        PseudoFitness::Reliability getFitnessReliability() const {return fitness.getReliability();}
 
 
         double distanceFrom(const Individual& other) const {
@@ -163,10 +153,6 @@ namespace GC {
 
             currentSum += discreteMetric(readCCode(), other.readCCode());
             return currentSum / (double(tList.size() + 1)); //the average
-        }
-
-        void invalidateFitness() {
-            fitness = std::nullopt;
         }
     };
 

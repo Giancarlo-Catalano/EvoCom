@@ -19,6 +19,7 @@ namespace GC {
     private:
         FitnessScore fitnessScore;
         Reliability reliability;
+    public:
 
         std::string to_string() const {
             std::stringstream ss;
@@ -30,7 +31,6 @@ namespace GC {
             return ss.str();
         }
 
-    public:
         Reliability getReliability() const {return reliability;}
         FitnessScore getFitnessScore() const {return fitnessScore;}
         bool isActualFitness() const {return reliability == 1.0;}
@@ -57,7 +57,13 @@ namespace GC {
         }
 
 
+        void setFitnessScore(const FitnessScore f) {
+            fitnessScore = f;
+        }
 
+        void setReliability(const Reliability r) {
+            reliability = r;
+        }
     };
 
 } // GC

@@ -31,41 +31,19 @@ namespace GC {
         };
 
         using Fitness = Individual::FitnessScore;
-        using FitnessFunction = Individual::FitnessFunction;
+        using FitnessFunction = Evaluator::FitnessFunction;
 
     private:
         Breeder breeder;
         Selector selector;
+        Evaluator evaluator;
         Population population;
 
         size_t populationSize;
         size_t amountOfGenerations;
 
-        FitnessFunction fitnessFunction;
 
-
-    public:
-        Evolver(const EvolutionSettings settings, const FitnessFunction fitnessFunction) :
-            populationSize(settings.populationSize),
-            amountOfGenerations(settings.generationCount),
-            fitnessFunction(fitnessFunction),
-            breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
-            selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion)), fitnessFunction)
-            {
-                initialiseRandomPopulation();
-            }
-
-
-        Evolver(const EvolutionSettings settings, const FitnessFunction fitnessFunction, std::vector<Individual>& hint) :
-                populationSize(settings.populationSize),
-                amountOfGenerations(settings.generationCount),
-                fitnessFunction(fitnessFunction),
-                breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
-                selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion)), fitnessFunction)
-        {
-            LOG("Called evolver using the hint!");
-            initialiseHintedPopulation(hint);
-        }
+    private: //methods
         void initialiseRandomPopulation() {
             RandomIndividual randomIndividualMaker;
             population = std::vector<Individual>();
@@ -74,6 +52,7 @@ namespace GC {
             };
 
             repeat(populationSize, addRandomIndividual);
+            forcePopulationFitnessAssessment();
         }
 
         void initialiseHintedPopulation(const std::vector<Individual>& hint) {
@@ -88,15 +67,45 @@ namespace GC {
             };
 
             repeat(populationSize, [&](){population.push_back(makeIndividual());});
+            forcePopulationFitnessAssessment();
             //LOG("at the end, the population is"); LOGPopulation();
         }
+
+
+    public:
+        Evolver(const EvolutionSettings settings, const FitnessFunction fitnessFunction) :
+            populationSize(settings.populationSize),
+            amountOfGenerations(settings.generationCount),
+            evaluator(fitnessFunction),
+            breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
+            selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion)))
+            {
+                initialiseRandomPopulation();
+            }
+
+
+        Evolver(const EvolutionSettings settings, const FitnessFunction fitnessFunction, std::vector<Individual>& hint) :
+                populationSize(settings.populationSize),
+                amountOfGenerations(settings.generationCount),
+                evaluator(fitnessFunction),
+                breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
+                selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion)))
+        {
+            LOG("Called evolver using the hint!");
+            initialiseHintedPopulation(hint);
+        }
+
         void evolveSingleGeneration() {
             //LOG("Starting a new generation");
             Population children;
             selector.preparePool(population);
             auto addNewIndividual = [&]() {
                 //LOG("Adding a new member to the population");
-                children.emplace_back(breeder.mutate(breeder.crossover(selector.select(), selector.select())));
+                Individual parentA = selector.select();
+                Individual parentB = selector.select();
+                Individual newChild = breeder.mutate(breeder.crossover(parentA, parentB));
+                evaluator.decideFitness(newChild, parentA, parentB);
+                children.emplace_back(newChild);
             };
             repeat(populationSize, addNewIndividual);
             population = children;
@@ -108,11 +117,8 @@ namespace GC {
         }
 
         void forcePopulationFitnessAssessment() {
-            auto forceAssessmentOnSingle = [&](Individual& individual) {
-                if (!individual.isFitnessAssessed())
-                    individual.setFitness(fitnessFunction(individual));
-            };
-            std::for_each(population.begin(), population.end(), forceAssessmentOnSingle);
+            std::for_each(population.begin(), population.end(),
+                          [&](Individual& i){evaluator.forceEvaluation(i);});
         }
 
         void LOGPopulation() {

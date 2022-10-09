@@ -116,7 +116,6 @@ namespace GC {
 
     void SimpleCompressor::encodeIndividual(const Individual& individual, FileBitWriter& writer) {
         Bits individualAsBits = getBinaryRepresentationOfIndividual(individual);
-        LOG("Encoding the individual, it is:", containerToString(individualAsBits));
         writer.writeVector(individualAsBits);
     }
 
@@ -146,23 +145,6 @@ namespace GC {
             default: return IdentityCompression().decompress(reader);
         }
     }
-
-    SimpleCompressor::TransformCode SimpleCompressor::decodeTransformCode(FileBitReader &reader) {
-        return static_cast<TransformCode>(reader.readAmount(bitSizeForTransformCode));
-    }
-
-    SimpleCompressor::CompressionCode SimpleCompressor::decodeCompressionCode(FileBitReader &reader) {
-        return static_cast<CompressionCode>(reader.readAmount(bitSizeForCompressionCode));
-    }
-
-    void SimpleCompressor::readBlockAndEncode(size_t size, FileBitReader &reader, FileBitWriter &writer) {
-        //LOG("preparing to compress a block");
-        Block block = readBlock(size, reader);
-        Individual bestIndividual = evolveBestIndividualForBlock(block);
-        LOG("For this block, the best individual is", bestIndividual.to_string());
-        encodeUsingIndividual(bestIndividual, block, writer);
-    }
-
     void SimpleCompressor::decompress(const SimpleCompressor::FileName &fileToDecompress,
                                       const SimpleCompressor::FileName &outputFile) {
 
@@ -238,7 +220,6 @@ namespace GC {
         };
 
         Individual identityIndividual;
-        LOG("The identityIndividual is", identityIndividual.to_string());
         std::vector<Individual> hintsForEvolver{identityIndividual};
         Evolver evolver(settings, getFitnessOfIndividual, hintsForEvolver);
         Individual bestIndividual = evolver.evolveBest();
