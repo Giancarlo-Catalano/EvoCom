@@ -22,6 +22,7 @@ add_subdirectory(Selector)
 add_subdirectory(Evolver)
 add_subdirectory(PseudoFitness)
 add_subdirectory(Evaluator)
+add_subdirectory(AbstractBit)
 
 add_executable(Diss_SimplePrototype main.cpp Utilities names.hpp)
 

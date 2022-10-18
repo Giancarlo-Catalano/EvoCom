@@ -1,0 +1,16 @@
+//
+// Created by gian on 18/10/22.
+//
+
+#ifndef DISS_SIMPLEPROTOTYPE_ABSTRACTBITWRITER_HPP
+#define DISS_SIMPLEPROTOTYPE_ABSTRACTBITWRITER_HPP
+
+namespace GC {
+
+    class AbstractBitWriter {
+
+    };
+
+} // GC
+
+#endif //DISS_SIMPLEPROTOTYPE_ABSTRACTBITWRITER_HPP

@@ -28,7 +28,6 @@ namespace GC {
                 return;
             }
 
-            const size_t blockSize = 256; //for no reason in particular
             const size_t blockAmount = (originalFileSize < blockSize ? 1 : originalFileSize/blockSize);
             const size_t sizeOfLastBlock = (originalFileSize < blockSize ? originalFileSize : blockSize+(originalFileSize%blockSize));
             LOG_NOSPACES("Each block has size ", blockSize, ", meaning that there will be ", blockAmount, " blocks, with the last one having size ", sizeOfLastBlock);
@@ -204,10 +203,11 @@ namespace GC {
     }
 
     SimpleCompressor::Fitness SimpleCompressor::compressionRatioForIndividualOnBlock(const Individual& individual, const Block& block) {
-        size_t originalSize = block.size()*8;
+        size_t originalSize = block.size()*8; //block is made of bytes, so it needs to be multiplied
         size_t compressedSize = applyIndividual(individual, block).size() + getBinaryRepresentationOfIndividual(individual).size();
-        ASSERT_NOT_EQUALS(compressedSize, 0);
-        ASSERT_NOT_EQUALS(originalSize, 0);
+        //a compressed block is a sequence of bits, not necessarly in multiples of 8
+        ASSERT_NOT_EQUALS(compressedSize, 0); //would be impossible
+        ASSERT_NOT_EQUALS(originalSize, 0);   //would cause errors
         return (double) (compressedSize) / (originalSize);
     }
 
