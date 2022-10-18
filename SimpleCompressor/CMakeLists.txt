@@ -1,3 +1,3 @@
 add_library(SimpleCompressor SimpleCompressor.hpp SimpleCompressor.cpp)
-target_link_libraries(SimpleCompressor BlockReport Individual)
+target_link_libraries(SimpleCompressor BlockReport Individual AbstractBitWriter)
 

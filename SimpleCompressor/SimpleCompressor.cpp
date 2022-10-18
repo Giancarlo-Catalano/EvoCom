@@ -15,6 +15,8 @@
 #include "../Transformation/Transformations/SubtractAverageTransform.hpp"
 #include "../Transformation/Transformations/SubtractXORAverageTransform.hpp"
 #include "../Transformation/Transformations/StrideTransform.hpp"
+#include "../AbstractBit/FileBitWriter/FileBitWriter.hpp"
+#include "../AbstractBit/BitCounter/BitCounter.hpp"
 #include <vector>
 
 namespace GC {
@@ -44,7 +46,7 @@ namespace GC {
                 Individual bestIndividual = evolveBestIndividualForBlock(block);
                 LOG("For this block, the best individual is", bestIndividual.to_string());
                 encodeIndividual(bestIndividual, writer);
-                encodeUsingIndividual(bestIndividual, block, writer);
+                applyIndividual(bestIndividual, block, writer);
             };
 
             //start of actual compression
@@ -84,38 +86,33 @@ namespace GC {
         }
     }
 
-    SimpleCompressor::Bits SimpleCompressor::applyCompressionCode(const SimpleCompressor::CompressionCode &cc,const Block &block) {
+    void SimpleCompressor::applyCompressionCode(const SimpleCompressor::CompressionCode &cc,const Block &block, AbstractBitWriter& writer) {
         switch (cc) {
-            case C_HuffmanCompression: return HuffmanCompression().compressIntoBits(block);
-            case C_RunLengthCompression: return RunLengthCompression().compressIntoBits(block);
-            default: return IdentityCompression().compressIntoBits(block);
+            case C_HuffmanCompression: return HuffmanCompression().compress(block, writer);
+            case C_RunLengthCompression: return RunLengthCompression().compress(block, writer);
+            default: return IdentityCompression().compress(block, writer);
         }
     }
 
-    SimpleCompressor::Bits SimpleCompressor::applyIndividual(const Individual &individual, const Block &block) {
+    void SimpleCompressor::applyIndividual(const Individual &individual, const Block &block, AbstractBitWriter& writer) {
         ////LOG("Applying individual ", individual.to_string());
         Block toBeProcessed = block;
         for (auto tCode : individual.tList) toBeProcessed = applyTransformCode(tCode, toBeProcessed);
-        return applyCompressionCode(individual.cCode, toBeProcessed);
+        applyCompressionCode(individual.cCode, toBeProcessed, writer);
     }
 
-    SimpleCompressor::Bits SimpleCompressor::getBinaryRepresentationOfIndividual(const Individual& individual){
-        auto getBitsOfTransform = [&](const TCode& tc) {
-            return FileBitWriter::getAmountBits(tc, bitSizeForTransformCode);
+
+    void SimpleCompressor::encodeIndividual(const Individual& individual, AbstractBitWriter& writer){
+        auto encodeTransform = [&](const TCode tc) {
+            writer.writeAmount(tc, bitSizeForCompressionCode);
+        };
+        auto encodeCompression = [&](const CCode cc) {
+            writer.writeAmount(cc, bitSizeForCompressionCode);
         };
 
-        auto getBitsOfCompression = [&](const CCode& cc) {
-            return FileBitWriter::getAmountBits(cc, bitSizeForCompressionCode);
-        };
-        Bits result = FileBitWriter::getAmountBits(individual.tList.size(), bitsForAmountOfTransforms);
-        for (auto tCode : individual.tList) concatenate(result, getBitsOfTransform(tCode));
-        concatenate(result, getBitsOfCompression(individual.cCode));
-        return result;
-    }
-
-    void SimpleCompressor::encodeIndividual(const Individual& individual, FileBitWriter& writer) {
-        Bits individualAsBits = getBinaryRepresentationOfIndividual(individual);
-        writer.writeVector(individualAsBits);
+        writer.writeAmount(individual.tList.size(), bitsForAmountOfTransforms);
+        for (const auto tCode: individual.tList) encodeTransform(tCode);
+        encodeCompression(individual.cCode);
     }
 
     void SimpleCompressor::undoTransformCode(const TransformCode& tc, Block& block) {
@@ -203,10 +200,14 @@ namespace GC {
     }
 
     SimpleCompressor::Fitness SimpleCompressor::compressionRatioForIndividualOnBlock(const Individual& individual, const Block& block) {
-        size_t originalSize = block.size()*8; //block is made of bytes, so it needs to be multiplied
-        size_t compressedSize = applyIndividual(individual, block).size() + getBinaryRepresentationOfIndividual(individual).size();
+        size_t originalSize = block.size()*8;
+
+        BitCounter counterWriter;
+        encodeIndividual(individual, counterWriter);
+        applyIndividual(individual, block, counterWriter);
+        size_t compressedSize = counterWriter.getCounterValue();
         //a compressed block is a sequence of bits, not necessarly in multiples of 8
-        ASSERT_NOT_EQUALS(compressedSize, 0); //would be impossible
+                ASSERT_NOT_EQUALS(compressedSize, 0); //would be impossible
         ASSERT_NOT_EQUALS(originalSize, 0);   //would cause errors
         return (double) (compressedSize) / (originalSize);
     }
@@ -227,16 +228,11 @@ namespace GC {
             LOG("The best individual's fitness (", bestIndividual.getFitness(), ") is counterproductive, returning identity");
             LOG("the block is ", containerToString(block));
             LOG("the best individual is ", bestIndividual.to_string());
-            LOG("When applying the ind, it is", containerToString(applyIndividual(bestIndividual, block)));
             evolver.forceEvaluation(identityIndividual);
             return identityIndividual;
         }
         else
             return bestIndividual;
-    }
-
-    void SimpleCompressor::encodeUsingIndividual(const Individual& individual, const Block& block, FileBitWriter& writer) {
-        writer.writeVector(applyIndividual(individual, block));
     }
 
 } // GC

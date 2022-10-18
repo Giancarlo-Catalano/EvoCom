@@ -7,6 +7,7 @@
 
 #include "../Compression.hpp"
 #include "../../Utilities/utilities.hpp"
+#include "../../AbstractBit/AbstractBitWriter/AbstractBitWriter.hpp"
 
 namespace GC {
 
@@ -15,14 +16,9 @@ namespace GC {
 
         std::string to_string() const {return "{IdentityCompression}";}
 
-        Bits compressIntoBits(const Block& block) const {
-            auto bitsOfUnit = [&](const Unit& unit) {
-                return FileBitWriter::getAmountBits(unit, bitsInType<Unit>());
-            };
-
-            Bits result = FileBitWriter::getRiceEncodedBits(block.size()); //needs to encode its size
-            for (const auto& unit: block) concatenate(result, bitsOfUnit(unit));
-            return result;
+        void compress(const Block& block, AbstractBitWriter& writer) const {
+            writer.writeRiceEncoded(block.size());
+            for (const auto& unit: block) writer.writeByte(unit);
         }
 
         Block decompress(FileBitReader& reader) const {

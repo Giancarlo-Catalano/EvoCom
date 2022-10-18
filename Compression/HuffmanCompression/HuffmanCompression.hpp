@@ -9,6 +9,7 @@
 #include "../../HuffmanCoder/HuffmanCoder.hpp"
 #include "../Compression.hpp"
 #include "../../BlockReport/BlockReport.hpp"
+#include "../../AbstractBit/AbstractBitWriter/AbstractBitWriter.hpp"
 #include <sstream>
 #include <cmath>
 
@@ -81,39 +82,26 @@ namespace GC {
             return "{HuffmanCompression}";
         }
 
-        Bits compressIntoBits(const Block& block) const override {
+        void compress(const Block& block, AbstractBitWriter& writer) const {
             SmallFrequencyReport smallFrequencyReport = getSmallFrequencyReport(block);
             HuffmanCoder<Symbol, Weight> huffmanCoder(expandSmallFrequencyReport(smallFrequencyReport));
 
-            //LOG("huffmanCoder:", huffmanCoder.to_string());
-
-            auto bitsOfWeight = [&](const Weight w) {
-                //LOG("encoding the weight", w);
-                return FileBitWriter::getAmountBits(w-1, bitSizeOfFrequency);
+            auto encodeWeight = [&](const Weight w) {
+                return writer.writeAmount(w-1, bitSizeOfFrequency);
             };
 
-            auto bitsOfSmallFrequencyReport = [&]() {
-                Bits result;
-                //LOG("Encoding the small frequency report");
-                for (const auto& weight : smallFrequencyReport) concatenate(result, bitsOfWeight(weight));
-                return result;
+            auto encodeSmallFrequencyReport = [&]() {
+                for (const auto& weight : smallFrequencyReport) encodeWeight(weight);
             };
-
-            auto bitsOfBlockSize = [&](){
-                //LOG("Encoding the size of the block:", block.size());
-                return FileBitWriter::getRiceEncodedBits(block.size());
-            };
-
             Bits result;
-            HuffmanCoder<Symbol, Weight>::Encoder encoder = huffmanCoder.getEncoder([&](bool b){result.push_back(b);});
+            HuffmanCoder<Symbol, Weight>::Encoder encoder = huffmanCoder.getEncoder([&](bool b){writer.pushBit(b);});
 
-            concatenate(result, bitsOfSmallFrequencyReport());
-            concatenate(result, bitsOfBlockSize());
+            encodeSmallFrequencyReport();
+            writer.writeRiceEncoded(block.size());
             encoder.encodeAll(block);
-            return result;
         }
 
-        Block decompress(FileBitReader& reader) const override {
+        Block decompress(FileBitReader& reader) override {
             auto readSingleWeight = [&]() -> Weight {
                 return reader.readAmount(bitSizeOfFrequency)+1;
             };

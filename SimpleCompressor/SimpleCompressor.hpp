@@ -11,6 +11,7 @@
 #include "../Compression/Compression.hpp"
 #include "../BlockReport/BlockReport.hpp"
 #include "../Individual/Individual.hpp"
+#include "../AbstractBit/FileBitWriter/FileBitWriter.hpp"
 
 namespace GC {
 
@@ -42,13 +43,11 @@ namespace GC {
 
         static Block applyTransformCode(const TransformCode &tc, const Block &block);
 
-        static Bits applyCompressionCode(const CompressionCode &cc, const Block &block);
+        static void applyCompressionCode(const CompressionCode &cc, const Block &block, AbstractBitWriter& writer);
 
-        static Bits applyIndividual(const Individual &individual, const Block &block);
+        static void applyIndividual(const Individual &individual, const Block &block, AbstractBitWriter& writer);
 
-        static Bits getBinaryRepresentationOfIndividual(const Individual &individual);
-
-        static void encodeIndividual(const Individual &individual, FileBitWriter &writer);
+        static void encodeIndividual(const Individual &individual, AbstractBitWriter& writer);
 
         static void undoTransformCode(const TransformCode &tc, Block &block);
 
@@ -67,10 +66,6 @@ namespace GC {
         static Fitness compressionRatioForIndividualOnBlock(const Individual &individual, const Block &block);
 
         static Individual evolveBestIndividualForBlock(const Block &block);
-
-        static void encodeUsingIndividual(const Individual &individual, const Block &block, FileBitWriter &writer);
-
-        static void compressBlockUsingEvolution(const Block &block, FileBitWriter &writer);
 
         static Individual decodeIndividual(FileBitReader &reader);
 

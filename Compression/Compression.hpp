@@ -7,22 +7,17 @@
 
 #include "../names.hpp"
 #include <fstream>
-#include "../FileBitWriter/FileBitWriter.hpp"
-#include "../FileBitReader/FileBitReader.hpp"
+#include "../AbstractBit/AbstractBitWriter/AbstractBitWriter.hpp"
 #include "../names.hpp"
+#include "../FileBitReader/FileBitReader.hpp"
 
 namespace GC {
 
     class Compression {
     public:
+        virtual void compress(const Block& block, AbstractBitWriter& writer){};
 
-        virtual Bits compressIntoBits(const Block&) const = 0;
-        virtual void compress(const Block& block, FileBitWriter& writer) {
-            Bits bits = compressIntoBits(block);
-            writer.writeVector(bits);
-        }
-
-        virtual Block decompress(FileBitReader& reader) const = 0;
+        virtual Block decompress(FileBitReader& reader){};
 
         virtual std::string to_string() const = 0;
     };

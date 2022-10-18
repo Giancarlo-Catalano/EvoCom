@@ -37,4 +37,8 @@ namespace GC {
     void AbstractBitWriter::writeVector(const std::vector<bool>& vec) {
         for (const bool b: vec) pushBit(b);
     }
+
+    void AbstractBitWriter::writeByte(const unsigned char value) {
+        writeAmount(value, 8);
+    }
 } // GC

@@ -8,6 +8,7 @@
 #include "../Compression.hpp"
 #include "../../Utilities/utilities.hpp"
 #include "../../names.hpp"
+#include "../../AbstractBit/AbstractBitWriter/AbstractBitWriter.hpp"
 
 namespace GC {
 
@@ -21,11 +22,10 @@ namespace GC {
             return "{RunLengthCompression}";
         }
 
-        Bits bitsOfRLPair(const RLPair& pair) const {
+        void encodeRLPair(const RLPair& pair, AbstractBitWriter& writer) const {
             ASSERT_NOT_EQUALS(pair.second, 0);
-            Bits result = FileBitWriter::getAmountBits(pair.first, bitsInType<Unit>());
-            concatenate(result, FileBitWriter::getRiceEncodedBits(pair.second-1));
-            return result;
+            writer.writeAmount(pair.first, bitsInType<Unit>());
+            writer.writeRiceEncoded(pair.second-1);
         }
 
         static std::vector<std::pair<Unit, RunLength>> getRLPairs(const Block& block) {
@@ -54,11 +54,10 @@ namespace GC {
             return result;
         }
 
-        Bits compressIntoBits(const Block& block) const {
+        void compress(const Block& block, AbstractBitWriter& writer) const {
             std::vector<RLPair> pairs = getRLPairs(block);
-            Bits result = FileBitWriter::getRiceEncodedBits(pairs.size());
-            for (const auto& item: pairs) concatenate(result, bitsOfRLPair(item));
-            return result;
+            writer.writeRiceEncoded(pairs.size());
+            for (const auto rlPair: pairs) encodeRLPair(rlPair, writer);
         }
 
         static RLPair readPair(FileBitReader& reader) {
