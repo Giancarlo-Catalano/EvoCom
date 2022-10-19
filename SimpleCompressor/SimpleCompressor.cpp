@@ -3,6 +3,9 @@
 //
 
 #include "SimpleCompressor.hpp"
+#include <vector>
+
+
 #include "../Transformation/Transformations/DeltaTransform.hpp"
 #include "../Transformation/Transformations/DeltaXORTransform.hpp"
 #include "../Transformation/Transformations/RunLengthTransform.hpp"
@@ -15,9 +18,8 @@
 #include "../Transformation/Transformations/SubtractAverageTransform.hpp"
 #include "../Transformation/Transformations/SubtractXORAverageTransform.hpp"
 #include "../Transformation/Transformations/StrideTransform.hpp"
-#include "../AbstractBit/FileBitWriter/FileBitWriter.hpp"
 #include "../AbstractBit/BitCounter/BitCounter.hpp"
-#include <vector>
+
 
 namespace GC {
     void SimpleCompressor::compress(const SimpleCompressor::FileName &fileToCompress,

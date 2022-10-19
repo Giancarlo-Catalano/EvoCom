@@ -13,7 +13,7 @@ namespace GC {
     public:
         using BitAmount = size_t;
 
-        AbstractBitWriter() {}
+        AbstractBitWriter(){};
 
         virtual void pushBit(bool b) = 0;
 

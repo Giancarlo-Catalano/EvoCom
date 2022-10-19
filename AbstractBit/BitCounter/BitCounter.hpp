@@ -25,6 +25,7 @@ namespace GC {
 
         virtual void writeAmount(const size_t value, const size_t amountOfBits) override { increaseCounter(amountOfBits);}
         virtual void writeUnary(const size_t value) override { increaseCounter(value+1);}
+        virtual void writeVector(const std::vector<bool>& vec) { increaseCounter(vec.size());}
     };
 
 } // GC

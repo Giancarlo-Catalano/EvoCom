@@ -1,2 +1,3 @@
 add_library(FileBitWriter FileBitWriter.cpp FileBitWriter.hpp)
+target_link_libraries(FileBitWriter AbstractBitWriter)
 

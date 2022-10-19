@@ -20,7 +20,6 @@ namespace GC {
     void FileBitWriter::pushBit(const bool b) {
         if (occupied == sizeOfBuffer) {
             outStream.put(bitBuffer);
-            writtenBuffers++;
             reset();
         }
         pushBit_unsafe(b);
@@ -29,7 +28,6 @@ namespace GC {
     void FileBitWriter::forceLast() {
         if (occupied != 0) {
             outStream.put(bitBuffer << (sizeOfBuffer - occupied));
-            writtenBuffers++;
         }
 
     }
