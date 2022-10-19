@@ -28,9 +28,9 @@ int main() {
 
 
 #if 1 //compression
-    std::string fileToBeCompressed = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/fencingLogoSimple.png";
+    std::string fileToBeCompressed = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/finishedboot.png";
     std::string compressedFile = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/compressed.gac";
-    std::string decompressedFile = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/decompressedFencingLogoSimple.png";
+    std::string decompressedFile = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/decompressedfinishedboot.png";
 
     GC::SimpleCompressor::compress(fileToBeCompressed, compressedFile);
     LOG("The compressedFile has size ", getFileSize(compressedFile));

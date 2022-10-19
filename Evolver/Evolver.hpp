@@ -91,7 +91,6 @@ namespace GC {
                 breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
                 selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion)))
         {
-            LOG("Called evolver using the hint!");
             initialiseHintedPopulation(hint);
         }
 

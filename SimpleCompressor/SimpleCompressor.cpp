@@ -42,13 +42,15 @@ namespace GC {
             std::ofstream outStream(outputFile);
             FileBitWriter writer(outStream);
 
+            size_t amountOfBlocksProcessed = 0;
             auto readBlockAndCompressOnFile = [&](size_t sizeOfBlock) {
                 Block block = readBlock(sizeOfBlock, reader);
-                LOG("Evolving the best individual");
+                //LOG("Evolving the best individual");
                 Individual bestIndividual = evolveBestIndividualForBlock(block);
-                LOG("For this block, the best individual is", bestIndividual.to_string());
+                LOG("(", amountOfBlocksProcessed, "/", blockAmount, ") For this block, the best individual is", bestIndividual.to_string());
                 encodeIndividual(bestIndividual, writer);
                 applyIndividual(bestIndividual, block, writer);
+                amountOfBlocksProcessed++;
             };
 
             //start of actual compression
@@ -216,25 +218,24 @@ namespace GC {
 
     Individual SimpleCompressor::evolveBestIndividualForBlock(const Block & block) {
         Evolver::EvolutionSettings settings;
-        settings.generationCount = 100;
-        settings.populationSize = 40;
+        settings.generationCount = 36;
+        settings.populationSize = 36;
+        settings.chanceOfMutation = 0.1; //usually it's 0.05, but I want to get better results faster.
         auto getFitnessOfIndividual = [&](const Individual& i){
             return compressionRatioForIndividualOnBlock(i, block);
         };
 
-        Individual identityIndividual;
-        std::vector<Individual> hintsForEvolver{identityIndividual};
-        Evolver evolver(settings, getFitnessOfIndividual);
-        Individual bestIndividual = evolver.evolveBest();
-        if (bestIndividual.getFitness() >= 1.0) {
-            LOG("The best individual's fitness (", bestIndividual.getFitness(), ") is counterproductive, returning identity");
-            LOG("the block is ", containerToString(block));
-            LOG("the best individual is ", bestIndividual.to_string());
-            evolver.forceEvaluation(identityIndividual);
-            return identityIndividual;
+        //Individual identityIndividual;
+        std::vector<Individual> hintsForEvolver{/*identityIndividual*/};
+        for (auto comp: availableCCodes) {
+            Individual temp;
+            temp.cCode = comp;
+            hintsForEvolver.push_back(temp);
         }
-        else
-            return bestIndividual;
+
+        Evolver evolver(settings, getFitnessOfIndividual, hintsForEvolver);
+        Individual bestIndividual = evolver.evolveBest();
+        return bestIndividual;
     }
 
 } // GC

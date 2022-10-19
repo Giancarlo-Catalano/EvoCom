@@ -204,14 +204,14 @@ namespace GC {
     public:
         struct Encoder {
             using EncoderMap = std::map<Symbol, BitVector>;
-            using Handler = std::function<void(bool)>; //TODO find a better name for the handler
+            using Handler = std::function<void(const std::vector<bool>&)>;
             const EncoderMap& map;
             const Handler& handler;
 
             Encoder(const EncoderMap& _map, const Handler& _handler) : map(_map), handler(_handler){}
             void encodeSymbol(const Symbol& symbol) const {
                 BitVector bitVector = map.at(symbol);
-                std::for_each(bitVector.begin(), bitVector.end(), handler);
+                handler(bitVector);
             }
 
             template <class Container>  //TODO test this
@@ -261,7 +261,7 @@ namespace GC {
 
         };
 
-        Encoder getEncoder(const std::function<void(bool)>& handler) const {
+        Encoder getEncoder(const typename Encoder::Handler handler) const {
             return Encoder(encoderMap, handler);
         }
 

@@ -94,7 +94,8 @@ namespace GC {
                 for (const auto& weight : smallFrequencyReport) encodeWeight(weight);
             };
             Bits result;
-            HuffmanCoder<Symbol, Weight>::Encoder encoder = huffmanCoder.getEncoder([&](bool b){writer.pushBit(b);});
+            HuffmanCoder<Symbol, Weight>::Encoder encoder = huffmanCoder.getEncoder(
+                    [&](const std::vector<bool>& vec){writer.writeVector(vec);});
 
             encodeSmallFrequencyReport();
             writer.writeRiceEncoded(block.size());

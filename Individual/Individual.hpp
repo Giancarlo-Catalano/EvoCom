@@ -25,7 +25,7 @@ namespace GC {
     public: //types
         using Fitness = PseudoFitness;
         using FitnessScore = PseudoFitness::FitnessScore;
-        static const size_t TListLength = 6;
+        static const size_t TListLength = 3;
 
 
 
