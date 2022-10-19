@@ -9,6 +9,7 @@
 #include "../Selector/Selector.hpp"
 #include "../Utilities/utilities.hpp"
 #include "../names.hpp"
+#include "../StatisticalFeatures/RunningAverage.hpp"
 
 namespace GC {
 
@@ -38,6 +39,9 @@ namespace GC {
         Selector selector;
         Evaluator evaluator;
         Population population;
+        RunningAverage<Fitness> runningAverageFitness;
+        size_t generationCount = 0;
+        Chance initialMutationRate;
 
         size_t populationSize;
         size_t amountOfGenerations;
@@ -71,6 +75,28 @@ namespace GC {
             //LOG("at the end, the population is"); LOGPopulation();
         }
 
+        void increaseMutationRate() {
+            Chance oldMutationRate = breeder.getMutationRate();
+            /**
+             * the following function needs to have certain properties:
+             *  for x in [0, 1], f(x) in [0, 1]
+             *  bijective
+             *  f(x)>=x
+             */
+            Chance newMutationRate = (3.0*oldMutationRate + 1.0)*0.25;
+            breeder.setMutationRate(newMutationRate);
+        }
+
+        void decreaseMutationRate() {
+            Chance oldMutationRate = breeder.getMutationRate();
+            Chance newMutationRate = ((oldMutationRate*4.0)-1.0)/3.0;
+            breeder.setMutationRate(newMutationRate);
+        }
+
+        void resetMutationRate() {
+            breeder.setMutationRate(initialMutationRate);
+        }
+
 
     public:
         Evolver(const EvolutionSettings settings, const FitnessFunction fitnessFunction) :
@@ -78,7 +104,9 @@ namespace GC {
             amountOfGenerations(settings.generationCount),
             evaluator(fitnessFunction),
             breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
-            selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion)))
+            selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion))),
+            runningAverageFitness(),
+            initialMutationRate(settings.chanceOfMutation)
             {
                 initialiseRandomPopulation();
             }
@@ -89,7 +117,8 @@ namespace GC {
                 amountOfGenerations(settings.generationCount),
                 evaluator(fitnessFunction),
                 breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
-                selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion)))
+                selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion))),
+                runningAverageFitness()
         {
             initialiseHintedPopulation(hint);
         }
@@ -108,11 +137,43 @@ namespace GC {
             };
             repeat(populationSize, addNewIndividual);
             population = children;
+            runningAverageFitness.registerNewValue(getBestOfPopulation().getFitness());
+            generationCount++;
+        }
+
+        bool isStagnating() {
+            return runningAverageFitness.getDeviation() > -0.001;
+        }
+
+        bool isUnstable() {
+            return abs(runningAverageFitness.getDeviation()) > 0.4;
+        }
+
+        void adjustMutationRate() {
+            if (isStagnating()) {
+                //LOG("Stagnation detected, increasing the mutation rate, now ", breeder.getMutationRate());
+                increaseMutationRate();
+            } else {
+                //LOG("Situation is stable, resetting mutation rate");
+                resetMutationRate();
+            }
+        }
+
+        bool populationIsMature() {
+            return generationCount > amountOfGenerations / 3;
+        }
+
+        bool mutationIsExtreme() {
+            return breeder.getMutationRate() > 0.75;
         }
 
         void evolveForGenerations() {
-            auto singleGeneration = [&](){evolveSingleGeneration();};
-            repeat(amountOfGenerations, singleGeneration);
+            for (size_t i=0;i<amountOfGenerations;i++) {
+                evolveSingleGeneration();
+                //LOG("Deviation = ", runningAverageFitness.getDeviation());
+                if (populationIsMature()) adjustMutationRate();
+                if (mutationIsExtreme()) {/*LOG("Extreme mutation detected, stopping")*/;return;}
+            }
         }
 
         void forcePopulationFitnessAssessment() {

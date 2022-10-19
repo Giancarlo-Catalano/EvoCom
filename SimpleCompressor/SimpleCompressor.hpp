@@ -26,7 +26,7 @@ namespace GC {
         using Bits = std::vector<bool>;
         using Fitness = Individual::FitnessScore;
 
-        static const size_t blockSize = 1024; //for no reason in particular
+        static const size_t blockSize = 256; //for no reason in particular
 
         std::string to_string();
 

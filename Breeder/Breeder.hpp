@@ -74,6 +74,13 @@ namespace GC {
             return ss.str();
         }
 
+        Chance getMutationRate() const {
+            return randomChanceOfMutation.getChance();
+        }
+
+        void setMutationRate(const Chance newMutationRate) {
+            randomChanceOfMutation.setChance(newMutationRate);
+        }
     };
 
 } // GC

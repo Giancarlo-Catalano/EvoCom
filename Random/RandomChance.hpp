@@ -67,8 +67,12 @@ namespace GC {
             return isTrue;
         }
 
-        Chance getChance() { return chanceOfTrue;}
+        Chance getChance() const { return chanceOfTrue;}
 
+        void setChance(const Chance newChance) {
+            chanceOfTrue = newChance;
+
+        }
     };
 
 
