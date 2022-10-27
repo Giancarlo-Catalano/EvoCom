@@ -23,9 +23,18 @@ namespace GC {
 
         virtual void pushBit(bool b) override {incrementCounter();}
 
-        virtual void writeAmount(const size_t value, const size_t amountOfBits) override { increaseCounter(amountOfBits);}
+        virtual void writeAmountOfBits(const size_t value, const size_t amountOfBits) override { increaseCounter(amountOfBits);}
         virtual void writeUnary(const size_t value) override { increaseCounter(value+1);}
         virtual void writeVector(const std::vector<bool>& vec) { increaseCounter(vec.size());}
+        virtual void writeRiceEncoded(const size_t value) {
+            auto getFutureBitLength = [&](const size_t n) {
+                auto log4 = [&](const size_t x) { return floor_log2(x)/2; };
+                return log4((n+2)*3)*2;
+            };
+
+            size_t bitLength = getFutureBitLength(value);
+            increaseCounter((bitLength/2)+bitLength);
+        }
     };
 
 } // GC

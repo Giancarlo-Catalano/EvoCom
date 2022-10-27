@@ -19,6 +19,7 @@
 #include "../Transformation/Transformations/SubtractXORAverageTransform.hpp"
 #include "../Transformation/Transformations/StrideTransform.hpp"
 #include "../Evolver/Evaluator/BitCounter/BitCounter.hpp"
+#include "../Compression/NRLCompression/NRLCompression.hpp"
 
 
 namespace GC {
@@ -26,6 +27,8 @@ namespace GC {
                                               const EvolutionaryFileCompressor::FileName &outputFile) {
 
             size_t originalFileSize = getFileSize(fileToCompress);
+            LOG("the file has size", originalFileSize);
+            LOG("the file is ", fileToCompress);
 
             if (originalFileSize == 0) {
                 //LOG("I refuse to compress such a small file");
@@ -65,7 +68,7 @@ namespace GC {
     Block EvolutionaryFileCompressor::readBlock(size_t size, FileBitReader &reader) {
         Block block;
         auto readUnitAndPush = [&]() {
-            block.push_back(reader.readAmount(bitsInType<Unit>()));
+            block.push_back(reader.readAmountOfBytes(bitsInType<Unit>()));
         };
 
         repeat(size, readUnitAndPush);
@@ -93,7 +96,7 @@ namespace GC {
     void EvolutionaryFileCompressor::applyCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, const Block &block, AbstractBitWriter& writer) {
         switch (cc) {
             case C_HuffmanCompression: return HuffmanCompression().compress(block, writer);
-            case C_RunLengthCompression: return RunLengthCompression().compress(block, writer);
+            case C_RunLengthCompression: return NRLCompression().compress(block, writer);
             default: return IdentityCompression().compress(block, writer);
         }
     }
@@ -108,13 +111,13 @@ namespace GC {
 
     void EvolutionaryFileCompressor::encodeIndividual(const Individual& individual, AbstractBitWriter& writer){
         auto encodeTransform = [&](const TCode tc) {
-            writer.writeAmount(tc, bitSizeForCompressionCode);
+            writer.writeAmountOfBits(tc, bitSizeForCompressionCode);
         };
         auto encodeCompression = [&](const CCode cc) {
-            writer.writeAmount(cc, bitSizeForCompressionCode);
+            writer.writeAmountOfBits(cc, bitSizeForCompressionCode);
         };
 
-        writer.writeAmount(individual.tList.size(), bitsForAmountOfTransforms);
+        writer.writeAmountOfBits(individual.tList.size(), bitsForAmountOfTransforms);
         for (const auto tCode: individual.tList) encodeTransform(tCode);
         encodeCompression(individual.cCode);
     }
@@ -141,7 +144,7 @@ namespace GC {
     Block EvolutionaryFileCompressor::undoCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, FileBitReader& reader) {
         switch (cc) {
             case C_HuffmanCompression: return HuffmanCompression().decompress(reader);
-            case C_RunLengthCompression: return RunLengthCompression().decompress(reader);
+            case C_RunLengthCompression: return NRLCompression().decompress(reader);
             default: return IdentityCompression().decompress(reader);
         }
     }
@@ -172,14 +175,14 @@ namespace GC {
     Individual EvolutionaryFileCompressor::decodeIndividual(FileBitReader& reader) {
         std::vector<TCode> tList;
         auto addTCode = [&](){
-            tList.push_back(static_cast<TCode>(reader.readAmount(bitSizeForTransformCode)));
+            tList.push_back(static_cast<TCode>(reader.readAmountOfBytes(bitSizeForTransformCode)));
         };
 
         auto extractCCode = [&]() -> CCode{
-            return static_cast<CCode>(reader.readAmount(bitSizeForCompressionCode));
+            return static_cast<CCode>(reader.readAmountOfBytes(bitSizeForCompressionCode));
         };
 
-        size_t amountOfTransforms = reader.readAmount(bitsForAmountOfTransforms);
+        size_t amountOfTransforms = reader.readAmountOfBytes(bitsForAmountOfTransforms);
         LOG("Read that there will be", amountOfTransforms, "transforms");
         repeat(amountOfTransforms, addTCode);
         return Individual(tList, extractCCode());
@@ -194,7 +197,7 @@ namespace GC {
 
     void EvolutionaryFileCompressor::writeBlock(Block &block, FileBitWriter &writer) {
         auto writeUnit = [&](const Unit unit) {
-            writer.writeAmount(unit, bitsInType<Unit>());
+            writer.writeAmountOfBits(unit, bitsInType<Unit>());
         };
         std::for_each(block.begin(), block.end(), writeUnit);
     }
@@ -218,7 +221,7 @@ namespace GC {
 
     Individual EvolutionaryFileCompressor::evolveBestIndividualForBlock(const Block & block) {
         Evolver::EvolutionSettings settings;
-        settings.generationCount = 36;
+        settings.generationCount = 24;
         settings.populationSize = 36;
         settings.chanceOfMutation = 0.1; //usually it's 0.05, but I want to get better results faster.
         auto getFitnessOfIndividual = [&](const Individual& i){

@@ -18,13 +18,15 @@ namespace GC {
         virtual void pushBit(bool b) = 0;
 
         virtual void writeVector(const std::vector<bool>& vec);
-        virtual void writeAmount(const size_t value, const BitAmount amountOfBits);
+        virtual void writeAmountOfBits(const size_t value, const BitAmount amountOfBits);
         virtual void writeByte(const unsigned char value);
         virtual void writeUnary(const size_t value);
         virtual void writeRiceEncoded(const size_t value);
 
 
+        void writeSmallAmount(const size_t value);
 
+        void writeBigAmount(const size_t value);
     };
 
 } // GC

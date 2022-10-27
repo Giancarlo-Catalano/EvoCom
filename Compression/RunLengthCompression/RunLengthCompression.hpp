@@ -24,7 +24,7 @@ namespace GC {
 
         void encodeRLPair(const RLPair& pair, AbstractBitWriter& writer) const {
             ASSERT_NOT_EQUALS(pair.second, 0);
-            writer.writeAmount(pair.first, bitsInType<Unit>());
+            writer.writeAmountOfBits(pair.first, bitsInType<Unit>());
             writer.writeRiceEncoded(pair.second-1);
         }
 
@@ -61,7 +61,7 @@ namespace GC {
         }
 
         static RLPair readPair(FileBitReader& reader) {
-            return {reader.readAmount(bitsInType<Unit>()), reader.readRiceEncoded()+1};
+            return {reader.readAmountOfBytes(bitsInType<Unit>()), reader.readRiceEncoded() + 1};
         }
 
         static std::vector<RLPair> readPairs(size_t expectedAmount, FileBitReader& reader) {

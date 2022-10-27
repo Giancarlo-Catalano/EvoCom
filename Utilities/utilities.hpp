@@ -126,9 +126,11 @@
     }
 
 size_t floor_log2(const size_t input);
+size_t ceil_log2(const size_t input);
+size_t ceil_div(const size_t input, const size_t divisor);
 
 
-    void dumpFile(const std::string& fileName);
+void dumpFile(const std::string& fileName);
 
 size_t getFileSize(const std::string& fileName);
 

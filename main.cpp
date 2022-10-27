@@ -5,6 +5,8 @@
 #include "Random/RandomChance.hpp"
 #include "Evolver/Evolver.hpp"
 #include "EvolutionaryFileCompressor/EvolutionaryFileCompressor.hpp"
+#include "Compression/NRLCompression/NRLCompression.hpp"
+#include "AbstractBit/DebugBitWriter/DebugWriter.hpp"
 
 
 int main() {
@@ -25,11 +27,14 @@ int main() {
 #if 1 //compression
     std::string smallLogo = "fencingLogoSimple";
     std::string bigLogo = "finishedboot";
-    std::string originalExtension = "png";
+    std::string beeMovie = "beeMovieScript";
+
+    std::string originalExtension = "txt";
     std::string compressedExtension = "gac";
     std::string directory = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/";
 
-    std::string fileName = smallLogo;
+
+    std::string fileName = beeMovie;
 
     std::string fileToBeCompressed = directory+fileName+"."+originalExtension;
     std::string compressedFile = directory+fileName+"."+compressedExtension;
@@ -177,10 +182,19 @@ int main() {
 
 #if 0 //RL compression test
     Block block;
-    for (int i=0;i<256;i++) {
-        block.push_back(i<<(i/4));
+    for (int i=0;i<24;i++) {
+        repeat(i, [&](){block.push_back(0xff);});
+        block.push_back(0);
     }
     LOG("The block is", containerToString(block));
+
+    GC::NRLCompression compressor;
+    GC::DebugWriter writer;
+    compressor.compress(block, writer);
+
+    writer.LOG_INFO();
+
+
 
 
 #endif

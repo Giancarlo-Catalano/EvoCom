@@ -87,7 +87,7 @@ namespace GC {
             HuffmanCoder<Symbol, Weight> huffmanCoder(expandSmallFrequencyReport(smallFrequencyReport));
 
             auto encodeWeight = [&](const Weight w) {
-                return writer.writeAmount(w-1, bitSizeOfFrequency);
+                return writer.writeAmountOfBits(w - 1, bitSizeOfFrequency);
             };
 
             auto encodeSmallFrequencyReport = [&]() {
@@ -104,7 +104,7 @@ namespace GC {
 
         Block decompress(FileBitReader& reader) override {
             auto readSingleWeight = [&]() -> Weight {
-                return reader.readAmount(bitSizeOfFrequency)+1;
+                return reader.readAmountOfBytes(bitSizeOfFrequency) + 1;
             };
 
             auto readSmallFrequencyReport = [&]() -> SmallFrequencyReport {

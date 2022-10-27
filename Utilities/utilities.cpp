@@ -42,13 +42,22 @@ void printNewLine() {
     std::cout<<"\n";
 }
 
-size_t floor_log2(const size_t input) {  //this can definetly be optimised
+//Note that his crashes if the input is 0
+size_t floor_log2(const size_t input) {  //this can be definitely optimised
+    if (input == 0) return 0;
     size_t pos = sizeof(decltype(input))*8-1;
     for (size_t tester = 1ULL<<pos; tester != 0; tester>>=1) {
         if (tester & input) return pos;
         pos--;
     }
 }
+
+size_t ceil_log2(const size_t input) {
+    if (input == 0) return 0;
+    return floor_log2(input-1)+1;
+}
+
+
 std::string getErrorMessage() {
     //uses errno
     return std::strerror(errno);
@@ -101,6 +110,11 @@ void dumpFile(const std::string& fileName) {
 size_t getFileSize(const std::string &fileName) {
     std::ifstream in(fileName, std::ifstream::ate | std::ifstream::binary);
     return in.tellg();
+}
+
+//if divisor is 0, this breaks
+size_t ceil_div(const size_t input, const size_t divisor) {
+    return (input+divisor-1)/divisor;
 }
 
 

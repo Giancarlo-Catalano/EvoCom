@@ -5,7 +5,7 @@
 #include "AbstractBitWriter.hpp"
 
 namespace GC {
-    void AbstractBitWriter::writeAmount(const size_t value, const AbstractBitWriter::BitAmount amountOfBits) {
+    void AbstractBitWriter::writeAmountOfBits(const size_t value, const AbstractBitWriter::BitAmount amountOfBits) {
         ASSERT_GREATER(amountOfBits, 0);
         for (int i = amountOfBits - 1; i >= 0; i--)
             pushBit((value >> i) & 1);
@@ -14,6 +14,10 @@ namespace GC {
     void AbstractBitWriter::writeUnary(const size_t value) {
         repeat(value, [&](){pushBit(0);});
         pushBit(1);
+    }
+
+    void AbstractBitWriter::writeSmallAmount(const size_t value) {
+        writeRiceEncoded(value);
     }
 
     void AbstractBitWriter::writeRiceEncoded(const size_t value) {
@@ -31,7 +35,7 @@ namespace GC {
 
         size_t bitLength = getFutureBitLength(value);
         writeUnary((bitLength/2)-1);
-        writeAmount(value-getOffset(bitLength), bitLength);
+        writeAmountOfBits(value - getOffset(bitLength), bitLength);
     }
 
     void AbstractBitWriter::writeVector(const std::vector<bool>& vec) {
@@ -39,6 +43,25 @@ namespace GC {
     }
 
     void AbstractBitWriter::writeByte(const unsigned char value) {
-        writeAmount(value, 8);
+        writeAmountOfBits(value, 8);
+    }
+
+    void AbstractBitWriter::writeBigAmount(const size_t value) {
+        size_t minimumBitsOccupied = floor_log2(value); //also the position of the leftmost i, counted from the right starting from 0
+        size_t clusterSize = 4;
+        size_t bitsOccupied = ceil_div(minimumBitsOccupied+1, clusterSize);
+        size_t declaredClusterAmount = (bitsOccupied/clusterSize)-1;
+        LOG("the declared cluster has cluster class", declaredClusterAmount);
+        LOG("the payload size is ", (declaredClusterAmount+1)*clusterSize);
+
+        auto power16 = [&](const size_t n) -> size_t {return 1<<(4*n);};
+        auto sumOfPowersOf16 = [&](const size_t n) -> size_t {return (power16(n+1)-1)/15;};
+        size_t payloadOffset = sumOfPowersOf16(declaredClusterAmount)-1;
+        LOG("the payload offset is ", payloadOffset);
+        LOG("the payload will be ", value-payloadOffset);
+
+
+        writeUnary(declaredClusterAmount);
+        writeAmountOfBits(value-payloadOffset, bitsOccupied);
     }
 } // GC
