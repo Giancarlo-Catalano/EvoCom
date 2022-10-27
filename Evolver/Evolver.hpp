@@ -141,7 +141,8 @@ namespace GC {
         }
 
         void evolveSingleGeneration() {
-            //LOG("Starting a new generation");
+            //LOG("The current population is"); for (auto individual: population) LOG(individual.to_string());
+
             Population children;
             if (isElitist)
                 children = population;
