@@ -30,13 +30,15 @@ namespace GC {
             Chance chanceOfMutation;
             Chance chanceOfCompressionCrossover;
             Proportion tournamentSelectionProportion;
+            bool usesSimulatedAnnealing;
 
             EvolutionSettings() :
                 populationSize(40),
                 generationCount(100),
                 chanceOfMutation(0.05),
                 chanceOfCompressionCrossover(0.25),
-                tournamentSelectionProportion(0.80){}
+                tournamentSelectionProportion(0.80),
+                usesSimulatedAnnealing(true){}
         };
 
         using Fitness = Individual::FitnessScore;
@@ -53,6 +55,7 @@ namespace GC {
 
         size_t populationSize;
         size_t amountOfGenerations;
+        bool usesSimulatedAnnealing;
 
 
     private: //methods
@@ -113,7 +116,8 @@ namespace GC {
             evaluator(fitnessFunction),
             breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
             selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion))),
-            initialMutationRate(settings.chanceOfMutation)
+            initialMutationRate(settings.chanceOfMutation),
+            usesSimulatedAnnealing(settings.usesSimulatedAnnealing)
             {
                 initialiseRandomPopulation();
             }
@@ -125,7 +129,8 @@ namespace GC {
                 evaluator(fitnessFunction),
                 breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
                 selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion))),
-                initialMutationRate(settings.chanceOfMutation)
+                initialMutationRate(settings.chanceOfMutation),
+                usesSimulatedAnnealing(settings.usesSimulatedAnnealing)
         {
             initialiseHintedPopulation(hint);
         }
@@ -190,10 +195,13 @@ namespace GC {
         void evolveForGenerations() {
             for (size_t i=0;i<amountOfGenerations;i++) {
                 evolveSingleGeneration();
-                //LOG("Deviation = ", runningAverageFitness.getDeviation());
-                if (mutationIsExtreme()) {AM_LOG("Extreme mutation detected, stopping");return;}
-                if (populationIsMature()) adjustMutationRate();
-
+                if (usesSimulatedAnnealing) {
+                    if (mutationIsExtreme()) {
+                        AM_LOG("Extreme mutation detected, stopping");
+                        return;
+                    }
+                    if (populationIsMature()) adjustMutationRate();
+                }
             }
         }
 
