@@ -122,6 +122,13 @@ namespace GC {
         }
 
 
+        std::vector<Individual> selectMany(const size_t amount) {
+            std::vector<Individual> result;
+            repeat(amount, [&](){result.emplace_back(select());});
+            return result;
+        }
+
+
         void LOGPool() {
             LOG("The pool in this selector is");
             for (auto ind: pool) {LOG(ind.to_string());}

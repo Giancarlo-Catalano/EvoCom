@@ -221,9 +221,11 @@ namespace GC {
 
     Individual EvolutionaryFileCompressor::evolveBestIndividualForBlock(const Block & block) {
         Evolver::EvolutionSettings settings;
-        settings.generationCount = 24;
+        settings.generationCount = 36;
         settings.populationSize = 36;
         settings.chanceOfMutation = 0.1; //usually it's 0.05, but I want to get better results faster.
+        settings.usesSimulatedAnnealing = false;
+        settings.isElitist = false;
         auto getFitnessOfIndividual = [&](const Individual& i){
             return compressionRatioForIndividualOnBlock(i, block);
         };

@@ -31,6 +31,7 @@ namespace GC {
             Chance chanceOfCompressionCrossover;
             Proportion tournamentSelectionProportion;
             bool usesSimulatedAnnealing;
+            bool isElitist;
 
             EvolutionSettings() :
                 populationSize(40),
@@ -38,7 +39,8 @@ namespace GC {
                 chanceOfMutation(0.05),
                 chanceOfCompressionCrossover(0.25),
                 tournamentSelectionProportion(0.80),
-                usesSimulatedAnnealing(true){}
+                usesSimulatedAnnealing(true),
+                isElitist(true){}
         };
 
         using Fitness = Individual::FitnessScore;
@@ -56,6 +58,7 @@ namespace GC {
         size_t populationSize;
         size_t amountOfGenerations;
         bool usesSimulatedAnnealing;
+        bool isElitist;
 
 
     private: //methods
@@ -117,7 +120,8 @@ namespace GC {
             breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
             selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion))),
             initialMutationRate(settings.chanceOfMutation),
-            usesSimulatedAnnealing(settings.usesSimulatedAnnealing)
+            usesSimulatedAnnealing(settings.usesSimulatedAnnealing),
+            isElitist(settings.isElitist)
             {
                 initialiseRandomPopulation();
             }
@@ -130,7 +134,8 @@ namespace GC {
                 breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
                 selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion))),
                 initialMutationRate(settings.chanceOfMutation),
-                usesSimulatedAnnealing(settings.usesSimulatedAnnealing)
+                usesSimulatedAnnealing(settings.usesSimulatedAnnealing),
+                isElitist(settings.isElitist)
         {
             initialiseHintedPopulation(hint);
         }
@@ -138,6 +143,9 @@ namespace GC {
         void evolveSingleGeneration() {
             //LOG("Starting a new generation");
             Population children;
+            if (isElitist)
+                children = population;
+
             selector.preparePool(population);
             auto addNewIndividual = [&]() {
                 //LOG("Adding a new member to the population");
@@ -148,7 +156,13 @@ namespace GC {
                 children.emplace_back(newChild);
             };
             repeat(populationSize, addNewIndividual);
-            population = children;
+            if (isElitist) {
+                selector.preparePool(children);
+                population = selector.selectMany(populationSize);
+            }
+            else
+                population = children;
+
             runningAverageFitness.registerNewValue(getBestOfPopulation().getFitness());
             generationCount++;
         }
