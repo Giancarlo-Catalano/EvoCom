@@ -6,10 +6,10 @@
 #define DISS_SIMPLEPROTOTYPE_SELECTOR_HPP
 #include <vector>
 #include "../Individual/Individual.hpp"
-#include "../Random/RandomElement.hpp"
-#include "../Utilities/utilities.hpp"
+#include "../../Random/RandomElement.hpp"
+#include "../../Utilities/utilities.hpp"
 #include "../Evaluator/Evaluator.hpp"
-#include "../names.hpp"
+#include "../../names.hpp"
 #include <sstream>
 
 namespace GC {

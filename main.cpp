@@ -1,15 +1,10 @@
 #include <iostream>
 #include "Utilities/utilities.hpp"
-#include "Individual/Individual.hpp"
 #include "Random/RandomInt.hpp"
 #include "Random/RandomElement.hpp"
 #include "Random/RandomChance.hpp"
-#include "Breeder/Breeder.hpp"
-#include "Selector/Selector.hpp"
 #include "Evolver/Evolver.hpp"
-#include "SimpleCompressor/SimpleCompressor.hpp"
-#include "Individual/TCodes.hpp"
-#include "Evaluator/Evaluator.hpp"
+#include "EvolutionaryFileCompressor/EvolutionaryFileCompressor.hpp"
 
 
 int main() {
@@ -27,7 +22,7 @@ int main() {
 
 
 
-#if 0 //compression
+#if 1 //compression
     std::string smallLogo = "fencingLogoSimple";
     std::string bigLogo = "finishedboot";
     std::string originalExtension = "png";
@@ -40,11 +35,11 @@ int main() {
     std::string compressedFile = directory+fileName+"."+compressedExtension;
     std::string decompressedFile = directory+"DECOMPRESSED_"+fileName+"."+originalExtension;
 
-    GC::SimpleCompressor::compress(fileToBeCompressed, compressedFile);
+    GC::EvolutionaryFileCompressor::compress(fileToBeCompressed, compressedFile);
     LOG("The compressedFile has size ", getFileSize(compressedFile));
 
     LOG("Decompressing!----------------------------------------------");
-    GC::SimpleCompressor::decompress(compressedFile, decompressedFile);
+    GC::EvolutionaryFileCompressor::decompress(compressedFile, decompressedFile);
 
     LOG("In short: ", getFileSize(fileToBeCompressed), "bytes -> ", getFileSize(compressedFile), "bytes");
 #endif
@@ -180,12 +175,13 @@ int main() {
     repeat(12, showBestIndividual);
 #endif
 
-#if 1 //RL compression test
+#if 0 //RL compression test
     Block block;
     for (int i=0;i<256;i++) {
         block.push_back(i<<(i/4));
     }
     LOG("The block is", containerToString(block));
+
 
 #endif
     return 0;

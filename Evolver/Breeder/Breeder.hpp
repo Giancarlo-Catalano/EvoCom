@@ -4,11 +4,11 @@
 
 #ifndef DISS_SIMPLEPROTOTYPE_BREEDER_HPP
 #define DISS_SIMPLEPROTOTYPE_BREEDER_HPP
-#include "../Utilities/utilities.hpp"
-#include "../names.hpp"
+#include "../../Utilities/utilities.hpp"
+#include "../../names.hpp"
 #include "../Individual/Individual.hpp"
-#include "../Random/RandomChance.hpp"
-#include "../Random/RandomElement.hpp"
+#include "../../Random/RandomChance.hpp"
+#include "../../Random/RandomElement.hpp"
 #include <sstream>
 
 

@@ -12,21 +12,17 @@ add_subdirectory(FileBitReader)
 add_subdirectory(StatisticalFeatures)
 add_subdirectory(Compression)
 add_subdirectory(HuffmanCoder)
-add_subdirectory(SimpleCompressor)
+add_subdirectory(EvolutionaryFileCompressor)
 add_subdirectory(DecisionTree)
-add_subdirectory(Breeder)
-add_subdirectory(Individual)
+
 add_subdirectory(Random)
-add_subdirectory(Selector)
 add_subdirectory(Evolver)
-add_subdirectory(PseudoFitness)
-add_subdirectory(Evaluator)
 add_subdirectory(AbstractBit)
 
 add_executable(Diss_SimplePrototype main.cpp Utilities names.hpp)
 
 #declare which directories are used for linking
-target_link_libraries(${PROJECT_NAME} Utilities Individual SimpleCompressor Breeder Random Selector Evolver PseudoFitness Evaluator)
+target_link_libraries(${PROJECT_NAME} Utilities Individual EvolutionaryFileCompressor Breeder Random Selector Evolver PseudoFitness Evaluator)
 
 
 

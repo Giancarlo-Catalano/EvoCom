@@ -4,9 +4,9 @@
 
 #ifndef DISS_SIMPLEPROTOTYPE_EVOLVER_HPP
 #define DISS_SIMPLEPROTOTYPE_EVOLVER_HPP
-#include "../Individual/Individual.hpp"
-#include "../Breeder/Breeder.hpp"
-#include "../Selector/Selector.hpp"
+#include "Individual/Individual.hpp"
+#include "Breeder/Breeder.hpp"
+#include "Selector/Selector.hpp"
 #include "../Utilities/utilities.hpp"
 #include "../names.hpp"
 #include "../StatisticalFeatures/RunningAverage.hpp"

@@ -11,10 +11,10 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
-#include "../Utilities/utilities.hpp"
+#include "../../Utilities/utilities.hpp"
 #include "TCodes.hpp"
 #include "CCodes.hpp"
-#include "../Random/RandomElement.hpp"
+#include "../../Random/RandomElement.hpp"
 #include <optional>
 #include "../PseudoFitness/PseudoFitness.hpp"
 

@@ -2,7 +2,7 @@
 // Created by gian on 21/09/22.
 //
 
-#include "SimpleCompressor.hpp"
+#include "EvolutionaryFileCompressor.hpp"
 #include <vector>
 
 
@@ -18,12 +18,12 @@
 #include "../Transformation/Transformations/SubtractAverageTransform.hpp"
 #include "../Transformation/Transformations/SubtractXORAverageTransform.hpp"
 #include "../Transformation/Transformations/StrideTransform.hpp"
-#include "../AbstractBit/BitCounter/BitCounter.hpp"
+#include "../Evolver/Evaluator/BitCounter/BitCounter.hpp"
 
 
 namespace GC {
-    void SimpleCompressor::compress(const SimpleCompressor::FileName &fileToCompress,
-                                    const SimpleCompressor::FileName &outputFile) {
+    void EvolutionaryFileCompressor::compress(const EvolutionaryFileCompressor::FileName &fileToCompress,
+                                              const EvolutionaryFileCompressor::FileName &outputFile) {
 
             size_t originalFileSize = getFileSize(fileToCompress);
 
@@ -62,7 +62,7 @@ namespace GC {
             writer.forceLast();
     }
 
-    Block SimpleCompressor::readBlock(size_t size, FileBitReader &reader) {
+    Block EvolutionaryFileCompressor::readBlock(size_t size, FileBitReader &reader) {
         Block block;
         auto readUnitAndPush = [&]() {
             block.push_back(reader.readAmount(bitsInType<Unit>()));
@@ -72,7 +72,7 @@ namespace GC {
         return block;
     }
 
-    Block SimpleCompressor::applyTransformCode(const SimpleCompressor::TransformCode &tc, const Block &block) {
+    Block EvolutionaryFileCompressor::applyTransformCode(const EvolutionaryFileCompressor::TransformCode &tc, const Block &block) {
 #define GC_APPLY_T_CASE(TRANS, ...) case T_##TRANS : return TRANS(__VA_ARGS__).apply_copy(block)
 #define GC_APPLY_T_STRIDE_CASE(NUM) case T_StrideTransform_##NUM : return StrideTransform(NUM).apply_copy(block)
         switch (tc) {
@@ -90,7 +90,7 @@ namespace GC {
         }
     }
 
-    void SimpleCompressor::applyCompressionCode(const SimpleCompressor::CompressionCode &cc,const Block &block, AbstractBitWriter& writer) {
+    void EvolutionaryFileCompressor::applyCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, const Block &block, AbstractBitWriter& writer) {
         switch (cc) {
             case C_HuffmanCompression: return HuffmanCompression().compress(block, writer);
             case C_RunLengthCompression: return RunLengthCompression().compress(block, writer);
@@ -98,7 +98,7 @@ namespace GC {
         }
     }
 
-    void SimpleCompressor::applyIndividual(const Individual &individual, const Block &block, AbstractBitWriter& writer) {
+    void EvolutionaryFileCompressor::applyIndividual(const Individual &individual, const Block &block, AbstractBitWriter& writer) {
         ////LOG("Applying individual ", individual.to_string());
         Block toBeProcessed = block;
         for (auto tCode : individual.tList) toBeProcessed = applyTransformCode(tCode, toBeProcessed);
@@ -106,7 +106,7 @@ namespace GC {
     }
 
 
-    void SimpleCompressor::encodeIndividual(const Individual& individual, AbstractBitWriter& writer){
+    void EvolutionaryFileCompressor::encodeIndividual(const Individual& individual, AbstractBitWriter& writer){
         auto encodeTransform = [&](const TCode tc) {
             writer.writeAmount(tc, bitSizeForCompressionCode);
         };
@@ -119,7 +119,7 @@ namespace GC {
         encodeCompression(individual.cCode);
     }
 
-    void SimpleCompressor::undoTransformCode(const TransformCode& tc, Block& block) {
+    void EvolutionaryFileCompressor::undoTransformCode(const TransformCode& tc, Block& block) {
 
 #define GC_UNDO_T_CASE(TRANS, ...) case T_##TRANS : TRANS(__VA_ARGS__).undo(block);break;
 #define GC_UNDO_T_STRIDE_CASE(NUM) case T_StrideTransform_##NUM : StrideTransform(NUM).undo(block);break;
@@ -138,15 +138,15 @@ namespace GC {
         }
     }
 
-    Block SimpleCompressor::undoCompressionCode(const SimpleCompressor::CompressionCode &cc,FileBitReader& reader) {
+    Block EvolutionaryFileCompressor::undoCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, FileBitReader& reader) {
         switch (cc) {
             case C_HuffmanCompression: return HuffmanCompression().decompress(reader);
             case C_RunLengthCompression: return RunLengthCompression().decompress(reader);
             default: return IdentityCompression().decompress(reader);
         }
     }
-    void SimpleCompressor::decompress(const SimpleCompressor::FileName &fileToDecompress,
-                                      const SimpleCompressor::FileName &outputFile) {
+    void EvolutionaryFileCompressor::decompress(const EvolutionaryFileCompressor::FileName &fileToDecompress,
+                                                const EvolutionaryFileCompressor::FileName &outputFile) {
 
         std::ifstream inStream(fileToDecompress);
         std::ofstream outStream(outputFile);
@@ -169,7 +169,7 @@ namespace GC {
 
     }
 
-    Individual SimpleCompressor::decodeIndividual(FileBitReader& reader) {
+    Individual EvolutionaryFileCompressor::decodeIndividual(FileBitReader& reader) {
         std::vector<TCode> tList;
         auto addTCode = [&](){
             tList.push_back(static_cast<TCode>(reader.readAmount(bitSizeForTransformCode)));
@@ -185,25 +185,25 @@ namespace GC {
         return Individual(tList, extractCCode());
     }
 
-    Block SimpleCompressor::decodeUsingIndividual(const Individual& individual, FileBitReader& reader) {
+    Block EvolutionaryFileCompressor::decodeUsingIndividual(const Individual& individual, FileBitReader& reader) {
         Block transformedBlock = undoCompressionCode(individual.cCode, reader);
         std::for_each(individual.tList.rbegin(), individual.tList.rend(), [&](auto tc){
             undoTransformCode(tc, transformedBlock);});
         return transformedBlock;
     }
 
-    void SimpleCompressor::writeBlock(Block &block, FileBitWriter &writer) {
+    void EvolutionaryFileCompressor::writeBlock(Block &block, FileBitWriter &writer) {
         auto writeUnit = [&](const Unit unit) {
             writer.writeAmount(unit, bitsInType<Unit>());
         };
         std::for_each(block.begin(), block.end(), writeUnit);
     }
 
-    std::string SimpleCompressor::to_string() {
+    std::string EvolutionaryFileCompressor::to_string() {
         return "SimpleCompressor";
     }
 
-    SimpleCompressor::Fitness SimpleCompressor::compressionRatioForIndividualOnBlock(const Individual& individual, const Block& block) {
+    EvolutionaryFileCompressor::Fitness EvolutionaryFileCompressor::compressionRatioForIndividualOnBlock(const Individual& individual, const Block& block) {
         size_t originalSize = block.size()*8;
 
         BitCounter counterWriter;
@@ -216,7 +216,7 @@ namespace GC {
         return (double) (compressedSize) / (originalSize);
     }
 
-    Individual SimpleCompressor::evolveBestIndividualForBlock(const Block & block) {
+    Individual EvolutionaryFileCompressor::evolveBestIndividualForBlock(const Block & block) {
         Evolver::EvolutionSettings settings;
         settings.generationCount = 36;
         settings.populationSize = 36;

@@ -4,10 +4,10 @@
 
 #ifndef DISS_SIMPLEPROTOTYPE_EVALUATOR_HPP
 #define DISS_SIMPLEPROTOTYPE_EVALUATOR_HPP
-#include "../Utilities/utilities.hpp"
+#include "../../Utilities/utilities.hpp"
 #include "../PseudoFitness/PseudoFitness.hpp"
 #include "../Individual/Individual.hpp"
-#include "../Random/RandomChance.hpp"
+#include "../../Random/RandomChance.hpp"
 #include <sstream>
 #include <iomanip>
 

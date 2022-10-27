@@ -2,21 +2,21 @@
 // Created by gian on 21/09/22.
 //
 
-#ifndef DISS_SIMPLEPROTOTYPE_SIMPLECOMPRESSOR_HPP
-#define DISS_SIMPLEPROTOTYPE_SIMPLECOMPRESSOR_HPP
+#ifndef DISS_SIMPLEPROTOTYPE_EVOLUTIONARYFILECOMPRESSOR_HPP
+#define DISS_SIMPLEPROTOTYPE_EVOLUTIONARYFILECOMPRESSOR_HPP
 
 #include "../names.hpp"
 #include "../Utilities/utilities.hpp"
 #include "../Transformation/Transformation.hpp"
 #include "../Compression/Compression.hpp"
 #include "../BlockReport/BlockReport.hpp"
-#include "../Individual/Individual.hpp"
+#include "../Evolver/Individual/Individual.hpp"
 #include "../AbstractBit/AbstractBitWriter/AbstractBitWriter.hpp"
 #include "../AbstractBit/FileBitWriter/FileBitWriter.hpp"
 
 namespace GC {
 
-    class SimpleCompressor {
+    class EvolutionaryFileCompressor {
 
     public:
         using FileName = std::string;
@@ -31,7 +31,7 @@ namespace GC {
         std::string to_string();
 
 
-        SimpleCompressor() {};
+        EvolutionaryFileCompressor() {};
         static void compress(const FileName& fileToCompress, const FileName& outputFile);
         static void decompress(const FileName& fileToDecompress, const FileName& outputFile);
 
@@ -75,4 +75,4 @@ namespace GC {
 
 } // GC
 
-#endif //DISS_SIMPLEPROTOTYPE_SIMPLECOMPRESSOR_HPP
+#endif //DISS_SIMPLEPROTOTYPE_EVOLUTIONARYFILECOMPRESSOR_HPP

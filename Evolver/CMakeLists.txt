@@ -1,2 +1,7 @@
 add_library(Evolver Evolver.cpp Evolver.hpp)
+add_subdirectory(Breeder)
+add_subdirectory(Selector)
+add_subdirectory(Evaluator)
+add_subdirectory(Individual)
+add_subdirectory(PseudoFitness)
 target_link_libraries(Evolver Individual)

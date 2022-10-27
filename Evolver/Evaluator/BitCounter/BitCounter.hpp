@@ -4,7 +4,7 @@
 
 #ifndef DISS_SIMPLEPROTOTYPE_BITCOUNTER_HPP
 #define DISS_SIMPLEPROTOTYPE_BITCOUNTER_HPP
-#include "../AbstractBitWriter/AbstractBitWriter.hpp"
+#include "../../../AbstractBit/AbstractBitWriter/AbstractBitWriter.hpp"
 
 namespace GC {
 
