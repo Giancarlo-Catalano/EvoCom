@@ -11,6 +11,14 @@
 #include "../names.hpp"
 #include "../StatisticalFeatures/RunningAverage.hpp"
 
+#define SHOW_ADAPTIVE_MUTATION 1
+
+#if SHOW_ADAPTIVE_MUTATION == 1
+#define AM_LOG(...) LOG(__VA_ARGS__)
+#else
+#define AM_LOG(...)
+#endif
+
 namespace GC {
 
     class Evolver {
@@ -39,9 +47,9 @@ namespace GC {
         Selector selector;
         Evaluator evaluator;
         Population population;
-        RunningAverage<Fitness> runningAverageFitness;
+        RunningAverage<Fitness> runningAverageFitness{};
         size_t generationCount = 0;
-        Chance initialMutationRate;
+        const Chance initialMutationRate; static const size_t mutationRateLevels = 12;
 
         size_t populationSize;
         size_t amountOfGenerations;
@@ -75,22 +83,22 @@ namespace GC {
             //LOG("at the end, the population is"); LOGPopulation();
         }
 
+
+        Chance getMutationRateUnit() const{
+            return (1.0 - initialMutationRate) / mutationRateLevels;
+        }
+
+#define ASSERT_MUTATION_VALID() ASSERT_WITHIN(breeder.getMutationRate(), 0.0, 1.0);
         void increaseMutationRate() {
-            Chance oldMutationRate = breeder.getMutationRate();
-            /**
-             * the following function needs to have certain properties:
-             *  for x in [0, 1], f(x) in [0, 1]
-             *  bijective
-             *  f(x)>=x
-             */
-            Chance newMutationRate = (3.0*oldMutationRate + 1.0)*0.25;
-            breeder.setMutationRate(newMutationRate);
+            Chance newRate = breeder.getMutationRate()+getMutationRateUnit();
+            if (newRate <= 1.0)
+                breeder.setMutationRate(newRate);
         }
 
         void decreaseMutationRate() {
-            Chance oldMutationRate = breeder.getMutationRate();
-            Chance newMutationRate = ((oldMutationRate*4.0)-1.0)/3.0;
-            breeder.setMutationRate(newMutationRate);
+            Chance newRate = breeder.getMutationRate()-getMutationRateUnit();
+            if (newRate >= 0.0)
+                breeder.setMutationRate(newRate);
         }
 
         void resetMutationRate() {
@@ -105,7 +113,6 @@ namespace GC {
             evaluator(fitnessFunction),
             breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
             selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion))),
-            runningAverageFitness(),
             initialMutationRate(settings.chanceOfMutation)
             {
                 initialiseRandomPopulation();
@@ -118,7 +125,7 @@ namespace GC {
                 evaluator(fitnessFunction),
                 breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
                 selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion))),
-                runningAverageFitness()
+                initialMutationRate(settings.chanceOfMutation)
         {
             initialiseHintedPopulation(hint);
         }
@@ -142,21 +149,34 @@ namespace GC {
         }
 
         bool isStagnating() {
-            return runningAverageFitness.getDeviation() > -0.001;
+            return runningAverageFitness.getDeviation() > -0.0000000000001; //originally it was >= 0, but equality with 0 if iffy, so this works better
         }
 
         bool isUnstable() {
-            return abs(runningAverageFitness.getDeviation()) > 0.4;
+            return abs(runningAverageFitness.getDeviation()) > 0.4; //TODO decide a more refined value
         }
 
         void adjustMutationRate() {
-            if (isStagnating()) {
-                //LOG("Stagnation detected, increasing the mutation rate, now ", breeder.getMutationRate());
-                increaseMutationRate();
-            } else {
-                //LOG("Situation is stable, resetting mutation rate");
-                resetMutationRate();
+            Chance oldMutationRate = breeder.getMutationRate();
+            if (isUnstable()) {
+                AM_LOG("Detected unstability, running deviation is ", runningAverageFitness.getDeviation());
+                decreaseMutationRate();
             }
+            else if (isStagnating()) {
+                AM_LOG("Detected stagnation, running deviation is ", runningAverageFitness.getDeviation());
+                increaseMutationRate();
+            }
+            else {
+                if (breeder.getMutationRate() != initialMutationRate) {
+                    AM_LOG("Resetting mutation rate");
+                    resetMutationRate();
+                }
+            }
+
+            if (breeder.getMutationRate() != oldMutationRate) {
+                AM_LOG("Mutation rate is now", breeder.getMutationRate());
+            }
+
         }
 
         bool populationIsMature() {
@@ -164,25 +184,22 @@ namespace GC {
         }
 
         bool mutationIsExtreme() {
-            return breeder.getMutationRate() > 0.75;
+            return breeder.getMutationRate() > 0.75; //TODO arbitrary
         }
 
         void evolveForGenerations() {
             for (size_t i=0;i<amountOfGenerations;i++) {
                 evolveSingleGeneration();
                 //LOG("Deviation = ", runningAverageFitness.getDeviation());
+                if (mutationIsExtreme()) {AM_LOG("Extreme mutation detected, stopping");return;}
                 if (populationIsMature()) adjustMutationRate();
-                if (mutationIsExtreme()) {/*LOG("Extreme mutation detected, stopping")*/;return;}
+
             }
         }
 
         void forcePopulationFitnessAssessment() {
             std::for_each(population.begin(), population.end(),
                           [&](Individual& i){evaluator.forceEvaluation(i);});
-        }
-
-        void forceEvaluation(Individual& i) {
-            evaluator.forceEvaluation(i);
         }
 
         void LOGPopulation() {
@@ -211,22 +228,6 @@ namespace GC {
         void reset() {
             initialiseRandomPopulation();
         }
-
-
-        bool isPoolIsFullyAssessed() {
-            auto isAssessed = [&](const Individual& i) {
-                return i.getFitnessReliability() > 0.01;
-            };
-
-            return std::all_of(population.begin(), population.end(), isAssessed);
-        }
-
-
-
-
-
-
-
 
     };
 

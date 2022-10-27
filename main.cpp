@@ -27,14 +27,23 @@ int main() {
 
 
 
-#if 1 //compression
-    std::string fileToBeCompressed = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/finishedboot.png";
-    std::string compressedFile = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/compressed.gac";
-    std::string decompressedFile = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/decompressedfinishedboot.png";
+#if 0 //compression
+    std::string smallLogo = "fencingLogoSimple";
+    std::string bigLogo = "finishedboot";
+    std::string originalExtension = "png";
+    std::string compressedExtension = "gac";
+    std::string directory = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/";
+
+    std::string fileName = smallLogo;
+
+    std::string fileToBeCompressed = directory+fileName+"."+originalExtension;
+    std::string compressedFile = directory+fileName+"."+compressedExtension;
+    std::string decompressedFile = directory+"DECOMPRESSED_"+fileName+"."+originalExtension;
 
     GC::SimpleCompressor::compress(fileToBeCompressed, compressedFile);
     LOG("The compressedFile has size ", getFileSize(compressedFile));
 
+    LOG("Decompressing!----------------------------------------------");
     GC::SimpleCompressor::decompress(compressedFile, decompressedFile);
 
     LOG("In short: ", getFileSize(fileToBeCompressed), "bytes -> ", getFileSize(compressedFile), "bytes");
@@ -169,7 +178,14 @@ int main() {
     GodsImage.setFitness(pseudoFitnessFunction(GodsImage));
     LOG("God's image is currently", GodsImage.to_string());
     repeat(12, showBestIndividual);
+#endif
 
+#if 1 //RL compression test
+    Block block;
+    for (int i=0;i<256;i++) {
+        block.push_back(i<<(i/4));
+    }
+    LOG("The block is", containerToString(block));
 
 #endif
     return 0;
