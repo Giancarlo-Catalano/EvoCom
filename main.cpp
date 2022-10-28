@@ -7,6 +7,7 @@
 #include "EvolutionaryFileCompressor/EvolutionaryFileCompressor.hpp"
 #include "Compression/NRLCompression/NRLCompression.hpp"
 #include "AbstractBit/DebugBitWriter/DebugWriter.hpp"
+#include "Transformation/Transformations/StackTransform.hpp"
 
 
 int main() {
@@ -180,19 +181,24 @@ int main() {
     repeat(12, showBestIndividual);
 #endif
 
-#if 0 //RL compression test
+#if 0 //Transform test
     Block block;
-    for (int i=0;i<24;i++) {
-        repeat(i, [&](){block.push_back(0xff);});
-        block.push_back(0);
+    for (int i=0;i<512;i++) {
+        block.push_back(i*i%8);
     }
     LOG("The block is", containerToString(block));
 
-    GC::NRLCompression compressor;
-    GC::DebugWriter writer;
-    compressor.compress(block, writer);
 
-    writer.LOG_INFO();
+    Block nTransformed = GC::NStackTransform().apply_copy(block);
+    Block transformed = GC::StackTransform().apply_copy(block);
+
+    LOG("The new transform is ", containerToString(nTransformed));
+    LOG("The old transform is ", containerToString(transformed));
+
+    Block undone = GC::NStackTransform().undo_copy(block);
+    LOG("old block is ", containerToString(block));
+    LOG("The block is ", containerToString(block));
+
 
 
 

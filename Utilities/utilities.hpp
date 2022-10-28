@@ -31,6 +31,7 @@
 #define ASSERT_GREATER(var, min_accepted) ASSERT(var >= min_accepted)
 #define ASSERT_LOWER(var, max_accepted) ASSERT(var <= max_accepted)
 #define ASSERT_WITHIN(var, min_accepted, max_accepted) ASSERT((var >= min_accepted)&(var >= max_accepted))
+#define ASSERT_NOT_REACHED() LOG("This area should be inaccessible!");ASSERT(false);
 #define ERROR_NOT_IMPLEMENTED(message) LOG("ERROR! NOT IMPLEMENTED:", message); ASSERT(false);
 #endif
 

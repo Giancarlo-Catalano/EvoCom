@@ -14,12 +14,12 @@
 #include "../Compression/IdentityCompression/IdentityCompression.hpp"
 #include "../Evolver/Evolver.hpp"
 #include "../Transformation/Transformations/SplitTransform.hpp"
-#include "../Transformation/Transformations/StackTransform.hpp"
 #include "../Transformation/Transformations/SubtractAverageTransform.hpp"
 #include "../Transformation/Transformations/SubtractXORAverageTransform.hpp"
 #include "../Transformation/Transformations/StrideTransform.hpp"
 #include "../Evolver/Evaluator/BitCounter/BitCounter.hpp"
 #include "../Compression/NRLCompression/NRLCompression.hpp"
+#include "../Transformation/Transformations/StackTransform.hpp"
 
 
 namespace GC {
@@ -75,6 +75,7 @@ namespace GC {
         return block;
     }
 
+    //TODO: why am I applying a copy, rather than just applying the transform in place?
     Block EvolutionaryFileCompressor::applyTransformCode(const EvolutionaryFileCompressor::TransformCode &tc, const Block &block) {
 #define GC_APPLY_T_CASE(TRANS, ...) case T_##TRANS : return TRANS(__VA_ARGS__).apply_copy(block)
 #define GC_APPLY_T_STRIDE_CASE(NUM) case T_StrideTransform_##NUM : return StrideTransform(NUM).apply_copy(block)
@@ -82,7 +83,6 @@ namespace GC {
             GC_APPLY_T_CASE(DeltaTransform);
             GC_APPLY_T_CASE(DeltaXORTransform);
             GC_APPLY_T_CASE(RunLengthTransform);
-            GC_APPLY_T_CASE(SplitTransform);
             GC_APPLY_T_CASE(StackTransform);
             GC_APPLY_T_STRIDE_CASE(2);
             GC_APPLY_T_STRIDE_CASE(3);
