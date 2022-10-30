@@ -21,7 +21,7 @@ namespace GC {
             "SMLVL"
     };
 
-    const std::vector<CCode> availableCCodes = {C_IdentityCompression, C_HuffmanCompression, C_SmallValueCompression};
+    const std::vector<CCode> availableCCodes = {C_IdentityCompression, C_HuffmanCompression, C_RunLengthCompression, C_SmallValueCompression};
 
 
     //TODO define a macro which does something for each compression method
