@@ -52,7 +52,7 @@ namespace GC {
                 Block block = readBlock(sizeOfBlock, reader);
                 //LOG("Evolving the best individual");
                 Individual bestIndividual = evolveBestIndividualForBlock(block);
-                LOG("(", amountOfBlocksProcessed, "/", blockAmount, ") For this block, the best individual is", bestIndividual.to_string());
+                LOG("(", amountOfBlocksProcessed+1, "/", blockAmount, ") For this block, the best individual is", bestIndividual.to_string());
                 encodeIndividual(bestIndividual, writer);
                 applyIndividual(bestIndividual, block, writer);
                 amountOfBlocksProcessed++;
@@ -179,8 +179,8 @@ namespace GC {
         settings.generationCount = 36;
         settings.populationSize = 36;
         settings.chanceOfMutation = 0.1; //usually it's 0.05, but I want to get better results faster.
-        settings.usesSimulatedAnnealing = false;
-        settings.isElitist = false;
+        settings.usesSimulatedAnnealing = true;
+        settings.isElitist = true;
         auto getFitnessOfIndividual = [&](const Individual& i){
             return compressionRatioForIndividualOnBlock(i, block);
         };

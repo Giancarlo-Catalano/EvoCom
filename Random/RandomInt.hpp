@@ -13,16 +13,23 @@ namespace GC {
     private:
         std::random_device rd;
         std::mt19937 gen;
-        const I min, max;
         std::uniform_int_distribution<I> distr;
 
     public:
-        RandomInt(I min, I max) :
+        RandomInt(const I min, const I max) :
             rd(),
             gen(rd()),
-            min(min),
-            max(max),
             distr(min, max){
+        }
+
+        RandomInt() {
+            RandomInt(0, 1);
+        }
+
+        //mutates it
+        I chooseInRange(const I min, const I max) {
+            setBounds(min, max);
+            return choose();
         }
 
         I choose() {

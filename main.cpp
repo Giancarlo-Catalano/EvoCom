@@ -1,13 +1,9 @@
 #include <iostream>
 #include "Utilities/utilities.hpp"
-#include "Random/RandomInt.hpp"
-#include "Random/RandomElement.hpp"
-#include "Random/RandomChance.hpp"
-#include "Evolver/Evolver.hpp"
 #include "EvolutionaryFileCompressor/EvolutionaryFileCompressor.hpp"
-#include "Compression/NRLCompression/NRLCompression.hpp"
-#include "AbstractBit/DebugBitWriter/DebugWriter.hpp"
-#include "Transformation/Transformations/StackTransform.hpp"
+#include "Evolver/Individual/TCodes.hpp"
+#include "Evolver/Individual/CCodes.hpp"
+#include "Evolver/Breeder/Breeder.hpp"
 
 
 int main() {
@@ -30,12 +26,12 @@ int main() {
     std::string bigLogo = "finishedboot";
     std::string beeMovie = "beeMovieScript";
 
-    std::string originalExtension = "png";
+    std::string originalExtension = "txt";
     std::string compressedExtension = "gac";
     std::string directory = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/";
 
 
-    std::string fileName = smallLogo;
+    std::string fileName = beeMovie;
 
     std::string fileToBeCompressed = directory+fileName+"."+originalExtension;
     std::string compressedFile = directory+fileName+"."+compressedExtension;
@@ -198,11 +194,21 @@ int main() {
     Block undone = GC::NStackTransform().undo_copy(block);
     LOG("old block is ", containerToString(block));
     LOG("The block is ", containerToString(block));
+#endif
+
+
+#if 0 //Crossover test
+    GC::Breeder breeder(0, 0.5);
+
+    GC::Individual A{{GC::T_StackTransform, GC::T_RunLengthTransform, GC::T_StrideTransform_4}, GC::C_SmallValueCompression};
+    GC::Individual B{{}, GC::C_IdentityCompression};
+
+    LOG("A =", A.to_string());
+    LOG("B =", B.to_string());
 
 
 
-
-
+    repeat(12, [&](){LOG("child =", breeder.crossover(B, B).to_string());});
 #endif
     return 0;
 }

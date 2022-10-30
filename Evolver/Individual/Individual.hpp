@@ -136,29 +136,37 @@ namespace GC {
 
 
         double distanceFrom(const Individual& other) const {
-            auto discreteMetric = [&](auto A, auto B) -> double {
-                return (double)(A!=B);
-            };
+            return 0.5; //TODO find an appropriate algorithm for this!
+        }
 
-            double currentSum = 0.0;
-            ASSERT_EQUALS(tList.size(), other.tList.size());
-            for (size_t i = 0;i < tList.size();i++)
-                currentSum += discreteMetric(readTCode(i), other.readTCode(i));
 
-            currentSum += discreteMetric(readCCode(), other.readCCode());
-            return currentSum / (double(tList.size() + 1)); //the average
+        size_t getTListLength() const {
+            return tList.size();
+        }
+
+        const TList& readTList() const {
+            return tList;
+        }
+
+        bool hasSpaceForMoreMutations() const {
+            return getTListLength() < MaxTListLength;
+        }
+
+        bool canRemoveMoreMutations() const {
+            return !tList.empty();
         }
     };
 
 
     class RandomIndividual {
     private:
+        RandomInt<size_t> randomLength{0, Individual::MaxTListLength};
         RandomElement<TCode> randomTCode{availableTCodes};
         RandomElement<CCode> randomCCode{availableCCodes};
     public:
         RandomIndividual() = default;
         Individual makeIndividual() {
-            Individual::TList tList;
+            Individual::TList tList(randomLength.choose());
             for (TCode& tCode: tList)
                 randomTCode.assignRandomValue(tCode);
             CCode cCode = randomCCode.choose();

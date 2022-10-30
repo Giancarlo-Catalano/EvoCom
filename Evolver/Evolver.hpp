@@ -13,7 +13,7 @@
 
 #define SHOW_ADAPTIVE_MUTATION 1
 
-#if SHOW_ADAPTIVE_MUTATION == 1
+#if SHOW_ADAPTIVE_MUTATION == 0
 #define AM_LOG(...) LOG(__VA_ARGS__)
 #else
 #define AM_LOG(...)
@@ -80,7 +80,7 @@ namespace GC {
             population = std::vector<Individual>();
 
             auto makeIndividual = [&]() -> Individual {
-                if (chooseIfRandom.flip()) return randomIndividualMaker.makeIndividual();
+                if (chooseIfRandom.choose()) return randomIndividualMaker.makeIndividual();
                 else return randomHint.choose();
             };
 

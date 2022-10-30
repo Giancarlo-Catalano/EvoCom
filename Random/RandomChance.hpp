@@ -42,17 +42,17 @@ namespace GC {
                 chanceOfTrue(chanceOfTrue){
         }
 
-        bool flip() {
+        bool choose() {
             return chanceOfTrue >= randomDouble();
         }
 
         bool shouldDo() {
-            return flip();
+            return choose();
         }
 
         template <class Function>
         bool doWithChance(Function func) {
-            if (flip()) {
+            if (choose()) {
                 func();
                 return true;
             };
@@ -61,7 +61,7 @@ namespace GC {
 
         template <class Function>
         bool doWithChanceOrElse(Function ifTrue, Function ifFalse) {
-            bool isTrue = flip();
+            bool isTrue = choose();
             if (isTrue) ifTrue();
             else ifFalse();
             return isTrue;
@@ -85,7 +85,7 @@ namespace GC {
         }
 
         bool flip() {
-            return randomChance.flip();
+            return randomChance.choose();
         }
     };
 

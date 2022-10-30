@@ -11,8 +11,13 @@
 #include "RandomInt.hpp"
 #include "../Utilities/utilities.hpp"
 
+
 namespace GC {
 
+    /**
+     * this class is used to repeatedly choose random elements from a collection which we don't expect to be changed.
+     * @tparam T
+     */
     template <class T>
     class RandomElement {
         std::vector<T> elements;

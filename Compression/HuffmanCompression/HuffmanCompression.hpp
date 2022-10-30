@@ -63,12 +63,16 @@ namespace GC {
         static std::vector<std::pair<Symbol, Weight>> expandSmallFrequencyReport(const SmallFrequencyReport& sfr){
             std::vector<std::pair<Symbol, Weight>> result;
             auto addExpandedGroup = [&](const size_t whichGroup) {
+                if (sfr[whichGroup]==0)
+                    return;
                 for (size_t i=0;i<howManyFrequenciesPerGroup;i++)
                     result.push_back({indexStartOfGroup(whichGroup)+i, sfr[whichGroup]});
             };
 
             for (size_t i=0;i<frequencyGroupAmount;i++)
                 addExpandedGroup(i);
+
+            //TODO: what happens when the entire result is an empty list? That shouln't be possible, but..
             return result;
         }
 
