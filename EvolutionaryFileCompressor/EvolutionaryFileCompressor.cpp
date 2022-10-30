@@ -76,31 +76,7 @@ namespace GC {
         return block;
     }
 
-    //TODO: why am I applying a copy, rather than just applying the transform in place?
-    Block EvolutionaryFileCompressor::applyTransformCode_copy(const EvolutionaryFileCompressor::TransformCode &tc, const Block &block) {
-#define GC_APPLY_T_CASE(TRANS, ...) case T_##TRANS : return TRANS(__VA_ARGS__).apply_copy(block)
-#define GC_APPLY_T_STRIDE_CASE(NUM) case T_StrideTransform_##NUM : return StrideTransform(NUM).apply_copy(block)
-        switch (tc) {
-            GC_APPLY_T_CASE(DeltaTransform);
-            GC_APPLY_T_CASE(DeltaXORTransform);
-            GC_APPLY_T_CASE(RunLengthTransform);
-            GC_APPLY_T_CASE(StackTransform);
-            GC_APPLY_T_STRIDE_CASE(2);
-            GC_APPLY_T_STRIDE_CASE(3);
-            GC_APPLY_T_STRIDE_CASE(4);
-            GC_APPLY_T_CASE(SubtractAverageTransform);
-            GC_APPLY_T_CASE(SubtractXORAverageTransform);
-            default: return block; //ie do nothing
-        }
-    }
 
-    void EvolutionaryFileCompressor::applyCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, const Block &block, AbstractBitWriter& writer) {
-        switch (cc) {
-            case C_HuffmanCompression: return HuffmanCompression().compress(block, writer);
-            case C_RunLengthCompression: return RunLengthCompression().compress(block, writer);
-            default: return IdentityCompression().compress(block, writer);
-        }
-    }
 
     void EvolutionaryFileCompressor::applyIndividual(const Individual &individual, const Block &block, AbstractBitWriter& writer) {
         ////LOG("Applying individual ", individual.to_string());
@@ -123,34 +99,7 @@ namespace GC {
         encodeCompression(individual.cCode);
     }
 
-    void EvolutionaryFileCompressor::undoTransformCode(const TransformCode& tc, Block& block) {
-        LOG("undoing transform", Individual::TCode_as_string(tc), ", size was", block.size());
 
-#define GC_UNDO_T_CASE(TRANS, ...) case T_##TRANS : TRANS(__VA_ARGS__).undo(block);break;
-#define GC_UNDO_T_STRIDE_CASE(NUM) case T_StrideTransform_##NUM : StrideTransform(NUM).undo(block);break;
-        switch (tc) {
-            GC_UNDO_T_CASE(DeltaTransform);
-            GC_UNDO_T_CASE(DeltaXORTransform);
-            GC_UNDO_T_CASE(RunLengthTransform);
-            GC_UNDO_T_CASE(SplitTransform);
-            GC_UNDO_T_CASE(StackTransform);
-            GC_UNDO_T_STRIDE_CASE(2);
-            GC_UNDO_T_STRIDE_CASE(3);
-            GC_UNDO_T_STRIDE_CASE(4);
-            GC_UNDO_T_CASE(SubtractAverageTransform);
-            GC_UNDO_T_CASE(SubtractXORAverageTransform);
-            GC_UNDO_T_CASE(IdentityTransform);
-        }
-        LOG("The new block size is", block.size());
-    }
-
-    Block EvolutionaryFileCompressor::undoCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, FileBitReader& reader) {
-        switch (cc) {
-            case C_HuffmanCompression: return HuffmanCompression().decompress(reader);
-            case C_RunLengthCompression: return RunLengthCompression().decompress(reader);
-            default: return IdentityCompression().decompress(reader);
-        }
-    }
     void EvolutionaryFileCompressor::decompress(const EvolutionaryFileCompressor::FileName &fileToDecompress,
                                                 const EvolutionaryFileCompressor::FileName &outputFile) {
 
@@ -248,6 +197,14 @@ namespace GC {
         return bestIndividual;
     }
 
+    void EvolutionaryFileCompressor::applyCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, const Block &block, AbstractBitWriter& writer) {
+        switch (cc) {
+            case C_HuffmanCompression: return HuffmanCompression().compress(block, writer);
+            case C_RunLengthCompression: return NRLCompression().compress(block, writer);
+            default: return IdentityCompression().compress(block, writer);
+        }
+    }
+
     void EvolutionaryFileCompressor::applyTransformCode(const EvolutionaryFileCompressor::TransformCode &tc,
                                                         Block &block) {
 #define GC_APPLY_T_CASE_X(TRANS, ...) case T_##TRANS : TRANS(__VA_ARGS__).apply(block)
@@ -267,5 +224,42 @@ namespace GC {
         }
 
     }
+
+    void EvolutionaryFileCompressor::undoTransformCode(const TransformCode& tc, Block& block) {
+        LOG("undoing transform", Individual::TCode_as_string(tc), ", size was", block.size());
+
+#define GC_UNDO_T_CASE(TRANS, ...) case T_##TRANS : TRANS(__VA_ARGS__).undo(block);break;
+#define GC_UNDO_T_STRIDE_CASE(NUM) case T_StrideTransform_##NUM : StrideTransform(NUM).undo(block);break;
+        switch (tc) {
+            GC_UNDO_T_CASE(DeltaTransform);
+            GC_UNDO_T_CASE(DeltaXORTransform);
+            GC_UNDO_T_CASE(RunLengthTransform);
+            GC_UNDO_T_CASE(SplitTransform);
+            GC_UNDO_T_CASE(StackTransform);
+            GC_UNDO_T_STRIDE_CASE(2);
+            GC_UNDO_T_STRIDE_CASE(3);
+            GC_UNDO_T_STRIDE_CASE(4);
+            GC_UNDO_T_CASE(SubtractAverageTransform);
+            GC_UNDO_T_CASE(SubtractXORAverageTransform);
+            GC_UNDO_T_CASE(IdentityTransform);
+        }
+        LOG("The new block size is", block.size());
+    }
+
+    Block EvolutionaryFileCompressor::undoCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, FileBitReader& reader) {
+        switch (cc) {
+            case C_HuffmanCompression: return HuffmanCompression().decompress(reader);
+            case C_RunLengthCompression: return NRLCompression().decompress(reader);
+            default: return IdentityCompression().decompress(reader);
+        }
+    }
+
+
+
+
+
+
+
+
 
 } // GC
