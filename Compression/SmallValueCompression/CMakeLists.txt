@@ -1,0 +1,2 @@
+add_library(SmallValueCompression SmallValueCompression.cpp SmallValueCompression.hpp)
+

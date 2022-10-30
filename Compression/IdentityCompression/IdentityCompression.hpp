@@ -11,7 +11,7 @@
 
 namespace GC {
 
-    class IdentityCompression {
+    class IdentityCompression : public Compression {
     public:
 
         std::string to_string() const {return "{IdentityCompression}";}

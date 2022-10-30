@@ -18,7 +18,7 @@ namespace GC {
         Block apply_copy(const Block& block) const {
             Unit xorAverage = BlockReport::getXorAverage(block);
             Block result;
-            result.push_back(xorAverage);
+            result.push_back(xorAverage);  //write the average, so that the decompressor knows what to unxor
             for (const auto& unit : block)
                 result.push_back(unit ^ xorAverage);
             return result;

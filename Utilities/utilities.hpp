@@ -33,6 +33,9 @@
 #define ASSERT_WITHIN(var, min_accepted, max_accepted) ASSERT((var >= min_accepted)&(var >= max_accepted))
 #define ASSERT_NOT_REACHED() LOG("This area should be inaccessible!");ASSERT(false);
 #define ERROR_NOT_IMPLEMENTED(message) LOG("ERROR! NOT IMPLEMENTED:", message); ASSERT(false);
+
+#define SINGLE_EVAL(M) M
+#define EVAL(SOME_WEIRD_MACRO) SINGLE_EVAL(SINGLE_EVAL(SOME_WEIRD_MACRO))
 #endif
 
 
