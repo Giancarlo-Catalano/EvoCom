@@ -7,7 +7,6 @@
 
 #include <variant>
 #include <sstream>
-#include <array>
 #include <vector>
 #include <algorithm>
 #include <functional>
@@ -28,11 +27,11 @@ namespace GC {
     public: //types
         using Fitness = PseudoFitness;
         using FitnessScore = PseudoFitness::FitnessScore;
-        static const size_t TListLength = 6;
+        static const size_t MaxTListLength = 6;
 
 
 
-        using TList = std::array<TCode, TListLength>;
+        using TList = std::vector<TCode>;
     public: //attributes, these are all public
         TList tList;
         CCode cCode;
@@ -48,14 +47,8 @@ namespace GC {
         Individual(const TList& tList, const CCode cCode) :
             tList(tList),
             cCode(cCode),
-            fitness(){}
-
-        Individual(const std::vector<TCode>& tVector, const CCode cCode) :
-            cCode(cCode),
-            tList(),
             fitness(){
-            ASSERT_EQUALS(tVector.size(), tList.size());
-            std::copy(tVector.begin(), tVector.end(), tList.begin());
+            ASSERT_LESS_EQ(tList.size(), MaxTListLength);
         }
 
         TList& getTList() { return tList;}

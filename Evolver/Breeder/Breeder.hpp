@@ -37,7 +37,7 @@ namespace GC {
             randomTCode(availableTCodes),
             randomCCode(availableCCodes),
             crossoverFirstChooser(),
-            startOfCrossoverChooser(0, Individual::TListLength),
+            startOfCrossoverChooser(0, Individual::MaxTListLength),
             chooseCCodeCrossover(chanceOfCCodeCrossover){};
 
 
@@ -58,7 +58,7 @@ namespace GC {
             Individual child = (AGoesFirst ? A : B);
             const Individual& alternative = (AGoesFirst ? B : A);
             size_t startOfCrossover = startOfCrossoverChooser();
-            for (size_t index = startOfCrossover;index<Individual::TListLength;index++)
+            for (size_t index = startOfCrossover;index<Individual::MaxTListLength; index++)
                     child.copyTCodeFrom(index, alternative);
 
             chooseCCodeCrossover.doWithChance([&]{child.copyCCodeFrom(alternative);});
