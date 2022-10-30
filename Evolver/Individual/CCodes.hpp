@@ -18,9 +18,7 @@ namespace GC {
             "C_RunLengthCompression"
     };
 
-    const std::vector<CCode> availableCCodes = {C_HuffmanCompression,
-                                                C_IdentityCompression,
-                                                C_RunLengthCompression};
+    const std::vector<CCode> availableCCodes = {C_HuffmanCompression,C_IdentityCompression,C_RunLengthCompression};
 
 }
 #endif //DISS_SIMPLEPROTOTYPE_CCODES_HPP

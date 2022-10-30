@@ -17,6 +17,12 @@ namespace GC {
         Block apply_copy(const Block& block) const {
             return block;
         }
+        Block undo_copy(const Block& block) const {
+            return block;
+        }
+
+        void apply(Block& block) const {}
+        void undo(Block& block) const{}
     };
 
 } // GC

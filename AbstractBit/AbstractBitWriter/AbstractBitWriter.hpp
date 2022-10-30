@@ -24,6 +24,7 @@ namespace GC {
         virtual void writeRiceEncoded(const size_t value);
 
 
+
         void writeSmallAmount(const size_t value);
 
         void writeBigAmount(const size_t value);

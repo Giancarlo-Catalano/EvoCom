@@ -39,7 +39,7 @@ namespace GC {
             return readBit_unsafe();
         }
 
-        size_t readAmountOfBytes(const size_t amountOfBits) {
+        size_t readAmountOfBits(const size_t amountOfBits) {
             size_t result = 0;
             for (size_t i = 0; i < amountOfBits; i++) {
                 result <<= 1;
@@ -49,7 +49,7 @@ namespace GC {
         }
 
         Byte readByte() {
-            return readAmountOfBytes(8);
+            return readAmountOfBits(8);
         }
 
         std::vector<bool> readVector(const size_t amount) {
@@ -65,7 +65,7 @@ namespace GC {
             return result;
         }
 
-        size_t readAmount() {
+        size_t readSmallAmount() {
             return readRiceEncoded();
         }
 
@@ -77,7 +77,7 @@ namespace GC {
                 auto sumPow4 = [&](auto n) {return (pow4(n)-1)/3;};
                 return sumPow4(bitSize/2)-1;   //this is effectively bitSizeRead..
             };
-            size_t contents = readAmountOfBytes(bitSize);
+            size_t contents = readAmountOfBits(bitSize);
             return contents+getOffsetOfBitSize(bitSize);
         }
     };

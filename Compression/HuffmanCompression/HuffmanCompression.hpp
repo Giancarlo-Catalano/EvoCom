@@ -103,9 +103,7 @@ namespace GC {
         }
 
         Block decompress(FileBitReader& reader) override {
-            auto readSingleWeight = [&]() -> Weight {
-                return reader.readAmountOfBytes(bitSizeOfFrequency) + 1;
-            };
+            auto readSingleWeight = [&]() -> Weight { return reader.readAmountOfBits(bitSizeOfFrequency) + 1;};
 
             auto readSmallFrequencyReport = [&]() -> SmallFrequencyReport {
                 SmallFrequencyReport sfr;
@@ -115,18 +113,11 @@ namespace GC {
                 return sfr;
             };
 
-            auto readBlockSize = [&]() -> size_t {
-                return reader.readRiceEncoded();
-            };
-
-
-
-
             SmallFrequencyReport sfr = readSmallFrequencyReport();
             LOG("read a small frequency report:", containerToString(sfr));
             HuffmanCoder huffmanCoder(expandSmallFrequencyReport(sfr));
 
-            size_t expectedBlockSize = readBlockSize();
+            size_t expectedBlockSize = reader.readSmallAmount();
             LOG("expecting a block of size", expectedBlockSize);
 
             Block result;

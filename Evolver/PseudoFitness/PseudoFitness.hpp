@@ -23,9 +23,15 @@ namespace GC {
 
         std::string to_string() const {
             std::stringstream ss;
-            ss<<"{PseudoFitness:"<<(isActualFitness() ? "Actual" : "Approx")<<"="<<std::setprecision(2)<<fitnessScore;
-            if (!isActualFitness())
-                ss<<", Reliability="<<std::setprecision(2)<<reliability;
+            ss<<"{PseudoFitness:";
+            if (reliability > 0) {
+                ss<<(isActualFitness() ? "Actual" : "Approx")<<"="<<std::setprecision(2)<<fitnessScore;
+                if (!isActualFitness())
+                    ss<<", Reliability="<<std::setprecision(2)<<reliability;
+            }
+            else {
+                ss<<"Irrelevant";
+            }
             ss<<"}";
 
             return ss.str();

@@ -42,7 +42,8 @@ namespace GC {
 
         static Block readBlock(size_t size, FileBitReader &reader);
 
-        static Block applyTransformCode(const TransformCode &tc, const Block &block);
+        static Block applyTransformCode_copy(const TransformCode &tc, const Block &block);
+        static void applyTransformCode(const TransformCode &tc, Block &block);
 
         static void applyCompressionCode(const CompressionCode &cc, const Block &block, AbstractBitWriter& writer);
 

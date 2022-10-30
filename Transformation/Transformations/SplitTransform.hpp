@@ -32,6 +32,7 @@ namespace GC {
         }
 
         Block undo_copy(const Block& block) const {
+            ASSERT_EQUALS(block.size()%2, 0);
             Block result;
             auto addJoint = [&result](const Unit first, const Unit second) {
                 result.push_back((first<<bitsInEachSplit)|second);

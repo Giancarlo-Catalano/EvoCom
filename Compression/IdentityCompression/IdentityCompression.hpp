@@ -24,7 +24,7 @@ namespace GC {
         Block decompress(FileBitReader& reader) const {
             Block result;
             auto readAndAppendUnit = [&]() -> Unit {
-                result.push_back(reader.readAmountOfBytes(bitsInType<Unit>()));
+                result.push_back(reader.readAmountOfBits(bitsInType<Unit>()));
             };
 
             size_t expectedAmount = reader.readRiceEncoded();

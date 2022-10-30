@@ -61,7 +61,7 @@ namespace GC {
         }
 
         static RLPair readPair(FileBitReader& reader) {
-            return {reader.readAmountOfBytes(bitsInType<Unit>()), reader.readRiceEncoded() + 1};
+            return {reader.readAmountOfBits(bitsInType<Unit>()), reader.readRiceEncoded() + 1};
         }
 
         static std::vector<RLPair> readPairs(size_t expectedAmount, FileBitReader& reader) {
@@ -87,14 +87,7 @@ namespace GC {
         Block decompress(FileBitReader& reader) const{
             Block result;
             size_t expectedVectorSize = reader.readRiceEncoded();
-            LOG("read that there are ", expectedVectorSize, "RL pairs");
             std::vector<RLPair> pairs = readPairs(expectedVectorSize, reader);
-            LOG("The decoded pairs are");
-            LOG("The RL pairs are:");
-            for (auto item: pairs) {
-                LOG_NONEWLINE_NOSPACES("{", ((int)item.first), "; ", item.second, "},");
-            }
-            LOG("");
             return unpackRLPairs(pairs);
         }
     };

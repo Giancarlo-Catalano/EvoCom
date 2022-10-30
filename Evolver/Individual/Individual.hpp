@@ -22,6 +22,9 @@ namespace GC {
 
     class Individual {
 
+#define GC_PRINT_TCODE_NAMES 1
+#define GC_PRINT_CCODE_NAMES 1
+
     public: //types
         using Fitness = PseudoFitness;
         using FitnessScore = PseudoFitness::FitnessScore;
@@ -57,40 +60,38 @@ namespace GC {
 
         TList& getTList() { return tList;}
 
+        static std::string TCode_as_string(const TCode tc) {
+            if (GC_PRINT_TCODE_NAMES)
+                return TCodesAsStrings[static_cast<int>(tc)];
+            else
+                return std::to_string(static_cast<int>(tc));
+        }
+
+        static std::string CCode_as_string(const CCode cc) {
+            if (GC_PRINT_CCODE_NAMES)
+                return CCodesAsStrings[static_cast<int>(cc)];
+            else
+                return std::to_string(static_cast<int>(cc));
+        }
+
         std::string to_string() const{
-#define GC_PRINT_TCODE_NAMES 0
-#define GC_PRINT_CCODE_NAMES 0
+
             std::stringstream ss;
             ss<<"{";
 
-            auto showTList = [&](bool withNames) {
-                auto showTCode = [&](const TCode tc) {
-                    if (withNames)
-                        ss << TCodesAsStrings[static_cast<int>(tc)];
-                    else
-                        ss << static_cast<int>(tc);
-
-                };
+            auto showTList = [&]() {
                 ss<<"TList:{";
                 bool isFirst = true;
                 std::for_each(tList.begin(), tList.end(), [&](auto t) {
                     if (!isFirst)ss<<", ";
                     isFirst = false;
-                    showTCode(t);
+                    ss << TCode_as_string(t);
                 } );
                 ss<<"}";
             };
 
-            auto showCCode = [&](bool withNames) {
-                if (withNames)
-                    ss<<"Compr:"<<CCodesAsStrings[static_cast<int>(cCode)];
-                else
-                    ss << static_cast<int>(cCode);
-            };
 
-
-            showTList(GC_PRINT_TCODE_NAMES);ss<<", ";
-            showCCode(GC_PRINT_CCODE_NAMES);ss<<", ";
+            showTList();ss<<", "<<CCode_as_string(cCode);ss<<", ";
             ss<<fitness.to_string();
 
             return ss.str();

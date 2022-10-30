@@ -30,12 +30,12 @@ int main() {
     std::string bigLogo = "finishedboot";
     std::string beeMovie = "beeMovieScript";
 
-    std::string originalExtension = "txt";
+    std::string originalExtension = "png";
     std::string compressedExtension = "gac";
     std::string directory = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/";
 
 
-    std::string fileName = beeMovie;
+    std::string fileName = smallLogo;
 
     std::string fileToBeCompressed = directory+fileName+"."+originalExtension;
     std::string compressedFile = directory+fileName+"."+compressedExtension;

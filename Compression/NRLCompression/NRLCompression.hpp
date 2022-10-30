@@ -73,7 +73,7 @@ namespace GC {
             Unit firstByte = reader.readByte();
             if (firstByte == escapeCharacter) {
                 result.unit = reader.readByte();
-                result.amount = reader.readAmount()+1; //the +1 is due to the -1 we did while encoding
+                result.amount = reader.readSmallAmount() + 1; //the +1 is due to the -1 we did while encoding
             }
             else {
                 result.unit = firstByte;
@@ -84,7 +84,7 @@ namespace GC {
         }
 
         std::vector<RLPair> decodeRLPairs(FileBitReader& reader) {
-            size_t expectedAmount = reader.readAmount();
+            size_t expectedAmount = reader.readSmallAmount();
             std::vector<RLPair> pairs;
             auto decodeAndSavePair = [&](){pairs.push_back(decodeRLPair(reader));};
             repeat(expectedAmount, decodeAndSavePair);

@@ -21,17 +21,17 @@ namespace GC {
     };
 
     const std::vector<std::string> TCodesAsStrings = {
-            "T_IdentityTransform",
-            "T_DeltaTransform",
-            "T_DeltaXORTransform",
-            "T_RunLengthTransform",
-            "T_SplitTransform",
-            "T_StackTransform",
-            "T_StrideTransform_2",
-            "T_StrideTransform_3",
-            "T_StrideTransform_4",
-            "T_SubtractAverageTransform",
-            "T_SubtractXORAverageTransform"
+            "IDENT",  //identity
+            "DELTA",  //delta
+            "D_XOR",  //delta xor
+            "RLENC",   //run length encoding
+            "SPLIT",  //byte split transform
+            "STACK",  //Stack transform
+            "STRD2",  //stride 2
+            "STRD3",
+            "STRD4",
+            "SUBAV",  //subtract average transform
+            "SBXAV"   //subtract xor average transform
     };
 
     const std::vector<TCode> availableTCodes = {T_IdentityTransform,

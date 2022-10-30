@@ -20,6 +20,7 @@
 #include "../Evolver/Evaluator/BitCounter/BitCounter.hpp"
 #include "../Compression/NRLCompression/NRLCompression.hpp"
 #include "../Transformation/Transformations/StackTransform.hpp"
+#include "../Transformation/Transformations/IdentityTransform.hpp"
 
 
 namespace GC {
@@ -68,7 +69,7 @@ namespace GC {
     Block EvolutionaryFileCompressor::readBlock(size_t size, FileBitReader &reader) {
         Block block;
         auto readUnitAndPush = [&]() {
-            block.push_back(reader.readAmountOfBytes(bitsInType<Unit>()));
+            block.push_back(reader.readAmountOfBits(bitsInType<Unit>()));
         };
 
         repeat(size, readUnitAndPush);
@@ -76,7 +77,7 @@ namespace GC {
     }
 
     //TODO: why am I applying a copy, rather than just applying the transform in place?
-    Block EvolutionaryFileCompressor::applyTransformCode(const EvolutionaryFileCompressor::TransformCode &tc, const Block &block) {
+    Block EvolutionaryFileCompressor::applyTransformCode_copy(const EvolutionaryFileCompressor::TransformCode &tc, const Block &block) {
 #define GC_APPLY_T_CASE(TRANS, ...) case T_##TRANS : return TRANS(__VA_ARGS__).apply_copy(block)
 #define GC_APPLY_T_STRIDE_CASE(NUM) case T_StrideTransform_##NUM : return StrideTransform(NUM).apply_copy(block)
         switch (tc) {
@@ -96,7 +97,7 @@ namespace GC {
     void EvolutionaryFileCompressor::applyCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, const Block &block, AbstractBitWriter& writer) {
         switch (cc) {
             case C_HuffmanCompression: return HuffmanCompression().compress(block, writer);
-            case C_RunLengthCompression: return NRLCompression().compress(block, writer);
+            case C_RunLengthCompression: return RunLengthCompression().compress(block, writer);
             default: return IdentityCompression().compress(block, writer);
         }
     }
@@ -104,7 +105,7 @@ namespace GC {
     void EvolutionaryFileCompressor::applyIndividual(const Individual &individual, const Block &block, AbstractBitWriter& writer) {
         ////LOG("Applying individual ", individual.to_string());
         Block toBeProcessed = block;
-        for (auto tCode : individual.tList) toBeProcessed = applyTransformCode(tCode, toBeProcessed);
+        for (auto tCode : individual.tList) applyTransformCode(tCode, toBeProcessed);
         applyCompressionCode(individual.cCode, toBeProcessed, writer);
     }
 
@@ -123,6 +124,7 @@ namespace GC {
     }
 
     void EvolutionaryFileCompressor::undoTransformCode(const TransformCode& tc, Block& block) {
+        LOG("undoing transform", Individual::TCode_as_string(tc), ", size was", block.size());
 
 #define GC_UNDO_T_CASE(TRANS, ...) case T_##TRANS : TRANS(__VA_ARGS__).undo(block);break;
 #define GC_UNDO_T_STRIDE_CASE(NUM) case T_StrideTransform_##NUM : StrideTransform(NUM).undo(block);break;
@@ -137,14 +139,15 @@ namespace GC {
             GC_UNDO_T_STRIDE_CASE(4);
             GC_UNDO_T_CASE(SubtractAverageTransform);
             GC_UNDO_T_CASE(SubtractXORAverageTransform);
-            default: return; //ie do nothing
+            GC_UNDO_T_CASE(IdentityTransform);
         }
+        LOG("The new block size is", block.size());
     }
 
     Block EvolutionaryFileCompressor::undoCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, FileBitReader& reader) {
         switch (cc) {
             case C_HuffmanCompression: return HuffmanCompression().decompress(reader);
-            case C_RunLengthCompression: return NRLCompression().decompress(reader);
+            case C_RunLengthCompression: return RunLengthCompression().decompress(reader);
             default: return IdentityCompression().decompress(reader);
         }
     }
@@ -158,7 +161,9 @@ namespace GC {
         FileBitWriter writer(outStream);
 
         auto decodeAndWriteOnFile = [&]() {
+            LOG("Decompressing new block");
             Individual individual = decodeIndividual(reader);
+            LOG("Extracted that the recipe for the next block is ", individual.to_string());
             Block decodedBlock = decodeUsingIndividual(individual, reader);
             writeBlock(decodedBlock, writer);
         };
@@ -175,21 +180,21 @@ namespace GC {
     Individual EvolutionaryFileCompressor::decodeIndividual(FileBitReader& reader) {
         std::vector<TCode> tList;
         auto addTCode = [&](){
-            tList.push_back(static_cast<TCode>(reader.readAmountOfBytes(bitSizeForTransformCode)));
+            tList.push_back(static_cast<TCode>(reader.readAmountOfBits(bitSizeForTransformCode)));
         };
 
         auto extractCCode = [&]() -> CCode{
-            return static_cast<CCode>(reader.readAmountOfBytes(bitSizeForCompressionCode));
+            return static_cast<CCode>(reader.readAmountOfBits(bitSizeForCompressionCode));
         };
 
-        size_t amountOfTransforms = reader.readAmountOfBytes(bitsForAmountOfTransforms);
-        LOG("Read that there will be", amountOfTransforms, "transforms");
+        size_t amountOfTransforms = reader.readAmountOfBits(bitsForAmountOfTransforms);
         repeat(amountOfTransforms, addTCode);
         return Individual(tList, extractCCode());
     }
 
     Block EvolutionaryFileCompressor::decodeUsingIndividual(const Individual& individual, FileBitReader& reader) {
         Block transformedBlock = undoCompressionCode(individual.cCode, reader);
+        LOG("Undone the compression successfully, now we undo the transformations");
         std::for_each(individual.tList.rbegin(), individual.tList.rend(), [&](auto tc){
             undoTransformCode(tc, transformedBlock);});
         return transformedBlock;
@@ -241,6 +246,26 @@ namespace GC {
         Evolver evolver(settings, getFitnessOfIndividual, hintsForEvolver);
         Individual bestIndividual = evolver.evolveBest();
         return bestIndividual;
+    }
+
+    void EvolutionaryFileCompressor::applyTransformCode(const EvolutionaryFileCompressor::TransformCode &tc,
+                                                        Block &block) {
+#define GC_APPLY_T_CASE_X(TRANS, ...) case T_##TRANS : TRANS(__VA_ARGS__).apply(block)
+#define GC_APPLY_T_STRIDE_CASE_X(NUM) case T_StrideTransform_##NUM : StrideTransform(NUM).apply(block)
+        switch (tc) {
+            GC_APPLY_T_CASE_X(DeltaTransform);
+            GC_APPLY_T_CASE_X(DeltaXORTransform);
+            GC_APPLY_T_CASE_X(RunLengthTransform);
+            GC_APPLY_T_CASE_X(StackTransform);
+            GC_APPLY_T_CASE_X(SplitTransform);
+            GC_APPLY_T_STRIDE_CASE_X(2);
+            GC_APPLY_T_STRIDE_CASE_X(3);
+            GC_APPLY_T_STRIDE_CASE_X(4);
+            GC_APPLY_T_CASE_X(SubtractAverageTransform);
+            GC_APPLY_T_CASE_X(SubtractXORAverageTransform);
+            GC_APPLY_T_CASE_X(IdentityTransform);
+        }
+
     }
 
 } // GC
