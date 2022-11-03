@@ -123,10 +123,13 @@ namespace GC {
             CrossoverBounds boundsInA = {chooseIndex(A), chooseIndex(A)};
             orderBounds(boundsInA);
 
-            Index startInB = chooseIndex(B);
+            const size_t Blen = B.getTListLength();
             const size_t AsContribution = A.getTListLength()-(boundsInA.second-boundsInA.first);
-            const size_t maxSizeOfChunkInB = Individual::MaxTListLength-AsContribution;
-            CrossoverBounds boundsInB = {startInB, std::min(B.getTListLength(), startInB+randomIndexChooser.chooseInRange(0, maxSizeOfChunkInB))};
+            const Index startInB = randomIndexChooser.chooseInRange(0, Blen);
+            const size_t maxSizeOfChunkInB = std::min(Blen-startInB, Individual::MaxTListLength-AsContribution);
+            const size_t minSizeOfChunkInB = 0;
+            const size_t randomSize = randomIndexChooser.chooseInRange(minSizeOfChunkInB, maxSizeOfChunkInB);
+            CrossoverBounds boundsInB = {startInB, startInB+randomSize};
             //this was all to prevent the new child from exceeding the list size requirements
 
             //LOG_NOSPACES("BoundsInA = {", boundsInA.first, ",", boundsInA.second, "}, BoundsInB = {", boundsInB.first, ", ", boundsInB.second, "}");
