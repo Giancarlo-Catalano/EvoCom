@@ -176,24 +176,16 @@ namespace GC {
 
     Individual EvolutionaryFileCompressor::evolveBestIndividualForBlock(const Block & block) {
         Evolver::EvolutionSettings settings;
-        settings.generationCount = 100;
-        settings.populationSize = 40;
-        settings.chanceOfMutation = 0.1; //usually it's 0.05, but I want to get better results faster.
+        settings.generationCount = 12;
+        settings.populationSize = 36;
+        settings.chanceOfMutation = 0.05; //usually it's 0.05, but I want to get better results faster.
         settings.usesSimulatedAnnealing = true;
         settings.isElitist = true;
         auto getFitnessOfIndividual = [&](const Individual& i){
             return compressionRatioForIndividualOnBlock(i, block);
         };
 
-        //Individual identityIndividual;
-        std::vector<Individual> hintsForEvolver{/*identityIndividual*/};
-        for (auto comp: availableCCodes) {
-            Individual temp;
-            temp.cCode = comp;
-            hintsForEvolver.push_back(temp);
-        }
-
-        Evolver evolver(settings, getFitnessOfIndividual, hintsForEvolver);
+        Evolver evolver(settings, getFitnessOfIndividual);
         Individual bestIndividual = evolver.evolveBest();
         return bestIndividual;
     }

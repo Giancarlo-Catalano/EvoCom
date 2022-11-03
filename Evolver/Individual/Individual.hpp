@@ -27,7 +27,8 @@ namespace GC {
     public: //types
         using Fitness = PseudoFitness;
         using FitnessScore = PseudoFitness::FitnessScore;
-        static constexpr size_t MaxTListLength = 6;
+        static constexpr size_t MaxTListLength = 4;
+        static constexpr size_t MinTListLength = 0;
 
 
 
@@ -148,19 +149,23 @@ namespace GC {
             return tList;
         }
 
-        bool hasSpaceForMoreMutations() const {
+        bool canAddMoreTransforms() const {
             return getTListLength() < MaxTListLength;
         }
 
-        bool canRemoveMoreMutations() const {
-            return !tList.empty();
+        bool canRemoveMoreTransforms() const {
+            return getTListLength() > MinTListLength;
+        }
+
+        bool isWithinAcceptedBounds() const {
+            return isInInterval_inclusive(getTListLength(), MinTListLength, MaxTListLength);
         }
     };
 
 
     class RandomIndividual {
     private:
-        RandomInt<size_t> randomLength{0, Individual::MaxTListLength};
+        RandomInt<size_t> randomLength{Individual::MinTListLength, Individual::MaxTListLength};
         RandomElement<TCode> randomTCode{availableTCodes};
         RandomElement<CCode> randomCCode{availableCCodes};
     public:

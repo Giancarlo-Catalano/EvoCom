@@ -133,6 +133,9 @@ size_t floor_log2(const size_t input);
 size_t ceil_log2(const size_t input);
 size_t ceil_div(const size_t input, const size_t divisor);
 
+template <class T>
+bool isInInterval_inclusive(const T x, const T min, const T max) {return x<=max && x>=min;}
+
 
 void dumpFile(const std::string& fileName);
 
@@ -235,6 +238,26 @@ size_t LevenshteinDistance(const std::vector<Item>& X, const std::vector<Item>& 
 
     //LOG("after populating :"); logArray();
     return precomputedArray[X.size()][Y.size()];
+}
+
+
+/**
+ * This function will attempt to run a function until it returns a result which satisfies the predicate
+ * @tparam Result
+ * @param generator A function which (through randomness) is not deterministic
+ * @param pred A predicate which returns true when the given value is acceptable
+ * @return the first return which satisfies the predicate
+ */
+template <class Result>
+Result retryUntil(std::function<Result()> generator, std::function<bool(Result)> pred) {
+    while (true) {
+        Result result = generator();
+        if (pred(result)) {
+            return result;
+        }
+
+    }
+
 }
 
 

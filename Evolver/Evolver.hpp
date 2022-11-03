@@ -74,6 +74,10 @@ namespace GC {
         }
 
         void initialiseHintedPopulation(const std::vector<Individual>& hint) {
+            for (auto hintItem: hint) {
+                ASSERT(hintItem.isWithinAcceptedBounds());
+            }
+
             RandomElement<Individual> randomHint(hint);
             RandomIndividual randomIndividualMaker;
             RandomChance chooseIfRandom(0.5);//(1.0/(hint.size()+1));

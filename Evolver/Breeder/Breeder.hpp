@@ -20,6 +20,7 @@ namespace GC {
         using TList = Individual::TList;
         using Index = size_t;
         using CrossoverBounds = std::pair<Index, Index>;
+        using CrossoverRecipe = std::pair<CrossoverBounds, CrossoverBounds>;
 
 
     private:
@@ -54,24 +55,41 @@ namespace GC {
             tList.erase(tList.begin()+position);
         }
 
+        void mutateElements(Individual& individual) {
+            for (TCode& tCode : individual.getTList())
+                randomChanceOfMutation.doWithChance([&]{randomTCode.assignRandomValue(tCode);});
+        }
+
+        void mutateCCode(Individual& individual) {
+            randomChanceOfMutation.doWithChance([&](){
+                randomCCode.assignRandomValue(individual.getCCode());});
+        }
+
+        void mutateLength(Individual& individual) {
+            auto addTransform = [&]() -> void { addRandomElement(individual.getTList());};
+            auto removeTransform = [&]() -> void { removeRandomElement(individual.getTList());};
+
+            if (randomChanceOfMutation.choose()) {
+                if (individual.canAddMoreTransforms()) {
+                    if (individual.canRemoveMoreTransforms())
+                        addOrRemoveElement.doWithChanceOrElse(addTransform, removeTransform);
+                    else
+                        addTransform();
+                }
+                else {
+                    if (individual.canRemoveMoreTransforms())
+                        removeTransform();
+                }
+            }
+        }
+
 
         Individual mutate(const Individual& individual) {
             ////LOG("Mutating an individual");
             Individual child = individual;
-            for (TCode& tCode : child.getTList())
-                randomChanceOfMutation.doWithChance([&]{randomTCode.assignRandomValue(tCode);});
-
-            randomCCode.assignRandomValue(child.getCCode());
-
-            auto mutateLength = [&](Individual& ind) {
-
-                if (addOrRemoveElement.flip() && ind.hasSpaceForMoreMutations())
-                    addRandomElement(ind.getTList());
-                if (addOrRemoveElement.flip() && ind.canRemoveMoreMutations())
-                    removeRandomElement(ind.getTList());
-            };
-
-            randomChanceOfMutation.doWithChance([&](){mutateLength(child);});
+            mutateElements(child);
+            mutateCCode(child);
+            mutateLength(child);
             return child;
         }
 
@@ -96,47 +114,46 @@ namespace GC {
          */
         template <class L>
         static L crossoverLists(const L& X, const L& Y, const CrossoverBounds& boundsX, const CrossoverBounds& boundsY) {
-            //LOG("Calling CrossoverLists");
-
             L result;
             auto addFromBounds = [&](const L& collection, const Index start, const Index afterEnd) {
-                //LOG("Calling addFromBounds(", start,", ", afterEnd, ")");
                 std::copy(collection.begin()+start, collection.begin()+afterEnd, std::back_inserter(result));
             };
 
             addFromBounds(X, 0, boundsX.first);
             addFromBounds(Y, boundsY.first, boundsY.second);
             addFromBounds(X, boundsX.second, X.size());
-            //LOG("Ending CrossoverLists");
             return result;
         }
 
-        Individual crossover(const Individual& A, const Individual& B) {
-            //LOG("Requested to cross over", A.to_string(), " and ", B.to_string());
+        CrossoverRecipe generateValidCrossoverRecipe(const Individual& A, const Individual& B) {
             auto chooseIndex = [&](const Individual& X) {
                 return randomIndexChooser.chooseInRange(0, X.readTList().size()); //note that the size is also a possible option
             };
-            auto orderBounds = [&](CrossoverBounds& b) {
-                b = {std::min(b.first, b.second), std::max(b.first, b.second)};
+            auto orderBounds = [&](const CrossoverBounds& b) -> CrossoverBounds {
+                return {std::min(b.first, b.second), std::max(b.first, b.second)};
+            };
+            auto chooseRandomBounds = [&]() -> CrossoverRecipe {
+                return {orderBounds({chooseIndex(A), chooseIndex(A)}),
+                        orderBounds({chooseIndex(B), chooseIndex(B)})};
+            };
+            auto predictLengthOfChild = [&](const CrossoverBounds& boundsA, const CrossoverBounds& boundsB) -> size_t {
+                return A.getTListLength() - (boundsA.second - boundsA.first) + (boundsB.second-boundsB.first);
+            };
+            auto areBoundsAcceptable = [&](const CrossoverRecipe bounds) -> bool {
+                //LOG("requested to check {(", bounds.first.first, ", ", bounds.first.second, "), (", bounds.second.first, ", ", bounds.second.second, ")}");
+                //LOG("A has length ", A.getTListLength(), "while B has length", B.getTListLength());
+                //LOG("The predicted final length is ", predictLengthOfChild(bounds.first, bounds.second));
+                return isInInterval_inclusive(predictLengthOfChild(bounds.first, bounds.second), Individual::MinTListLength, Individual::MaxTListLength);
             };
 
-            CrossoverBounds boundsInA = {chooseIndex(A), chooseIndex(A)};
-            orderBounds(boundsInA);
+            return retryUntil<CrossoverRecipe>(chooseRandomBounds, areBoundsAcceptable);
+        };
 
-            const size_t Blen = B.getTListLength();
-            const size_t AsContribution = A.getTListLength()-(boundsInA.second-boundsInA.first);
-            const Index startInB = randomIndexChooser.chooseInRange(0, Blen);
-            const size_t maxSizeOfChunkInB = std::min(Blen-startInB, Individual::MaxTListLength-AsContribution);
-            const size_t minSizeOfChunkInB = 0;
-            const size_t randomSize = randomIndexChooser.chooseInRange(minSizeOfChunkInB, maxSizeOfChunkInB);
-            CrossoverBounds boundsInB = {startInB, startInB+randomSize};
-            //this was all to prevent the new child from exceeding the list size requirements
+        Individual crossover(const Individual& A, const Individual& B) {
+            CrossoverRecipe recipe = generateValidCrossoverRecipe(A, B);
 
-            //LOG_NOSPACES("BoundsInA = {", boundsInA.first, ",", boundsInA.second, "}, BoundsInB = {", boundsInB.first, ", ", boundsInB.second, "}");
-
-            TList newTList = crossoverLists(A.readTList(), B.readTList(), boundsInA, boundsInB);
+            TList newTList = crossoverLists(A.readTList(), B.readTList(), recipe.first, recipe.second);
             CCode newCCode = chooseCCodeCrossover.choose() ? A.readCCode() : B.readCCode();
-
             return Individual(newTList, newCCode);
         }
 

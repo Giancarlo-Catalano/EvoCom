@@ -6,7 +6,9 @@
 #define DISS_SIMPLEPROTOTYPE_RANDOMCHANCE_HPP
 
 #include <random>
+#include <functional>
 #include "../names.hpp"
+
 
 namespace GC {
 
@@ -59,8 +61,8 @@ namespace GC {
             return false;
         }
 
-        template <class Function>
-        bool doWithChanceOrElse(Function ifTrue, Function ifFalse) {
+
+        bool doWithChanceOrElse(std::function<void()> ifTrue, std::function<void()> ifFalse) {
             bool isTrue = choose();
             if (isTrue) ifTrue();
             else ifFalse();
@@ -76,17 +78,14 @@ namespace GC {
     };
 
 
-    class FairCoin {
+    class FairCoin : public RandomChance{
     private:
-        RandomChance randomChance;
     public:
         FairCoin() :
-                randomChance(0.5){
+                RandomChance(0.5) {
         }
 
-        bool flip() {
-            return randomChance.choose();
-        }
+        bool flip() {return choose();}
     };
 
 } // GC
