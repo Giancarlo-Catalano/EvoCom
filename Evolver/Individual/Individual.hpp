@@ -27,7 +27,7 @@ namespace GC {
     public: //types
         using Fitness = PseudoFitness;
         using FitnessScore = PseudoFitness::FitnessScore;
-        static const size_t MaxTListLength = 6;
+        static constexpr size_t MaxTListLength = 6;
 
 
 
@@ -136,7 +136,7 @@ namespace GC {
 
 
         double distanceFrom(const Individual& other) const {
-            return 0.5; //TODO find an appropriate algorithm for this!
+            return LevenshteinDistance<TCode, MaxTListLength>(tList, other.readTList())+(cCode!=other.readCCode());
         }
 
 

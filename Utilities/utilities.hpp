@@ -177,6 +177,68 @@ T square(const T x) {return x*x;}
 
 
 
+
+/**
+ * Calculates the Levenshtine distance between 2 vectors, used for calculating the distance during FAE
+ * @tparam Item items which can only be compared using the discrete metric
+ * @tparam MaxLength max Length allowed of the vectors
+ * @param X first vector, has size at most MaxLength
+ * @param Y second vector, has size at most MaxLength
+ * @return  return the integer representing the distance
+ */
+template <class Item, size_t MaxLength>
+size_t LevenshteinDistance(const std::vector<Item>& X, const std::vector<Item>& Y) {
+    //LOG_NOSPACES("Called Lev(", containerToString(X), ", ", containerToString(Y), ")");
+
+    constexpr size_t maxLengthOfList = MaxLength+1;
+
+    size_t precomputedArray[maxLengthOfList][maxLengthOfList] = {0};
+
+    auto logArray = [&precomputedArray]() {
+        LOG("currently, array is ");
+        for (size_t i=0;i<maxLengthOfList;i++) {
+            for (size_t j=0;j<maxLengthOfList;j++) {
+                LOG_NONEWLINE_NOSPACES(precomputedArray[i][j], " ");
+            }
+            LOG("");
+        }
+        LOG("");
+    };
+
+    auto prepareTrivialPart = [&]() {
+        //assumes that precomputed[0][0] is 0 already
+        for (size_t i = 1; i < maxLengthOfList; i++) {
+            precomputedArray[i][0] = i;
+            precomputedArray[0][i] = i;
+        }
+    };
+
+
+    auto calculateCell = [&](const size_t row, const size_t col) {
+        size_t singleSubstitutionCost = X[row] != Y[col];
+
+        const size_t deletitionCost = precomputedArray[row][col+1]+1;
+        const size_t insertionCost = precomputedArray[row+1][col]+1;
+        const size_t substitutionCost = precomputedArray[row][col]+singleSubstitutionCost;
+
+        precomputedArray[row+1][col+1] = std::min(deletitionCost, std::min(insertionCost, substitutionCost));
+    };
+
+    //LOG("before any treatment:"); logArray();
+    prepareTrivialPart();
+    //LOG("after setup:"); logArray();
+    for (size_t i = 0;i < X.size(); i++) {
+        for (size_t j = 0;j < Y.size(); j++) {
+            calculateCell(i, j);
+        }
+    }
+
+    //LOG("after populating :"); logArray();
+    return precomputedArray[X.size()][Y.size()];
+}
+
+
+
 #endif //DISS_SIMPLEPROTOTYPE_UTILITIES_HPP
 
 

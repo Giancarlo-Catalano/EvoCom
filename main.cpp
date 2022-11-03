@@ -22,20 +22,25 @@ int main() {
 
 
 #if 1 //compression
-    std::string smallLogo = "fencingLogoSimple";
-    std::string bigLogo = "finishedboot";
-    std::string beeMovie = "beeMovieScript";
+    using FileAndExtension = std::pair<std::string, std::string>;
+    FileAndExtension smallLogo = {"fencingLogoSimple", "png"};
+    FileAndExtension bigLogo = {"finishedboot", "png"};
+    FileAndExtension beeMovie = {"beeMovieScript", "txt"};
+    FileAndExtension cat = {"smoky", "jpeg"};
+    FileAndExtension mosaic = {"mosaic", "bmp"};
+    FileAndExtension bird = {"bird", "raw"};
+    FileAndExtension tiff = {"tiff", "tiff"};
+    FileAndExtension peanut = {"peanut", "tiff"};
 
-    std::string originalExtension = "txt";
     std::string compressedExtension = "gac";
     std::string directory = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/";
 
 
-    std::string fileName = beeMovie;
+    FileAndExtension fileToCompress = peanut;
 
-    std::string fileToBeCompressed = directory+fileName+"."+originalExtension;
-    std::string compressedFile = directory+fileName+"."+compressedExtension;
-    std::string decompressedFile = directory+"DECOMPRESSED_"+fileName+"."+originalExtension;
+    std::string fileToBeCompressed = directory+fileToCompress.first+"."+fileToCompress.second;
+    std::string compressedFile = directory+fileToCompress.first+"."+compressedExtension;
+    std::string decompressedFile = directory+"DECOMPRESSED_"+fileToCompress.first+"."+fileToCompress.second;
 
     GC::EvolutionaryFileCompressor::compress(fileToBeCompressed, compressedFile);
     LOG("The compressedFile has size ", getFileSize(compressedFile));
@@ -209,6 +214,28 @@ int main() {
 
 
     repeat(12, [&](){LOG("child =", breeder.crossover(B, B).to_string());});
+#endif
+
+
+#if 0 //levenshtine distance tests
+    LOG("Testing distances");
+    enum Colour {
+        Purple,
+        Red,
+        Orange,
+        Yellow,
+        Green,
+        Blue
+    };
+
+    std::vector<Colour> A = {Red, Red, Red, Orange, Orange, Orange};
+    std::vector<Colour> B = {Purple, Red, Orange, Green, Purple, Orange};
+
+    size_t distance = LevenshteinDistance<Colour, 6>(A, B);
+    LOG("the distance is ", distance);
+
+
+
 #endif
     return 0;
 }

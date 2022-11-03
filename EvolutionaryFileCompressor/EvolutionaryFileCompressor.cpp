@@ -176,8 +176,8 @@ namespace GC {
 
     Individual EvolutionaryFileCompressor::evolveBestIndividualForBlock(const Block & block) {
         Evolver::EvolutionSettings settings;
-        settings.generationCount = 36;
-        settings.populationSize = 36;
+        settings.generationCount = 100;
+        settings.populationSize = 40;
         settings.chanceOfMutation = 0.1; //usually it's 0.05, but I want to get better results faster.
         settings.usesSimulatedAnnealing = true;
         settings.isElitist = true;
