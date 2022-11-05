@@ -9,11 +9,11 @@
 
 namespace GC {
 
-    class DebugWriter : public AbstractBitWriter {
+    class VectorBitWriter : public AbstractBitWriter {
     private:
         std::vector<bool> savedBits;
     public:
-        DebugWriter() : savedBits() {
+        VectorBitWriter() : savedBits() {
             LOG("started a debug writer");
         }
 

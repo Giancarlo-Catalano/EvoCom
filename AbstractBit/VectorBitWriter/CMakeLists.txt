@@ -1,0 +1,3 @@
+add_library(VectorBitWriter VectorBitWriter.cpp VectorBitWriter.hpp)
+target_link_libraries(VectorBitWriter AbstractBitWriter)
+

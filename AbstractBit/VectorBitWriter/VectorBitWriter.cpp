@@ -2,7 +2,7 @@
 // Created by gian on 27/10/22.
 //
 
-#include "DebugWriter.hpp"
+#include "VectorBitWriter.hpp"
 
 namespace GC {
 } // GC

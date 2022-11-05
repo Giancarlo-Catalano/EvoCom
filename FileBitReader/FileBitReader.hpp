@@ -12,15 +12,16 @@ namespace GC {
 
     struct FileBitReader {
         using BitBufferHolder = char;
+        using ReadingStream = std::istream;
         static const size_t sizeOfBuffer = sizeof(BitBufferHolder) * 8;
 
 
         BitBufferHolder bitBuffer = 0;
         size_t readSoFar = 0;
-        std::ifstream &inStream;
+        ReadingStream &inStream;
         size_t bitSizeOfBuffer = sizeof(BitBufferHolder) * 8;
 
-        FileBitReader(std::ifstream &_inStream) : inStream(_inStream) { requestNew(); };
+        FileBitReader(ReadingStream &_inStream) : inStream(_inStream) { requestNew(); };
 
         void requestNew() {
             inStream.read(&bitBuffer, sizeof(bitBuffer));

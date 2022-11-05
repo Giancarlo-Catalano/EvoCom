@@ -1,3 +1,3 @@
 add_subdirectory(AbstractBitWriter)
 add_subdirectory(FileBitWriter)
-add_subdirectory(DebugBitWriter)
+add_subdirectory(VectorBitWriter)
