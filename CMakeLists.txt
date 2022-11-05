@@ -1,10 +1,14 @@
 cmake_minimum_required(VERSION 3.23)
-project(Diss_SimplePrototype)
+project(EvoCom)
 
 set(CMAKE_CXX_STANDARD 20)
 
 
+
+
 #add subdirectories here
+add_subdirectory(Dependencies)
+
 add_subdirectory(Utilities)
 add_subdirectory(BlockReport)
 add_subdirectory(Transformation)
@@ -19,7 +23,13 @@ add_subdirectory(Random)
 add_subdirectory(Evolver)
 add_subdirectory(AbstractBit)
 
-add_executable(Diss_SimplePrototype main.cpp Utilities names.hpp)
+
+
+add_subdirectory(Testing)
+enable_testing()
+
+
+add_executable(EvoCom main.cpp Utilities names.hpp)
 
 #declare which directories are used for linking
 target_link_libraries(${PROJECT_NAME} Utilities Individual EvolutionaryFileCompressor Breeder Random Selector Evolver PseudoFitness Evaluator)

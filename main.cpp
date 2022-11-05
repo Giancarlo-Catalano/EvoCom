@@ -33,7 +33,7 @@ int main() {
     FileAndExtension peanut = {"peanut", "tiff"};
 
     std::string compressedExtension = "gac";
-    std::string directory = "/home/gian/CLionProjects/Diss_SimplePrototype/SampleFiles/";
+    std::string directory = "/home/gian/CLionProjects/EvoCom/SampleFiles/";
 
 
     FileAndExtension fileToCompress = peanut;
