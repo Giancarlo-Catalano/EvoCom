@@ -1,3 +1,3 @@
 add_executable(Testing main.cpp integration_tests.cpp AbstractBitWriter_tests.cpp)
-target_link_libraries(Testing Catch2::Catch2)
+target_link_libraries(Testing Catch2::Catch2 AbstractBitWriter BitCounter VectorBitWriter Utilities)
 

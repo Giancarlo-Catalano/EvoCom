@@ -6,6 +6,7 @@
 #define DISS_SIMPLEPROTOTYPE_DEBUGWRITER_HPP
 
 #include "../AbstractBitWriter/AbstractBitWriter.hpp"
+#include "../../Utilities/utilities.hpp"
 
 namespace GC {
 
@@ -14,7 +15,6 @@ namespace GC {
         std::vector<bool> savedBits;
     public:
         VectorBitWriter() : savedBits() {
-            LOG("started a debug writer");
         }
 
         virtual void pushBit(const bool b) override {
@@ -32,6 +32,11 @@ namespace GC {
                     LOG_NOSPACES("]");
                 }
             }
+        }
+
+
+        std::vector<bool> getVector() {
+            return savedBits;
         }
 
     };

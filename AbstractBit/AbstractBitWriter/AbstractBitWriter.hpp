@@ -13,10 +13,11 @@ namespace GC {
     public:
         using BitAmount = size_t;
 
-        AbstractBitWriter(){};
+
 
         virtual void pushBit(bool b) = 0;
 
+        AbstractBitWriter() {};
         virtual void writeVector(const std::vector<bool>& vec);
         virtual void writeAmountOfBits(const size_t value, const BitAmount amountOfBits);
         virtual void writeByte(const unsigned char value);
