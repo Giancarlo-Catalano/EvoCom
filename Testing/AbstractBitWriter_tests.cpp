@@ -6,30 +6,91 @@
 namespace GC {
 
     TEST_CASE("VectorBitWriter", "[AbstractBitWriter][VectorBitWriter]") {
-        GIVEN("Starting from an empty vector") {
-            VectorBitWriter writer;
 
-            THEN("It should be initially empty") {
-                CHECK(writer.getVector().empty());
-            }
+        SECTION("pushBit Implementation") {
+            GIVEN("Starting from an empty vector") {
+                VectorBitWriter writer;
+                THEN("It should be initially empty") {
+                    CHECK(writer.getVector().empty());
+                }
 
 
-            WHEN("call .push(0)") {
-                writer.pushBit(false);
-                std::vector<bool> expected{false};
-                THEN("we expect the result to be just {0}") {
-                    CHECK(writer.getVector() == expected);
+                WHEN("calling .push(0)") {
+                    writer.pushBit(false);
+                    std::vector<bool> expected{false};
+                    THEN("we expect the result to be just {0}") {
+                        CHECK(writer.getVector() == expected);
+                    }
+                }
+
+                WHEN("calling .push(1)") {
+                    writer.pushBit(true);
+                    std::vector<bool> expected{true};
+                    THEN("we expect the result to be just {1}") {
+                        CHECK(writer.getVector() == expected);
+                    }
                 }
             }
 
-            WHEN("call .push(1)") {
-                writer.pushBit(true);
-                std::vector<bool> expected{true};
-                THEN("we expect the result to be just {1}") {
-                    CHECK(writer.getVector() == expected);
+            GIVEN("writer is already filled") {
+                VectorBitWriter writer;
+                writer.pushBit(false);
+                writer.pushBit(false);
+
+                WHEN("pushing a value") {
+                    THEN("It should be appended to the already written vector") {
+                        writer.pushBit(true);
+                        std::vector<bool> expected{false, false, true};
+                        CHECK(writer.getVector() == expected);
+                    }
+                }
+            }
+        };
+
+        SECTION("Checking the implementation of the encodings") {
+            GIVEN("An initially empty writer") {
+                VectorBitWriter writer;
+
+                WHEN("Calling writeAmountOfBits") {
+                    THEN("the bits are written in the right order") {
+                        writer.writeAmountOfBits(0b1010010001, 10);
+                        std::vector<bool> expected{1, 0, 1, 0, 0, 1, 0, 0, 0, 1};
+                        CHECK(writer.getVector() == expected);
+                    }
+
+                    THEN("We can ask for as much as 64 bits to be written") {
+                        writer.writeAmountOfBits(0, 64);
+                        CHECK(writer.getVector().size() == 64);
+                    }
+                }
+
+                WHEN("Calling writeRiceEncoded") {
+                    THEN("Writing 0 works as expected") {
+                        writer.writeRiceEncoded(0);
+                        std::vector<bool> expected{1, 0, 0};
+                        CHECK(writer.getVector() == expected);
+                    }
+                    THEN("Writing 1 works as expected") {
+                        writer.writeRiceEncoded(1);
+                        std::vector<bool> expected{1, 0, 1};
+                        CHECK(writer.getVector() == expected);
+                    }
+
+                    THEN("Writing 4 works as expected") {
+                        writer.writeRiceEncoded(4);
+                        std::vector<bool> expected{0, 1, 0, 0, 0, 0};
+                        CHECK(writer.getVector() == expected);
+                    }
+                    THEN("Writing 12 works as expected") {
+                        writer.writeRiceEncoded(20);
+                        std::vector<bool> expected{0, 0, 1, 0, 0, 0, 0, 0, 0};
+                        CHECK(writer.getVector() == expected);
+                    }
                 }
             }
         }
+
+
 
     }
 
