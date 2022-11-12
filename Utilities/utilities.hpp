@@ -262,6 +262,9 @@ Result retryUntil(std::function<Result()> generator, std::function<bool(Result)>
 
 
 
+
+
+
 #endif //DISS_SIMPLEPROTOTYPE_UTILITIES_HPP
 
 

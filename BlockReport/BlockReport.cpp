@@ -20,42 +20,12 @@ namespace GC {
             difference3Features(StatisticalFeatures<Difference>(getDeltas(block, 3))),
             difference4Features(StatisticalFeatures<Difference>(getDeltas(block, 4))),
             runLengthFeatures(StatisticalFeatures<RunLength>(getRunLengths(block))),
-            uniqueSymbolsAmount(getUniqueSymbolsAmount(block)),
-            xorAverage(getXorAverage(block))
+            uniqueSymbolsAmount(getUniqueSymbolsAmount(block))
     {
     }
 
     decltype(BlockReport::size) BlockReport::getSize(const Block &block) {
         return block.size();
-    }
-
-    decltype(BlockReport::xorAverage) BlockReport::getXorAverage(const Block &block) {
-        ASSERT_BLOCK_NOT_EMPTY();
-        const size_t bitsInUnit = bitsInType<Unit>();
-        std::array<size_t, bitsInUnit> oneCounts;
-
-        for (size_t i=0;i<bitsInUnit;i++) {
-            oneCounts[i] = 0;
-        }
-
-        auto registerOnes = [&oneCounts](const Unit& unit) {
-            std::bitset<bitsInUnit> bits(unit);
-            for (size_t i = 0; i< bitsInUnit; i++) {
-                if (bits[i]) oneCounts[i]++;
-            }
-        };
-
-        auto getAverageBit = [&oneCounts, &block](const size_t pos) {
-            const size_t halfSize = getSize(block)/2;
-            return oneCounts[pos] > halfSize;
-        };
-
-        std::for_each(block.begin(), block.end(), registerOnes);
-        Unit result = 0;
-        for (size_t i=0;i<bitsInUnit;i++) {
-            result |= getAverageBit(i)<<i;
-        }
-        return result;
     }
 
     std::vector<BlockReport::RunLength> BlockReport::getRunLengths(const Block &block) {
@@ -80,7 +50,6 @@ namespace GC {
         ss<<"Difference3Features:"<<difference3Features.to_string()<<",\n ";
         ss<<"Difference4Features:"<<difference4Features.to_string()<<",\n ";
         ss<<"RunLengthFeatures:"<<runLengthFeatures.to_string()<<",\n ";
-        ss<<"xorAverage:"<<std::setbase(16)<<((int)xorAverage)<<",\n "<<std::setbase(10);
         ss<<"UniqueSymbolAmount:"<<uniqueSymbolsAmount<<"\n";
         ss<<"}";
         return ss.str();

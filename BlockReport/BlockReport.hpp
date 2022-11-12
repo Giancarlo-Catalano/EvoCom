@@ -36,14 +36,12 @@ namespace GC {
         StatisticalFeatures<Frequency> frequencyFeatures;
         StatisticalFeatures<Difference> difference2Features, difference3Features, difference4Features;
         StatisticalFeatures<RunLength> runLengthFeatures;
-        Unit xorAverage;
         size_t uniqueSymbolsAmount;
 
     public:
         static decltype(size) getSize(const Block& block);
         static decltype(unitFeatures) getUnitFeatures(const Block& block);
         static decltype(frequencyFeatures) getFrequencyFeatures(const Block& block);
-        static decltype(xorAverage) getXorAverage(const Block& block);
         static decltype(runLengthFeatures) getRunLengthFeatures(const Block& block);
         static decltype(uniqueSymbolsAmount) getUniqueSymbolsAmount(const Block& block);
 

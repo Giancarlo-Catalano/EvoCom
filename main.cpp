@@ -4,6 +4,7 @@
 #include "Evolver/Individual/TCodes.hpp"
 #include "Evolver/Individual/CCodes.hpp"
 #include "Evolver/Breeder/Breeder.hpp"
+#include "Utilities/StreamingClusterer/StreamingClusterer.hpp"
 
 
 int main() {
@@ -233,9 +234,33 @@ int main() {
 
     size_t distance = LevenshteinDistance<Colour, 6>(A, B);
     LOG("the distance is ", distance);
+#endif
+
+#if 0 //streaming clusterer
+    LOG("Testing the streaming clusterer");
+    using T = size_t;
+    using Field = size_t;
+    using Cluster = std::vector<T>;
+
+    auto metric = [](const T& a, const T& b) -> Field {
+        return (a < b ? (b-a) : (a-b));
+    };
+
+    auto log_newCluster = [&](const Cluster& cluter) -> void {
+        LOG("The new cluster is ", containerToString(cluter));
+    };
+
+    LOG("constructing the clusterer");
+    GC::StreamingClusterer<T, Field> clusterer(metric, log_newCluster, 10, 2);
 
 
+    std::vector<T> items = {0, 2, 1, 2, 1, 3, 20, 40, 30, 40, 20, 40, 41, 42, 43, 44, 45, 45, 56, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+    LOG("adding the main items");
+    std::for_each(items.begin(), items.end(), [&](const T& item){clusterer.pushItem(item);});
+
+    LOG("finishing");
+    clusterer.finish();
 #endif
     return 0;
 }
