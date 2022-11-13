@@ -22,7 +22,7 @@ int main() {
 
 
 
-#if 1 //compression
+#if 0 //compression
     using FileAndExtension = std::pair<std::string, std::string>;
     FileAndExtension smallLogo = {"fencingLogoSimple", "png"};
     FileAndExtension bigLogo = {"finishedboot", "png"};

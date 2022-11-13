@@ -260,7 +260,10 @@ Result retryUntil(std::function<Result()> generator, std::function<bool(Result)>
 
 }
 
-
+template <class N>
+N safeAbsDifference(const N first, const N second) {
+    return (first > second) ? first-second : second-first; //this is because for unsigned types, std::abs(first-second is not sage)
+}
 
 
 

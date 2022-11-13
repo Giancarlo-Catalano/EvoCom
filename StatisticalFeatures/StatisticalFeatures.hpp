@@ -97,7 +97,20 @@ namespace GC {
             ss<<"}";
             return ss.str();
         }
+
+
+        template <class Metric>
+        double distanceFrom(const StatisticalFeatures<T>& other, const Metric metric) {
+#define GC_SF_DISTANCE_OF_FIELD(field) metric(field, other . field)
+            return std::min({GC_SF_DISTANCE_OF_FIELD(average),
+                            GC_SF_DISTANCE_OF_FIELD(mode),
+                            GC_SF_DISTANCE_OF_FIELD(standardDeviation),
+                            GC_SF_DISTANCE_OF_FIELD(minimum),
+                            GC_SF_DISTANCE_OF_FIELD(maximum)});
+        }
     };
+
+
 
 } // GC
 

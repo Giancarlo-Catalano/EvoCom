@@ -23,6 +23,7 @@ namespace GC {
         using Frequencies = std::array<Frequency, AmountOfValues>;
         using Difference = Unit;
         using RunLength = Unit;
+        using NormalisedRunLength = double;
     public:
         explicit BlockReport(const Block& block);
 
@@ -35,14 +36,11 @@ namespace GC {
         StatisticalFeatures<Unit> unitFeatures;
         StatisticalFeatures<Frequency> frequencyFeatures;
         StatisticalFeatures<Difference> difference2Features, difference3Features, difference4Features;
-        StatisticalFeatures<RunLength> runLengthFeatures;
+        StatisticalFeatures<NormalisedRunLength> normalisedRunLengthFeatures;
         size_t uniqueSymbolsAmount;
 
     public:
         static decltype(size) getSize(const Block& block);
-        static decltype(unitFeatures) getUnitFeatures(const Block& block);
-        static decltype(frequencyFeatures) getFrequencyFeatures(const Block& block);
-        static decltype(runLengthFeatures) getRunLengthFeatures(const Block& block);
         static decltype(uniqueSymbolsAmount) getUniqueSymbolsAmount(const Block& block);
 
         static Frequencies getFrequencyArray(const Block& block);
@@ -50,14 +48,20 @@ namespace GC {
         static std::vector<RunLength> getRunLengths(const Block &block);
 
         static std::vector<BlockReport::Difference> getDeltas(const Block& block, const size_t Jump) {
-            ASSERT_GREATER(block.size(), Jump-1);
+            if (block.size() < Jump) {
+                //we can be sure that the size is at least 2
+                return getDeltas(block, block.size()); //get the biggest delta you can
+            }
             std::vector<Difference> deltas;
-            for (size_t i=0;i<block.size()-1;i++)
+            for (size_t i=0;i<block.size()-(Jump-1);i++)
                 deltas.push_back(block[i+(Jump-1)]-block[i]);
             return deltas;
         }
 
+        double distanceFrom(const BlockReport& other);
 
+
+        std::vector<NormalisedRunLength> getNormalisedRunLengths(const Block &block);
     };
 
 } // GC

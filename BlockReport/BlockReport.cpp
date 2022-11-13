@@ -19,9 +19,10 @@ namespace GC {
             difference2Features(StatisticalFeatures<Difference>(getDeltas(block, 2))),
             difference3Features(StatisticalFeatures<Difference>(getDeltas(block, 3))),
             difference4Features(StatisticalFeatures<Difference>(getDeltas(block, 4))),
-            runLengthFeatures(StatisticalFeatures<RunLength>(getRunLengths(block))),
+            normalisedRunLengthFeatures(StatisticalFeatures<NormalisedRunLength>(getNormalisedRunLengths(block))),
             uniqueSymbolsAmount(getUniqueSymbolsAmount(block))
     {
+        ASSERT_GREATER(block.size(), 1);
     }
 
     decltype(BlockReport::size) BlockReport::getSize(const Block &block) {
@@ -40,6 +41,20 @@ namespace GC {
         return runLengths;
     }
 
+    std::vector<BlockReport::NormalisedRunLength> BlockReport::getNormalisedRunLengths(const Block& block) {
+        const size_t totalSize = block.size();
+        if (totalSize == 0)
+            return {};
+        else {
+            std::vector<RunLength> runLengths = getRunLengths(block);
+            std::vector<NormalisedRunLength> normRunLengths(runLengths.size());
+            auto normalise = [&](size_t runLength) -> double {return ((double)runLength)/((double)totalSize);};
+            std::transform(runLengths.begin(), runLengths.end(), normRunLengths.begin(), normalise);
+            return normRunLengths;
+        }
+    }
+
+
     std::string BlockReport::to_string() {
         std::stringstream ss;
         ss<<"BlockReport {";
@@ -49,7 +64,7 @@ namespace GC {
         ss<<"Difference2Features:"<<difference2Features.to_string()<<",\n ";
         ss<<"Difference3Features:"<<difference3Features.to_string()<<",\n ";
         ss<<"Difference4Features:"<<difference4Features.to_string()<<",\n ";
-        ss<<"RunLengthFeatures:"<<runLengthFeatures.to_string()<<",\n ";
+        ss<<"RunLengthFeatures:"<<normalisedRunLengthFeatures.to_string()<<",\n ";
         ss<<"UniqueSymbolAmount:"<<uniqueSymbolsAmount<<"\n";
         ss<<"}";
         return ss.str();
@@ -68,5 +83,31 @@ namespace GC {
         auto normalize = [&](Frequency& freq){freq /= blockSize;};
         std::for_each(result.begin(), result.end(), normalize);
         return result;
+    }
+
+    double BlockReport::distanceFrom(const BlockReport& other) {
+
+        auto simpleDistance = [&](const auto first, const auto second, const auto min, const auto max) -> double {
+            return (double) safeAbsDifference(first, second) / (max-min);
+        };
+
+        auto unit_metric = [&](auto first, auto second) { return simpleDistance(first, second, 0, 256); };
+
+        auto frequency_metric = [&](auto first, auto second) { return simpleDistance(first, second, 0.0, 1.0); };
+
+        auto runLength_normalised_metric = [&](auto first, auto second) { return simpleDistance(first, second, 0.0, 1.0);};
+
+        auto symbolCount_metric = [&](auto first, auto second) {return simpleDistance(first, second, 0, 256);};
+
+
+#define GC_BR_DISTANCE_OF_FIELD(field, metric) field.distanceFrom(other.field, metric)
+        return std::min({GC_BR_DISTANCE_OF_FIELD(unitFeatures, unit_metric),
+                         GC_BR_DISTANCE_OF_FIELD(frequencyFeatures, frequency_metric),
+                         GC_BR_DISTANCE_OF_FIELD(normalisedRunLengthFeatures, runLength_normalised_metric),
+                         GC_BR_DISTANCE_OF_FIELD(difference2Features, unit_metric),
+                         GC_BR_DISTANCE_OF_FIELD(difference3Features, unit_metric),
+                         GC_BR_DISTANCE_OF_FIELD(difference4Features, unit_metric),
+                         symbolCount_metric(uniqueSymbolsAmount, other.uniqueSymbolsAmount)});
+
     }
 } // GC
