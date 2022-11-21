@@ -265,6 +265,17 @@ N safeAbsDifference(const N first, const N second) {
     return (first > second) ? first-second : second-first; //this is because for unsigned types, std::abs(first-second is not sage)
 }
 
+template <class T>
+T util_average(const std::initializer_list<T> items) {
+    T accumulator = 0;
+    size_t amount = items.size();
+    ASSERT_NOT_EMPTY(items);
+
+    for (const T val : items) accumulator+=val;
+    return accumulator/amount;
+
+}
+
 
 
 

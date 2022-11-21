@@ -28,7 +28,7 @@ namespace GC {
         explicit BlockReport(const Block& block);
         explicit BlockReport();
 
-        std::string to_string();
+        std::string to_string() const;
 
 
 

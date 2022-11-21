@@ -92,7 +92,7 @@ namespace GC {
             LOG("Received a block of size", block.size());
             Individual bestIndividual = evolveBestIndividualForBlock(block);
             LOG("For this block, the best individual is", bestIndividual.to_string());
-            if (isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
+            if (!isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
             isFirstSegment = false;
             encodeIndividual(bestIndividual, writer);
             applyIndividual(bestIndividual, block, writer);
@@ -308,7 +308,12 @@ namespace GC {
             BlockAndReport() : block(), report() {};
         };
         using BlockReportDistance = double;
-        auto blockMetric = [&](const BlockAndReport& A, const BlockAndReport& B) -> BlockReportDistance {return A.report.distanceFrom(B.report);};
+        auto blockMetric = [&](const BlockAndReport& A, const BlockAndReport& B) -> BlockReportDistance {
+            double distance = A.report.distanceFrom(B.report);
+            //LOG("The distance between ", A.report.to_string(), "and", B.report.to_string(), "is", distance);
+            return distance;
+        };
+
         auto stripAwayReportsFromCluster = [&](const std::vector<BlockAndReport>& cluster) -> Block {
             Block result;
             for (const BlockAndReport& bbr : cluster)
@@ -320,7 +325,7 @@ namespace GC {
         StreamingClusterer<BlockAndReport, BlockReportDistance> clusterer(blockMetric,
                                 [&](const std::vector<BlockAndReport>& cluster){
                                     blockHandler(stripAwayReportsFromCluster(cluster));},
-                        0.2,
+                        0.1,
                         2);
 
 

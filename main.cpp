@@ -37,13 +37,13 @@ int main() {
     std::string directory = "/home/gian/CLionProjects/EvoCom/SampleFiles/";
 
 
-    FileAndExtension fileToCompress = smallLogo;
+    FileAndExtension fileToCompress = peanut;
 
     std::string fileToBeCompressed = directory+fileToCompress.first+"."+fileToCompress.second;
     std::string compressedFile = directory+fileToCompress.first+"."+compressedExtension;
     std::string decompressedFile = directory+"DECOMPRESSED_"+fileToCompress.first+"."+fileToCompress.second;
 
-    GC::EvolutionaryFileCompressor::compress_fixedSizeBlocks(fileToBeCompressed, compressedFile);
+    GC::EvolutionaryFileCompressor::compress_variableSize(fileToBeCompressed, compressedFile);
     LOG("The compressedFile has size ", getFileSize(compressedFile));
 
     LOG("Decompressing!----------------------------------------------");

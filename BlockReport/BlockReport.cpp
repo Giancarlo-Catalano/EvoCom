@@ -69,7 +69,7 @@ namespace GC {
     }
 
 
-    std::string BlockReport::to_string() {
+    std::string BlockReport::to_string() const{
         std::stringstream ss;
         ss<<"BlockReport {";
         ss<<"size:"<<size<<",\n ";

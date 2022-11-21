@@ -88,7 +88,7 @@ namespace GC {
         {
         }
 
-        std::string to_string() {
+        std::string to_string() const {
             auto printableValue = [&](auto item) {
                 if (sizeof(item) == 1)
                     return std::to_string((size_t)item);
@@ -109,11 +109,11 @@ namespace GC {
         template <class Metric>
         double distanceFrom(const StatisticalFeatures<T>& other, const Metric metric) const {
 #define GC_SF_DISTANCE_OF_FIELD(field) metric(field, other . field)
-            return std::min({GC_SF_DISTANCE_OF_FIELD(average),
+            return util_average({GC_SF_DISTANCE_OF_FIELD(average),
                             GC_SF_DISTANCE_OF_FIELD(mode),
-                            GC_SF_DISTANCE_OF_FIELD(standardDeviation),
+                            GC_SF_DISTANCE_OF_FIELD(standardDeviation)});/*,
                             GC_SF_DISTANCE_OF_FIELD(minimum),
-                            GC_SF_DISTANCE_OF_FIELD(maximum)});
+                            GC_SF_DISTANCE_OF_FIELD(maximum)});*/
         }
     };
 
