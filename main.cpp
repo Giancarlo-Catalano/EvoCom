@@ -22,7 +22,7 @@ int main() {
 
 
 
-#if 0 //compression
+#if 1 //compression
     using FileAndExtension = std::pair<std::string, std::string>;
     FileAndExtension smallLogo = {"fencingLogoSimple", "png"};
     FileAndExtension bigLogo = {"finishedboot", "png"};
@@ -37,13 +37,13 @@ int main() {
     std::string directory = "/home/gian/CLionProjects/EvoCom/SampleFiles/";
 
 
-    FileAndExtension fileToCompress = peanut;
+    FileAndExtension fileToCompress = smallLogo;
 
     std::string fileToBeCompressed = directory+fileToCompress.first+"."+fileToCompress.second;
     std::string compressedFile = directory+fileToCompress.first+"."+compressedExtension;
     std::string decompressedFile = directory+"DECOMPRESSED_"+fileToCompress.first+"."+fileToCompress.second;
 
-    GC::EvolutionaryFileCompressor::compress(fileToBeCompressed, compressedFile);
+    GC::EvolutionaryFileCompressor::compress_fixedSizeBlocks(fileToBeCompressed, compressedFile);
     LOG("The compressedFile has size ", getFileSize(compressedFile));
 
     LOG("Decompressing!----------------------------------------------");

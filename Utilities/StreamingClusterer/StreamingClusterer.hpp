@@ -9,6 +9,8 @@
 
 
 namespace GC {
+
+    //Prerequisite: T must have a default constructor
     template<class T, class Field>
     class StreamingClusterer {
     public: //types

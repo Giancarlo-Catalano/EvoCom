@@ -4,6 +4,7 @@
 
 #include "EvolutionaryFileCompressor.hpp"
 #include <vector>
+#include "../Utilities/StreamingClusterer/StreamingClusterer.hpp"
 
 
 #include "../Transformation/Transformations/DeltaTransform.hpp"
@@ -25,14 +26,14 @@
 
 
 namespace GC {
-    void EvolutionaryFileCompressor::compress(const EvolutionaryFileCompressor::FileName &fileToCompress,
-                                              const EvolutionaryFileCompressor::FileName &outputFile) {
+    void EvolutionaryFileCompressor::compress_fixedSizeBlocks(const EvolutionaryFileCompressor::FileName &fileToCompress,
+                                                              const EvolutionaryFileCompressor::FileName &outputFile) {
 
             size_t originalFileSize = getFileSize(fileToCompress);
             LOG("the file has size", originalFileSize);
             LOG("the file is ", fileToCompress);
 
-            if (originalFileSize == 0) {
+            if (originalFileSize < 2) {
                 //LOG("I refuse to compress such a small file");
                 return;
             }
@@ -48,23 +49,59 @@ namespace GC {
             FileBitWriter writer(outStream);
 
             size_t amountOfBlocksProcessed = 0;
-            auto readBlockAndCompressOnFile = [&](size_t sizeOfBlock) {
+            auto readBlockAndCompressOnFile = [&](size_t sizeOfBlock, const bool isLast) {
                 Block block = readBlock(sizeOfBlock, reader);
                 //LOG("Evolving the best individual");
                 Individual bestIndividual = evolveBestIndividualForBlock(block);
                 LOG("(", amountOfBlocksProcessed+1, "/", blockAmount, ") For this block, the best individual is", bestIndividual.to_string());
                 encodeIndividual(bestIndividual, writer);
                 applyIndividual(bestIndividual, block, writer);
+                writer.pushBit(isLast); //signifies whether there are more blocks
                 amountOfBlocksProcessed++;
             };
 
             //start of actual compression
             LOG("There are", blockAmount, "blocks to be encoded");
-            writer.writeRiceEncoded(blockAmount);
-            repeat(blockAmount-1, [&](){readBlockAndCompressOnFile(blockSize);});
-            readBlockAndCompressOnFile(sizeOfLastBlock);
+            repeat(blockAmount-1, [&](){readBlockAndCompressOnFile(blockSize, true);});
+            readBlockAndCompressOnFile(sizeOfLastBlock, false);
 
             writer.forceLast();
+    }
+
+    void EvolutionaryFileCompressor::compress_variableSize(const EvolutionaryFileCompressor::FileName &fileToCompress,
+                                                              const EvolutionaryFileCompressor::FileName &outputFile) {
+
+        size_t originalFileSize = getFileSize(fileToCompress);
+        LOG("the file has size", originalFileSize);
+        LOG("the file is ", fileToCompress);
+
+        if (originalFileSize < 2) {
+            LOG("I refuse to compress such a small file");
+            return;
+        }
+
+        std::ifstream inStream(fileToCompress);
+        FileBitReader reader(inStream);
+
+        std::ofstream outStream(outputFile);
+        FileBitWriter writer(outStream);
+
+
+        bool isFirstSegment = true;
+        auto compressBlock = [&](const Block& block) {
+            LOG("Received a block of size", block.size());
+            Individual bestIndividual = evolveBestIndividualForBlock(block);
+            LOG("For this block, the best individual is", bestIndividual.to_string());
+            if (isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
+            isFirstSegment = false;
+            encodeIndividual(bestIndividual, writer);
+            applyIndividual(bestIndividual, block, writer);
+
+        };
+
+        divideFileInSegments(reader, compressBlock, originalFileSize);
+        writer.pushBit(0);
+        writer.forceLast();
     }
 
     Block EvolutionaryFileCompressor::readBlock(size_t size, FileBitReader &reader) {
@@ -118,11 +155,18 @@ namespace GC {
             writeBlock(decodedBlock, writer);
         };
 
-        const size_t blockAmount = reader.readRiceEncoded();
-        LOG("Read that there will be ", blockAmount, "blocks");
-
         //LOG("starting the decoding of blocks");
-        repeat(blockAmount, decodeAndWriteOnFile);
+
+        auto thereAreMoreSegments = [&]() -> bool {
+            LOG("Are there more segments?");
+            bool morePresent = reader.readBit();
+            LOG("Morepresent =", morePresent);
+            return morePresent;
+        };
+        do {
+            decodeAndWriteOnFile();
+        } while (thereAreMoreSegments()); //if there is a bit following a segment, there is another segment to be decoded
+
         writer.forceLast();
 
     }
@@ -250,12 +294,49 @@ namespace GC {
         }
     }
 
+    void EvolutionaryFileCompressor::divideFileInSegments(FileBitReader &reader,
+                                                     std::function<void(const Block&)> blockHandler,
+                                                     const size_t fileSize) {
+
+        const size_t microUnitSize = 64; //bytes
+        size_t remaining = fileSize;
+        struct BlockAndReport {
+            Block block;
+            BlockReport report;
+
+            BlockAndReport(const Block& b) : block(b), report(b){};
+            BlockAndReport() : block(), report() {};
+        };
+        using BlockReportDistance = double;
+        auto blockMetric = [&](const BlockAndReport& A, const BlockAndReport& B) -> BlockReportDistance {return A.report.distanceFrom(B.report);};
+        auto stripAwayReportsFromCluster = [&](const std::vector<BlockAndReport>& cluster) -> Block {
+            Block result;
+            for (const BlockAndReport& bbr : cluster)
+                result.insert(result.end(), bbr.block.begin() ,bbr.block.end());
+
+            return result;
+        };
+
+        StreamingClusterer<BlockAndReport, BlockReportDistance> clusterer(blockMetric,
+                                [&](const std::vector<BlockAndReport>& cluster){
+                                    blockHandler(stripAwayReportsFromCluster(cluster));},
+                        0.2,
+                        2);
 
 
+        auto readAndPushToClusterer = [&](const size_t bytesToRead) {
+            Block newMicroUnit = readBlock(bytesToRead, reader);
+            BlockAndReport bbr(newMicroUnit);
+            clusterer.pushItem(bbr);
+        };
 
-
-
-
+        while (remaining > microUnitSize * 2) {  //this is so that the last micro unit has always size at least microUnitSize
+            readAndPushToClusterer(microUnitSize);
+            remaining -= microUnitSize;
+        }
+        readAndPushToClusterer(remaining);
+        clusterer.finish();
+    }
 
 
 } // GC

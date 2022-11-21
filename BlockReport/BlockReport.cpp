@@ -25,6 +25,20 @@ namespace GC {
         ASSERT_GREATER(block.size(), 1);
     }
 
+    //used for placeholder values
+    BlockReport::BlockReport() :
+        size(0),
+        unitFeatures(),
+        frequencyFeatures(),
+        difference2Features(),
+        difference3Features(),
+        difference4Features(),
+        normalisedRunLengthFeatures(),
+        uniqueSymbolsAmount(0)
+    {
+
+    }
+
     decltype(BlockReport::size) BlockReport::getSize(const Block &block) {
         return block.size();
     }
@@ -85,19 +99,19 @@ namespace GC {
         return result;
     }
 
-    double BlockReport::distanceFrom(const BlockReport& other) {
+    double BlockReport::distanceFrom(const BlockReport& other) const {
 
         auto simpleDistance = [&](const auto first, const auto second, const auto min, const auto max) -> double {
             return (double) safeAbsDifference(first, second) / (max-min);
         };
 
-        auto unit_metric = [&](auto first, auto second) { return simpleDistance(first, second, 0, 256); };
+        auto unit_metric = [&](const auto first, const auto second) { return simpleDistance(first, second, 0, 256); };
 
-        auto frequency_metric = [&](auto first, auto second) { return simpleDistance(first, second, 0.0, 1.0); };
+        auto frequency_metric = [&](const auto first, const auto second) { return simpleDistance(first, second, 0.0, 1.0); };
 
-        auto runLength_normalised_metric = [&](auto first, auto second) { return simpleDistance(first, second, 0.0, 1.0);};
+        auto runLength_normalised_metric = [&](const auto first, const auto second) { return simpleDistance(first, second, 0.0, 1.0);};
 
-        auto symbolCount_metric = [&](auto first, auto second) {return simpleDistance(first, second, 0, 256);};
+        auto symbolCount_metric = [&](const auto first, const auto second) {return simpleDistance(first, second, 0, 256);};
 
 
 #define GC_BR_DISTANCE_OF_FIELD(field, metric) field.distanceFrom(other.field, metric)
@@ -109,5 +123,34 @@ namespace GC {
                          GC_BR_DISTANCE_OF_FIELD(difference4Features, unit_metric),
                          symbolCount_metric(uniqueSymbolsAmount, other.uniqueSymbolsAmount)});
 
+    }
+
+    Unit BlockReport::getXorAverage(const Block &block) {
+        ASSERT_BLOCK_NOT_EMPTY();
+        const size_t bitsInUnit = bitsInType<Unit>();
+        std::array<size_t, bitsInUnit> oneCounts;
+
+        for (size_t i=0;i<bitsInUnit;i++) {
+            oneCounts[i] = 0;
+        }
+
+        auto registerOnes = [&oneCounts](const Unit& unit) {
+            std::bitset<bitsInUnit> bits(unit);
+            for (size_t i = 0; i< bitsInUnit; i++) {
+                if (bits[i]) oneCounts[i]++;
+            }
+        };
+
+        auto getAverageBit = [&oneCounts, &block](const size_t pos) {
+            const size_t halfSize = getSize(block)/2;
+            return oneCounts[pos] > halfSize;
+        };
+
+        std::for_each(block.begin(), block.end(), registerOnes);
+        Unit result = 0;
+        for (size_t i=0;i<bitsInUnit;i++) {
+            result |= getAverageBit(i)<<i;
+        }
+        return result;
     }
 } // GC

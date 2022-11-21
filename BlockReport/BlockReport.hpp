@@ -26,6 +26,7 @@ namespace GC {
         using NormalisedRunLength = double;
     public:
         explicit BlockReport(const Block& block);
+        explicit BlockReport();
 
         std::string to_string();
 
@@ -58,7 +59,9 @@ namespace GC {
             return deltas;
         }
 
-        double distanceFrom(const BlockReport& other);
+        static Unit getXorAverage(const Block &block);
+
+        double distanceFrom(const BlockReport& other) const;
 
 
         std::vector<NormalisedRunLength> getNormalisedRunLengths(const Block &block);

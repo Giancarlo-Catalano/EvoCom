@@ -81,6 +81,13 @@ namespace GC {
                 maximum = bounds.second;
         }
 
+        StatisticalFeatures() :
+            average(0),
+            mode(0),
+            standardDeviation(0)
+        {
+        }
+
         std::string to_string() {
             auto printableValue = [&](auto item) {
                 if (sizeof(item) == 1)
@@ -100,7 +107,7 @@ namespace GC {
 
 
         template <class Metric>
-        double distanceFrom(const StatisticalFeatures<T>& other, const Metric metric) {
+        double distanceFrom(const StatisticalFeatures<T>& other, const Metric metric) const {
 #define GC_SF_DISTANCE_OF_FIELD(field) metric(field, other . field)
             return std::min({GC_SF_DISTANCE_OF_FIELD(average),
                             GC_SF_DISTANCE_OF_FIELD(mode),

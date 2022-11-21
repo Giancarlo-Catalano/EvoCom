@@ -81,6 +81,10 @@ namespace GC {
             size_t contents = readAmountOfBits(bitSize);
             return contents+getOffsetOfBitSize(bitSize);
         }
+
+        bool hasMoreToRead() {
+            return !inStream.eof();
+        }
     };
 
 } // GC

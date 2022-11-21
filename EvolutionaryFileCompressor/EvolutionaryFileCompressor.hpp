@@ -32,7 +32,8 @@ namespace GC {
 
 
         EvolutionaryFileCompressor() {};
-        static void compress(const FileName& fileToCompress, const FileName& outputFile);
+        static void compress_fixedSizeBlocks(const FileName& fileToCompress, const FileName& outputFile);
+        static void compress_variableSize(const FileName& fileToCompress, const FileName& outputFile);
         static void decompress(const FileName& fileToDecompress, const FileName& outputFile);
 
     private:
@@ -42,7 +43,6 @@ namespace GC {
 
         static Block readBlock(size_t size, FileBitReader &reader);
 
-        static Block applyTransformCode_copy(const TransformCode &tc, const Block &block);
         static void applyTransformCode(const TransformCode &tc, Block &block);
 
         static void applyCompressionCode(const CompressionCode &cc, const Block &block, AbstractBitWriter& writer);
@@ -72,6 +72,10 @@ namespace GC {
         static Individual decodeIndividual(FileBitReader &reader);
 
         static Block decodeUsingIndividual(const Individual &individual, FileBitReader &reader);
+
+        static void
+        divideFileInSegments(FileBitReader &reader, std::function<void(const Block &)> blockHandler,
+                             const size_t fileSize);
     };
 
 } // GC
