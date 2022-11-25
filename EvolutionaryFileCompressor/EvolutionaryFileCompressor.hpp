@@ -5,6 +5,7 @@
 #ifndef DISS_SIMPLEPROTOTYPE_EVOLUTIONARYFILECOMPRESSOR_HPP
 #define DISS_SIMPLEPROTOTYPE_EVOLUTIONARYFILECOMPRESSOR_HPP
 
+
 #include "../names.hpp"
 #include "../Utilities/utilities.hpp"
 #include "../Transformation/Transformation.hpp"
@@ -13,6 +14,8 @@
 #include "../Evolver/Individual/Individual.hpp"
 #include "../AbstractBit/AbstractBitWriter/AbstractBitWriter.hpp"
 #include "../AbstractBit/FileBitWriter/FileBitWriter.hpp"
+#include "EvoCompressorSettings/EvoComSettings.hpp"
+#include "../Evolver/Evolver.hpp"
 
 namespace GC {
 
@@ -23,7 +26,6 @@ namespace GC {
         using TransformCode = TCode;
         using TList = Individual::TList;
         using CompressionCode = CCode;
-        using Bits = std::vector<bool>;
         using Fitness = Individual::FitnessScore;
 
         static const size_t blockSize = 512; //for no reason in particular
@@ -32,8 +34,9 @@ namespace GC {
 
 
         EvolutionaryFileCompressor() {};
-        static void compress_fixedSizeBlocks(const FileName& fileToCompress, const FileName& outputFile);
-        static void compress_variableSize(const FileName& fileToCompress, const FileName& outputFile);
+        static void compress(const EvoComSettings& settings);
+        static void compress_fixedSizeBlocks(const EvoComSettings& settings);
+        static void compress_variableSize(const EvoComSettings& settings);
         static void decompress(const FileName& fileToDecompress, const FileName& outputFile);
 
     private:
@@ -67,15 +70,16 @@ namespace GC {
 
         static Fitness compressionRatioForIndividualOnBlock(const Individual &individual, const Block &block);
 
-        static Individual evolveBestIndividualForBlock(const Block &block);
-
         static Individual decodeIndividual(FileBitReader &reader);
 
         static Block decodeUsingIndividual(const Individual &individual, FileBitReader &reader);
 
         static void
         divideFileInSegments(FileBitReader &reader, std::function<void(const Block &)> blockHandler,
-                             const size_t fileSize);
+                             const size_t fileSize, const EvoComSettings& settings);
+
+
+        static Individual evolveBestIndividualForBlock(const Block &block, const Evolver::EvolutionSettings& evoSettings);
     };
 
 } // GC

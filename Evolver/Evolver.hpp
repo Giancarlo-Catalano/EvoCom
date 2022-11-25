@@ -10,6 +10,7 @@
 #include "../Utilities/utilities.hpp"
 #include "../names.hpp"
 #include "../StatisticalFeatures/RunningAverage.hpp"
+#include "../EvolutionaryFileCompressor/EvoCompressorSettings/EvoComSettings.hpp"
 
 #define SHOW_ADAPTIVE_MUTATION 1
 
@@ -31,7 +32,9 @@ namespace GC {
             Chance chanceOfCompressionCrossover;
             Proportion tournamentSelectionProportion;
             bool usesSimulatedAnnealing;
-            bool isElitist;
+            size_t eliteSize;
+            double mutationThreshold;
+            double unstabilityThreshold;
 
             EvolutionSettings() :
                 populationSize(40),
@@ -40,7 +43,23 @@ namespace GC {
                 chanceOfCompressionCrossover(0.25),
                 tournamentSelectionProportion(0.80),
                 usesSimulatedAnnealing(true),
-                isElitist(true){}
+                eliteSize(2),
+                mutationThreshold(0.75),
+                unstabilityThreshold(0.4){}
+
+
+            EvolutionSettings(const EvoComSettings& settings) :
+                populationSize(settings.population),
+                generationCount(settings.generations),
+                chanceOfMutation(settings.mutationRate),
+                chanceOfCompressionCrossover(settings.compressionCrossoverRate),
+                tournamentSelectionProportion(settings.population / settings.tournamentSelectionSize),
+                usesSimulatedAnnealing(settings.usesAnnealing),
+                eliteSize(settings.eliteSize),
+                mutationThreshold(settings.excessiveMutationThreshold),
+                unstabilityThreshold(settings.unstabilityThreshold){
+
+            }
         };
 
         using Fitness = Individual::FitnessScore;
@@ -58,7 +77,9 @@ namespace GC {
         size_t populationSize;
         size_t amountOfGenerations;
         bool usesSimulatedAnnealing;
-        bool isElitist;
+        size_t eliteSize;
+        const double unstabilityThreshold;
+        const double excessiveMutationThreshold;
 
 
     private: //methods
@@ -125,7 +146,9 @@ namespace GC {
             selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion))),
             initialMutationRate(settings.chanceOfMutation),
             usesSimulatedAnnealing(settings.usesSimulatedAnnealing),
-            isElitist(settings.isElitist)
+            eliteSize(settings.eliteSize),
+            excessiveMutationThreshold(settings.mutationThreshold),
+            unstabilityThreshold(settings.unstabilityThreshold)
             {
                 initialiseRandomPopulation();
             }
@@ -139,17 +162,16 @@ namespace GC {
                 selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion))),
                 initialMutationRate(settings.chanceOfMutation),
                 usesSimulatedAnnealing(settings.usesSimulatedAnnealing),
-                isElitist(settings.isElitist)
+                excessiveMutationThreshold(settings.mutationThreshold),
+                unstabilityThreshold(settings.unstabilityThreshold)
         {
             initialiseHintedPopulation(hint);
         }
 
         void evolveSingleGeneration() {
             //LOG("The current population is"); for (auto individual: population) LOG(individual.to_string());
-
-            Population children;
-            if (isElitist)
-                children = population;
+            //TODO THIS IS NOT CORRECT!!
+            Population children = selector.selectElite(eliteSize, population);
 
             selector.preparePool(population);
             auto addNewIndividual = [&]() {
@@ -160,13 +182,8 @@ namespace GC {
                 evaluator.decideFitness(newChild, parentA, parentB);
                 children.emplace_back(newChild);
             };
-            repeat(populationSize, addNewIndividual);
-            if (isElitist) {
-                selector.preparePool(children);
-                population = selector.selectMany(populationSize);
-            }
-            else
-                population = children;
+            repeat(populationSize - eliteSize, addNewIndividual);
+            population = children;
 
             runningAverageFitness.registerNewValue(getBestOfPopulation().getFitness());
             generationCount++;

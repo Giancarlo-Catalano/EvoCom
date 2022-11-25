@@ -1,14 +1,9 @@
 #include <iostream>
 #include "Utilities/utilities.hpp"
 #include "EvolutionaryFileCompressor/EvolutionaryFileCompressor.hpp"
-#include "Evolver/Individual/TCodes.hpp"
-#include "Evolver/Individual/CCodes.hpp"
-#include "Evolver/Breeder/Breeder.hpp"
-#include "Utilities/StreamingClusterer/StreamingClusterer.hpp"
 
 
-int main() {
-
+int main(int argc, char**argv) {
 
     /**
      * TODO:: write a decision tree
@@ -23,33 +18,25 @@ int main() {
 
 
 #if 1 //compression
-    using FileAndExtension = std::pair<std::string, std::string>;
-    FileAndExtension smallLogo = {"fencingLogoSimple", "png"};
-    FileAndExtension bigLogo = {"finishedboot", "png"};
-    FileAndExtension beeMovie = {"beeMovieScript", "txt"};
-    FileAndExtension cat = {"smoky", "jpeg"};
-    FileAndExtension mosaic = {"mosaic", "bmp"};
-    FileAndExtension bird = {"bird", "raw"};
-    FileAndExtension tiff = {"tiff", "tiff"};
-    FileAndExtension peanut = {"peanut", "tiff"};
-
     std::string compressedExtension = "gac";
-    std::string directory = "/home/gian/CLionProjects/EvoCom/SampleFiles/";
+    std::string sampleFileDirectory = "../SampleFiles/";
+
+    using FileName = std::string;
 
 
-    FileAndExtension fileToCompress = peanut;
+    GC::EvoComSettings settings(argc, argv);
+    FileName fileToCompress = settings.inputFile;
+    FileName compressedFile = fileToCompress+"."+compressedExtension;
 
-    std::string fileToBeCompressed = directory+fileToCompress.first+"."+fileToCompress.second;
-    std::string compressedFile = directory+fileToCompress.first+"."+compressedExtension;
-    std::string decompressedFile = directory+"DECOMPRESSED_"+fileToCompress.first+"."+fileToCompress.second;
 
-    GC::EvolutionaryFileCompressor::compress_variableSize(fileToBeCompressed, compressedFile);
+
+    GC::EvolutionaryFileCompressor::compress(settings);
     LOG("The compressedFile has size ", getFileSize(compressedFile));
 
     LOG("Decompressing!----------------------------------------------");
-    GC::EvolutionaryFileCompressor::decompress(compressedFile, decompressedFile);
+    GC::EvolutionaryFileCompressor::decompress(compressedFile, fileToCompress);
 
-    LOG("In short: ", getFileSize(fileToBeCompressed), "bytes -> ", getFileSize(compressedFile), "bytes");
+    LOG("In short: ", getFileSize(sampleFileDirectory+fileToCompress), "bytes -> ", getFileSize(compressedFile), "bytes");
 #endif
 
 #if 0 // individuals

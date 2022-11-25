@@ -129,6 +129,21 @@ namespace GC {
         }
 
 
+        std::vector<Individual> selectElite(const size_t amount, const std::vector<Individual>& pool) {
+            auto isIndividualBetter = [&](const Individual& A, const Individual& B) {
+                return A.getFitness() < B.getFitness();
+            };
+            ASSERT(pool.size() >= amount);
+
+            auto copyOfPool = pool;
+            std::nth_element(copyOfPool.begin(), copyOfPool.begin()+amount-1, copyOfPool.end(), isIndividualBetter);
+
+            std::vector<Individual> result(copyOfPool.begin(), copyOfPool.begin()+amount-1);
+
+            return result;
+        }
+
+
         void LOGPool() {
             LOG("The pool in this selector is");
             for (auto ind: pool) {LOG(ind.to_string());}

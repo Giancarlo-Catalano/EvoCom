@@ -278,7 +278,6 @@ T util_average(const std::initializer_list<T> items) {
 
 
 
-
 #endif //DISS_SIMPLEPROTOTYPE_UTILITIES_HPP
 
 
