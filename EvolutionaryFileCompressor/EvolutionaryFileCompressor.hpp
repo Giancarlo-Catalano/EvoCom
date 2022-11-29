@@ -34,9 +34,7 @@ namespace GC {
 
 
         EvolutionaryFileCompressor() {};
-        static void compress(const EvoComSettings& settings);
-        static void compress_fixedSizeBlocks(const EvoComSettings& settings);
-        static void compress_variableSize(const EvoComSettings& settings);
+        static void compress_overall(const EvoComSettings &settings);
         static void decompress(const FileName& fileToDecompress, const FileName& outputFile);
 
     private:
@@ -75,11 +73,16 @@ namespace GC {
         static Block decodeUsingIndividual(const Individual &individual, FileBitReader &reader);
 
         static void
-        divideFileInSegments(FileBitReader &reader, std::function<void(const Block &)> blockHandler,
-                             const size_t fileSize, const EvoComSettings& settings);
+        clusterFileInSegments(FileBitReader &reader, std::function<void(const Block &)> blockHandler,
+                              const size_t fileSize, const EvoComSettings& settings);
 
 
         static Individual evolveBestIndividualForBlock(const Block &block, const Evolver::EvolutionSettings& evoSettings);
+
+        static void processFileAsFixedSegments(FileBitReader &reader, std::function<void(const Block &)> blockHandler,
+                                        const size_t fileSize, const EvoComSettings &settings);
+
+
     };
 
 } // GC

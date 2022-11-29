@@ -62,10 +62,14 @@ namespace GC {
         static Unit getXorAverage(const Block &block);
 
         double distanceFrom(const BlockReport& other) const;
+        double distanceFrom_Complex(const BlockReport& other) const;
+
 
 
         std::vector<NormalisedRunLength> getNormalisedRunLengths(const Block &block);
     };
+
+    double differentialSampleDistance(const Block& A, const Block& B);
 
 } // GC
 

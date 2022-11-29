@@ -153,4 +153,42 @@ namespace GC {
         }
         return result;
     }
+
+    //this is a rough distance metric, which only assumes that the blocks are non-empty
+    double differentialSampleDistance(const Block& A, const Block& B) {
+
+        const size_t defaultSampleSize = 64;
+        const size_t sampleSize = std::min({defaultSampleSize, A.size(), B.size()});
+
+        auto distanceInSubRange = [&A, &B](auto startA, auto startB, const size_t amount) {
+            Byte prevDiff = 0;
+            size_t integralValue = 0;
+            for (size_t iA=startA, iB=startB;iA<startA+amount;iA++, iB++) {
+                const int localDiff = std::abs(A[iA]-B[iB]);
+                const int derivative = localDiff-prevDiff;
+                integralValue+=(derivative);
+                prevDiff = localDiff;
+            }
+
+            return (double) (integralValue) / ((double) amount);
+            //return (double) (integralValue)/((double) 256*amount);//to normalise it into [0, 1]
+        };
+
+        const size_t leftoverInA = A.size()-sampleSize;
+        const size_t leftoverInB = B.size()-sampleSize;
+
+        const double headerDistance = distanceInSubRange(0, 0, sampleSize);
+        const double tailDistance = distanceInSubRange(leftoverInA, leftoverInB, sampleSize);
+        const double bodyDistance = distanceInSubRange(leftoverInA/2, leftoverInB/2, sampleSize);
+
+        //LOG("headerDistance =", headerDistance);
+        //LOG("bodyDistance =", bodyDistance);
+        //LOG("tailDistance =", tailDistance);
+
+        return std::min({headerDistance, tailDistance, bodyDistance});
+
+
+
+    }
+
 } // GC

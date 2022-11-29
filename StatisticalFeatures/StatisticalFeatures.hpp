@@ -39,7 +39,13 @@ namespace GC {
         template <class Container>
         static T getMode(const Container& c) {
             ASSERT_NOT_EMPTY(c);
-            //TODO implement this in a more efficient way
+            //TODO implement this in a more efficient way, perhaps
+            /**
+             * Container temp = c;
+             * size_t middleIndex = c.size()/2;
+             * std::nth_element(temp.begin(),  temp.begin()+middleIndex), temp.end());
+             * return temp[middleIndex];
+             */
             size_t middleIndex = c.size()/2;
             Container sorted = c;
             std::sort(sorted.begin(), sorted.end());
@@ -106,12 +112,16 @@ namespace GC {
         }
 
 
+
+
         template <class Metric>
         double distanceFrom(const StatisticalFeatures<T>& other, const Metric metric) const {
 #define GC_SF_DISTANCE_OF_FIELD(field) metric(field, other . field)
-            return util_average({GC_SF_DISTANCE_OF_FIELD(average),
-                            GC_SF_DISTANCE_OF_FIELD(mode),
-                            GC_SF_DISTANCE_OF_FIELD(standardDeviation)});/*,
+#define GC_SF_SIGNIFICANCE(field, prob) metric(field, other . field)*prob(field)*prob(other . field)
+
+            return std::min({GC_SF_DISTANCE_OF_FIELD(average),
+                             GC_SF_DISTANCE_OF_FIELD(mode),
+                             GC_SF_DISTANCE_OF_FIELD(standardDeviation)});/*,
                             GC_SF_DISTANCE_OF_FIELD(minimum),
                             GC_SF_DISTANCE_OF_FIELD(maximum)});*/
         }

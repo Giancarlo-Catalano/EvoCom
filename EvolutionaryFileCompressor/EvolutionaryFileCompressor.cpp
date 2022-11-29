@@ -28,88 +28,25 @@
 
 namespace GC {
 
-    void EvolutionaryFileCompressor::compress(const EvoComSettings& settings) {
+
+    void EvolutionaryFileCompressor::compress_overall(const EvoComSettings& settings) {
+
         LOG("Compressing using the following settings:");
         LOG(settings.to_string());
-        if (settings.fixedSegmentSize)
-            compress_fixedSizeBlocks(settings);
-        else
-            compress_variableSize(settings);
-    }
-
-    void EvolutionaryFileCompressor::compress_fixedSizeBlocks(const EvoComSettings& settings) {
-
-        FileName fileToCompress = settings.inputFile;
-        std::ifstream inStream(settings.inputFile);
-        FileBitReader reader(inStream);
-
-
-        FileName outputFile = fileToCompress+".gac";
-        std::ofstream outStream(outputFile);
-        FileBitWriter writer(outStream);
-
-
-        if (!inStream) {
-            LOG_NOSPACES("Could not open the requested \"", fileToCompress, "\" file to compress, aborting");
-            return;
-        }
-        if (!outStream) {
-            LOG_NOSPACES("Could not open the output file \"", outputFile, "\" for writing, aborting");
-            return;
-        }
-
-            size_t originalFileSize = getFileSize(fileToCompress);
-            LOG("the file has size", originalFileSize);
-            LOG("the file is ", fileToCompress);
-
-            if (originalFileSize < 2) {
-                //LOG("I refuse to compress such a small file");
-                return;
-            }
-
-            const size_t blockAmount = (originalFileSize < blockSize ? 1 : originalFileSize/blockSize);
-            const size_t sizeOfLastBlock = (originalFileSize < blockSize ? originalFileSize : blockSize+(originalFileSize%blockSize));
-            LOG_NOSPACES("Each block has size ", blockSize, ", meaning that there will be ", blockAmount, " blocks, with the last one having size ", sizeOfLastBlock);
-
-
-
-            size_t amountOfBlocksProcessed = 0;
-            Evolver::EvolutionSettings evoSettings(settings);
-            auto readBlockAndCompressOnFile = [&](size_t sizeOfBlock, const bool isLast) {
-                Block block = readBlock(sizeOfBlock, reader);
-                //LOG("Evolving the best individual");
-                Individual bestIndividual = evolveBestIndividualForBlock(block, evoSettings);
-                LOG("(", amountOfBlocksProcessed+1, "/", blockAmount, ") For this block, the best individual is", bestIndividual.to_string());
-                encodeIndividual(bestIndividual, writer);
-                applyIndividual(bestIndividual, block, writer);
-                writer.pushBit(isLast); //signifies whether there are more blocks
-                amountOfBlocksProcessed++;
-            };
-
-            //start of actual compression
-            LOG("There are", blockAmount, "blocks to be encoded");
-            repeat(blockAmount-1, [&](){readBlockAndCompressOnFile(blockSize, true);});
-            readBlockAndCompressOnFile(sizeOfLastBlock, false);
-
-            writer.forceLast();
-    }
-
-    void EvolutionaryFileCompressor::compress_variableSize(const EvoComSettings& settings) {
 
         size_t originalFileSize = getFileSize(settings.inputFile);
         std::string outputFile = settings.inputFile+".gac";
         LOG("the file has size", originalFileSize);
 
-        if (originalFileSize < 2) {
-            LOG("I refuse to compress such a small file");
-            return;
-        }
+        if (originalFileSize < 2) { LOG("I refuse to compress such a small file"); return; }
 
         std::ifstream inStream(settings.inputFile);
         FileBitReader reader(inStream);
 
         std::ofstream outStream(outputFile);
         FileBitWriter writer(outStream);
+
+        if (!inStream || !outStream) {LOG("There was a problem when opening the files"); return;}
 
 
         bool isFirstSegment = true;
@@ -125,9 +62,28 @@ namespace GC {
 
         };
 
-        divideFileInSegments(reader, compressBlock, originalFileSize, settings);
+        if (settings.segmentationMethod == EvoComSettings::Clustered)
+            clusterFileInSegments(reader, compressBlock, originalFileSize, settings);
+        else
+            processFileAsFixedSegments(reader, compressBlock, originalFileSize, settings);
+
         writer.pushBit(0);
         writer.forceLast();
+    }
+
+    void EvolutionaryFileCompressor::processFileAsFixedSegments(FileBitReader& reader, std::function<void(const Block&)> blockHandler,
+                                                                const size_t fileSize, const EvoComSettings& settings) {
+
+        LOG("Processing the file as fixed segments of size", settings.fixedSegmentSize);
+        size_t remaining = fileSize;
+        const size_t blockSize = settings.fixedSegmentSize;
+        while (remaining > blockSize * 2) {
+            const Block block = readBlock(settings.fixedSegmentSize, reader);
+            blockHandler(block);
+            remaining -= blockSize;
+        }
+        const Block finalBlock = readBlock(remaining, reader);
+        blockHandler(finalBlock);
     }
 
     Block EvolutionaryFileCompressor::readBlock(size_t size, FileBitReader &reader) {
@@ -314,9 +270,11 @@ namespace GC {
         }
     }
 
-    void EvolutionaryFileCompressor::divideFileInSegments(FileBitReader &reader,
-                                                     std::function<void(const Block&)> blockHandler,
-                                                     const size_t fileSize, const EvoComSettings& settings) {
+    void EvolutionaryFileCompressor::clusterFileInSegments(FileBitReader &reader,
+                                                           std::function<void(const Block&)> blockHandler,
+                                                           const size_t fileSize, const EvoComSettings& settings) {
+
+        LOG("Compressing in clusters");
 
         const size_t microUnitSize = 64; //bytes
         size_t remaining = fileSize;
@@ -329,7 +287,7 @@ namespace GC {
         };
         using BlockReportDistance = double;
         auto blockMetric = [&](const BlockAndReport& A, const BlockAndReport& B) -> BlockReportDistance {
-            double distance = A.report.distanceFrom(B.report);
+            double distance = differentialSampleDistance(A.block, B.block);
             //LOG("The distance between ", A.report.to_string(), "and", B.report.to_string(), "is", distance);
             return distance;
         };

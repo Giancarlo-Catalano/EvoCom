@@ -170,7 +170,6 @@ namespace GC {
 
         void evolveSingleGeneration() {
             //LOG("The current population is"); for (auto individual: population) LOG(individual.to_string());
-            //TODO THIS IS NOT CORRECT!!
             Population children = selector.selectElite(eliteSize, population);
 
             selector.preparePool(population);

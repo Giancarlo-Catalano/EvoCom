@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Utilities/utilities.hpp"
 #include "EvolutionaryFileCompressor/EvolutionaryFileCompressor.hpp"
+#include "BlockReport/BlockReport.hpp"
 
 
 int main(int argc, char**argv) {
@@ -30,7 +31,7 @@ int main(int argc, char**argv) {
 
 
 
-    GC::EvolutionaryFileCompressor::compress(settings);
+    GC::EvolutionaryFileCompressor::compress_overall(settings);
     LOG("The compressedFile has size ", getFileSize(compressedFile));
 
     LOG("Decompressing!----------------------------------------------");
@@ -249,5 +250,21 @@ int main(int argc, char**argv) {
     LOG("finishing");
     clusterer.finish();
 #endif
+
+#if 0 //distance metric between segments
+    Block A, B;
+    for (int i=0;i<6;i++) {
+        A.push_back(i%30);
+        B.push_back(i%6);
+    }
+
+    LOG("A=", containerToString(A));
+    LOG("B=", containerToString(B));
+    double distance = GC::differentialSampleDistance(A, B);
+    LOG("The returned distance is", distance);
     return 0;
+
+#endif
+
+
 }

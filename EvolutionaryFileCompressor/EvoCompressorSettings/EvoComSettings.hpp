@@ -58,8 +58,8 @@ namespace GC {
                 std::string parameterValue;
                 inStream >> parameterName;
                 inStream >> parameterValue;
-                toUpper(parameterValue);
-                dict[parameterValue] = parameterValue;
+                toUpper(parameterName);
+                dict[parameterName] = parameterValue;
             }
 
             return dict;
@@ -182,9 +182,6 @@ namespace GC {
     public:
         EvoComSettings(int argc, char** argv) {
             Dictionary commandLineSettings = makeDictionaryFromCommandLineArguments(argc, argv);
-
-            LOG("The dict from the command line is ");
-            logDict(commandLineSettings);
 
             FileName configFile = getStringFromDict(commandLineSettings, "CONFIG", "");
             if (configFile.empty()) {
