@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <sstream>
 #include <algorithm>
+#include <chrono>
 #include <functional>
 #include "../names.hpp"
 
@@ -274,6 +275,17 @@ T util_average(const std::initializer_list<T> items) {
     for (const T val : items) accumulator+=val;
     return accumulator/amount;
 
+}
+
+template <class Func>
+double timeFunction(const Func func) {
+    auto start = std::chrono::steady_clock::now();
+    func();
+    auto end = std::chrono::steady_clock::now();
+    auto diff = end-start;
+
+    auto inSeconds = std::chrono::duration_cast<std::chrono::seconds>(diff);
+    return inSeconds.count();
 }
 
 

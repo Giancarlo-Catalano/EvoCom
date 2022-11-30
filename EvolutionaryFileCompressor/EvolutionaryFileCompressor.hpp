@@ -48,7 +48,7 @@ namespace GC {
 
         static void applyCompressionCode(const CompressionCode &cc, const Block &block, AbstractBitWriter& writer);
 
-        static void applyIndividual(const Individual &individual, const Block &block, AbstractBitWriter& writer);
+        static void compressBlockUsingRecipe(const Individual &individual, const Block &block, AbstractBitWriter& writer);
 
         static void encodeIndividual(const Individual &individual, AbstractBitWriter& writer);
 
@@ -83,6 +83,11 @@ namespace GC {
                                         const size_t fileSize, const EvoComSettings &settings);
 
 
+        static void compressToStreamsSequentially(FileBitReader &reader, FileBitWriter &writer, const size_t originalFileSize,
+                                                  const EvoComSettings &settings);
+
+        static void compressToStreamsAsync(FileBitReader &reader, FileBitWriter &writer, const size_t originalFileSize,
+                                           const EvoComSettings &settings);
     };
 
 } // GC

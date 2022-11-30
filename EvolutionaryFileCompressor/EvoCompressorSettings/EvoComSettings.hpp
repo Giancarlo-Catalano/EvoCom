@@ -38,7 +38,9 @@ namespace GC {
         double excessiveMutationThreshold;
         double unstabilityThreshold;
 
-        size_t minTransformAmount, maxTransformAmount;
+        size_t minTransformAmount, maxTransformAmount; //not hooked yet
+
+        bool async;
 
 
 
@@ -157,6 +159,8 @@ namespace GC {
             minTransformAmount = getIntFromDict(dict, "MIN_TRANSFORM_AMOUNT", 0);
             maxTransformAmount = getIntFromDict(dict, "MAX_TRANSFORM_AMOUNT", 6);
 
+            async = getBoolFromDict(dict, "ASYNC", true);
+
         }
 
         //top overwrites bottom
@@ -218,6 +222,7 @@ namespace GC {
             ss << "unstabilityThreshold=" << unstabilityThreshold << ",";
             ss << "minTransformAmount=" << minTransformAmount << ",";
             ss << "maxTransformAmount=" << maxTransformAmount;
+            ss << "asynchronous=" << async;
 
             ss<<"}";
 

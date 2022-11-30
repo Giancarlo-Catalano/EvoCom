@@ -24,7 +24,8 @@
 #include "../Transformation/Transformations/IdentityTransform.hpp"
 #include "../Compression/SmallValueCompression/SmallValueCompression.hpp"
 
-
+#include <future>
+#include <queue>
 
 namespace GC {
 
@@ -48,7 +49,14 @@ namespace GC {
 
         if (!inStream || !outStream) {LOG("There was a problem when opening the files"); return;}
 
+        if (settings.async)
+            compressToStreamsAsync(reader, writer, originalFileSize, settings);
+        else
+            compressToStreamsSequentially(reader, writer, originalFileSize, settings);
+    }
 
+
+    void EvolutionaryFileCompressor::compressToStreamsSequentially(FileBitReader& reader, FileBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings) {
         bool isFirstSegment = true;
         Evolver::EvolutionSettings evoSettings(settings);
         auto compressBlock = [&](const Block& block) {
@@ -58,7 +66,7 @@ namespace GC {
             if (!isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
             isFirstSegment = false;
             encodeIndividual(bestIndividual, writer);
-            applyIndividual(bestIndividual, block, writer);
+            compressBlockUsingRecipe(bestIndividual, block, writer);
 
         };
 
@@ -66,6 +74,59 @@ namespace GC {
             clusterFileInSegments(reader, compressBlock, originalFileSize, settings);
         else
             processFileAsFixedSegments(reader, compressBlock, originalFileSize, settings);
+
+        writer.pushBit(0);
+        writer.forceLast();
+    }
+
+    void EvolutionaryFileCompressor::compressToStreamsAsync(FileBitReader& reader, FileBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings) {
+        using Job = std::pair<Block, std::future<Individual>>;
+        using JobQueue = std::queue<Job>;
+
+        JobQueue jobQueue;
+        Evolver::EvolutionSettings evoSettings(settings);
+
+        auto passBlockToJobQueue = [&](const Block& block) {
+            //LOG("Received the block (size", block.size(), "), passing it to the queue");
+            jobQueue.emplace(block, std::async(
+                    std::launch::async,
+                    &EvolutionaryFileCompressor::evolveBestIndividualForBlock,
+                    block,
+                    evoSettings));
+        };
+
+        bool isFirstSegment = true;
+        size_t processedSoFar = 0;
+        auto compressBlock = [&](const Block& block, const Individual& recipe) {
+            processedSoFar += block.size();
+            size_t progress = 100.0*(double)(processedSoFar) / (double)originalFileSize;
+            LOG_NOSPACES("(Progress ", progress, "%) Received the block (size ", block.size(), "), and the recipe ", recipe.to_string());
+            if (!isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
+            isFirstSegment = false;
+            encodeIndividual(recipe, writer);
+            compressBlockUsingRecipe(recipe, block, writer);
+        };
+
+        if (settings.segmentationMethod == EvoComSettings::Clustered)
+            clusterFileInSegments(reader, passBlockToJobQueue, originalFileSize, settings);
+        else
+            processFileAsFixedSegments(reader, passBlockToJobQueue, originalFileSize, settings);
+
+        LOG("Starting to process the queue!");
+
+        while (!jobQueue.empty()) {
+            LOG("waiting for the future");
+            jobQueue.front().second.wait();
+
+            LOG("acquiring the block and the future");
+            Individual recipe = jobQueue.front().second.get();
+            Block block = jobQueue.front().first;
+            compressBlock(block, recipe);
+
+            jobQueue.pop(); //very important!!
+        }
+
+        LOG("all done!");
 
         writer.pushBit(0);
         writer.forceLast();
@@ -98,7 +159,7 @@ namespace GC {
 
 
 
-    void EvolutionaryFileCompressor::applyIndividual(const Individual &individual, const Block &block, AbstractBitWriter& writer) {
+    void EvolutionaryFileCompressor::compressBlockUsingRecipe(const Individual &individual, const Block &block, AbstractBitWriter& writer) {
         ////LOG("Applying individual ", individual.to_string());
         Block toBeProcessed = block;
         for (auto tCode : individual.tList) applyTransformCode(tCode, toBeProcessed);
@@ -192,7 +253,7 @@ namespace GC {
 
         BitCounter counterWriter;
         encodeIndividual(individual, counterWriter);
-        applyIndividual(individual, block, counterWriter);
+        compressBlockUsingRecipe(individual, block, counterWriter);
         size_t compressedSize = counterWriter.getCounterValue();
         //a compressed block is a sequence of bits, not necessarly in multiples of 8
                 ASSERT_NOT_EQUALS(compressedSize, 0); //would be impossible
