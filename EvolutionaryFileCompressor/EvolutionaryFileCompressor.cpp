@@ -29,7 +29,7 @@
 namespace GC {
 
 
-    void EvolutionaryFileCompressor::compress_overall(const EvoComSettings& settings) {
+    void EvolutionaryFileCompressor::compress(const EvoComSettings& settings) {
 
         LOG("Compressing using the following settings:");
         LOG(settings.to_string());
@@ -276,48 +276,29 @@ namespace GC {
 
         LOG("Compressing in clusters");
 
-        const size_t microUnitSize = 64; //bytes
+        const size_t microUnitSize = 256; //bytes
         size_t remaining = fileSize;
-        struct BlockAndReport {
-            Block block;
-            BlockReport report;
 
-            BlockAndReport(const Block& b) : block(b), report(b){};
-            BlockAndReport() : block(), report() {};
-        };
-        using BlockReportDistance = double;
-        auto blockMetric = [&](const BlockAndReport& A, const BlockAndReport& B) -> BlockReportDistance {
-            double distance = differentialSampleDistance(A.block, B.block);
-            //LOG("The distance between ", A.report.to_string(), "and", B.report.to_string(), "is", distance);
-            return distance;
-        };
-
-        auto stripAwayReportsFromCluster = [&](const std::vector<BlockAndReport>& cluster) -> Block {
+        auto joinBlocks = [&](const std::vector<Block>& cluster) -> Block {
             Block result;
-            for (const BlockAndReport& bbr : cluster)
-                result.insert(result.end(), bbr.block.begin() ,bbr.block.end());
+            for (const Block& block : cluster)
+                result.insert(result.end(), block.begin(), block.end());
 
             return result;
         };
 
-        StreamingClusterer<BlockAndReport, BlockReportDistance> clusterer(blockMetric,
-                                [&](const std::vector<BlockAndReport>& cluster){
-                                    blockHandler(stripAwayReportsFromCluster(cluster));},
+        StreamingClusterer<Block, double> clusterer(differentialSampleDistance,
+                                [&](const std::vector<Block>& cluster){
+                                    blockHandler(joinBlocks(cluster));},
                         settings.clusteredSegmentThreshold,
                         settings.clusteredSegmentCooldown);
 
 
-        auto readAndPushToClusterer = [&](const size_t bytesToRead) {
-            Block newMicroUnit = readBlock(bytesToRead, reader);
-            BlockAndReport bbr(newMicroUnit);
-            clusterer.pushItem(bbr);
-        };
-
         while (remaining > microUnitSize * 2) {  //this is so that the last micro unit has always size at least microUnitSize
-            readAndPushToClusterer(microUnitSize);
+            clusterer.pushItem(readBlock(microUnitSize, reader));
             remaining -= microUnitSize;
         }
-        readAndPushToClusterer(remaining);
+        clusterer.pushItem(readBlock(remaining, reader));
         clusterer.finish();
     }
 

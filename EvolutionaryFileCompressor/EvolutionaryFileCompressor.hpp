@@ -34,7 +34,7 @@ namespace GC {
 
 
         EvolutionaryFileCompressor() {};
-        static void compress_overall(const EvoComSettings &settings);
+        static void compress(const EvoComSettings &settings);
         static void decompress(const FileName& fileToDecompress, const FileName& outputFile);
 
     private:
