@@ -221,7 +221,7 @@ namespace GC {
             ss << "excessiveMutationThreshold=" << excessiveMutationThreshold << ",";
             ss << "unstabilityThreshold=" << unstabilityThreshold << ",";
             ss << "minTransformAmount=" << minTransformAmount << ",";
-            ss << "maxTransformAmount=" << maxTransformAmount;
+            ss << "maxTransformAmount=" << maxTransformAmount << ",";
             ss << "asynchronous=" << async;
 
             ss<<"}";

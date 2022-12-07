@@ -94,6 +94,32 @@ namespace GC {
             }
         }
 
+        Individual select() {
+            if (isTournamentSelection())
+                return tournamentSelect();
+            else {
+                ERROR_NOT_IMPLEMENTED("The requested selection kind is not implemented yet!");
+            }
+        }
+
+
+        std::vector<Individual> selectElite(const size_t amount, const std::vector<Individual>& pool) {
+            auto isIndividualBetter = [&](const Individual& A, const Individual& B) {
+                return A.getFitness() < B.getFitness();
+            };
+            ASSERT(pool.size() >= amount);
+
+            auto copyOfPool = pool;
+            std::nth_element(copyOfPool.begin(), copyOfPool.begin()+amount-1, copyOfPool.end(), isIndividualBetter);
+
+            std::vector<Individual> result(copyOfPool.begin(), copyOfPool.begin()+amount-1);
+
+            return result;
+        }
+
+
+    private:
+
         Individual tournamentSelect() {
             std::vector<Individual> tournament;//TODO: this copies the individuals into the tournament, which is very inefficient, in the future this should just reference them in some way
             randomIndividualChooser.setElementPool(pool);
@@ -111,15 +137,7 @@ namespace GC {
         }
 
 
-        Individual select() {
-            //LOG("Selector is selecting");
-            if (isTournamentSelection())
-                return tournamentSelect();
-            else {
-                ERROR_NOT_IMPLEMENTED("The requested selection kind is not implemented yet!");
-            }
 
-        }
 
 
         std::vector<Individual> selectMany(const size_t amount) {
@@ -129,19 +147,7 @@ namespace GC {
         }
 
 
-        std::vector<Individual> selectElite(const size_t amount, const std::vector<Individual>& pool) {
-            auto isIndividualBetter = [&](const Individual& A, const Individual& B) {
-                return A.getFitness() < B.getFitness();
-            };
-            ASSERT(pool.size() >= amount);
 
-            auto copyOfPool = pool;
-            std::nth_element(copyOfPool.begin(), copyOfPool.begin()+amount-1, copyOfPool.end(), isIndividualBetter);
-
-            std::vector<Individual> result(copyOfPool.begin(), copyOfPool.begin()+amount-1);
-
-            return result;
-        }
 
 
         void LOGPool() {

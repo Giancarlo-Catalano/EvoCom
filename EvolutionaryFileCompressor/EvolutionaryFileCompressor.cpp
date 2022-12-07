@@ -115,10 +115,10 @@ namespace GC {
         LOG("Starting to process the queue!");
 
         while (!jobQueue.empty()) {
-            LOG("waiting for the future");
+            //LOG("waiting for the future");
             jobQueue.front().second.wait();
 
-            LOG("acquiring the block and the future");
+            //LOG("acquiring the block and the future");
             Individual recipe = jobQueue.front().second.get();
             Block block = jobQueue.front().first;
             compressBlock(block, recipe);

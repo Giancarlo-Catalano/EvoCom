@@ -27,7 +27,7 @@ namespace GC {
     public: //types
         using Fitness = PseudoFitness;
         using FitnessScore = PseudoFitness::FitnessScore;
-        static constexpr size_t MaxTListLength = 4;
+        static constexpr size_t MaxTListLength = 3;
         static constexpr size_t MinTListLength = 0;
 
 

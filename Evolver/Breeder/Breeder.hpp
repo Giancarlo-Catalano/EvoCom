@@ -45,6 +45,44 @@ namespace GC {
             chooseCCodeCrossover(chanceOfCCodeCrossover){};
 
 
+        Individual mutate(const Individual& individual) {
+            //LOG("Mutating an individual");
+            Individual child = individual;
+            mutateElements(child);
+            mutateCCode(child);
+            mutateLength(child); //adds or removes a transform
+            return child;
+        }
+
+        Individual crossover(const Individual& A, const Individual& B) {
+            CrossoverRecipe recipe = generateValidCrossoverRecipe(A, B);
+
+            TList newTList = crossoverLists(A.readTList(), B.readTList(), recipe.first, recipe.second);
+            CCode newCCode = chooseCCodeCrossover.choose() ? A.readCCode() : B.readCCode();
+            return Individual(newTList, newCCode);
+        }
+
+
+        std::string to_string() {
+            std::stringstream ss;
+            ss<<"Breeder {";
+            ss<<"MutationChance:"<<std::setprecision(2)<<randomChanceOfMutation.getChance();
+            ss<<"}";
+            return ss.str();
+        }
+
+        Chance getMutationRate() const {
+            return randomChanceOfMutation.getChance();
+        }
+
+        void setMutationRate(const Chance newMutationRate) {
+            randomChanceOfMutation.setChance(newMutationRate);
+        }
+
+
+    private:
+
+
         void addRandomElement(TList& tList) {
             Index position = randomIndexChooser.chooseInRange(0, tList.size());
             tList.insert(tList.begin()+position, randomTCode.choose());
@@ -84,14 +122,7 @@ namespace GC {
         }
 
 
-        Individual mutate(const Individual& individual) {
-            ////LOG("Mutating an individual");
-            Individual child = individual;
-            mutateElements(child);
-            mutateCCode(child);
-            mutateLength(child);
-            return child;
-        }
+
 
 
         /**
@@ -149,30 +180,7 @@ namespace GC {
             return retryUntil<CrossoverRecipe>(chooseRandomBounds, areBoundsAcceptable);
         };
 
-        Individual crossover(const Individual& A, const Individual& B) {
-            CrossoverRecipe recipe = generateValidCrossoverRecipe(A, B);
 
-            TList newTList = crossoverLists(A.readTList(), B.readTList(), recipe.first, recipe.second);
-            CCode newCCode = chooseCCodeCrossover.choose() ? A.readCCode() : B.readCCode();
-            return Individual(newTList, newCCode);
-        }
-
-
-        std::string to_string() {
-            std::stringstream ss;
-            ss<<"Breeder {";
-            ss<<"MutationChance:"<<std::setprecision(2)<<randomChanceOfMutation.getChance();
-            ss<<"}";
-            return ss.str();
-        }
-
-        Chance getMutationRate() const {
-            return randomChanceOfMutation.getChance();
-        }
-
-        void setMutationRate(const Chance newMutationRate) {
-            randomChanceOfMutation.setChance(newMutationRate);
-        }
     };
 
 } // GC

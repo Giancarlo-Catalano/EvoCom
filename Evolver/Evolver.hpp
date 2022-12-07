@@ -70,6 +70,7 @@ namespace GC {
         Selector selector;
         Evaluator evaluator;
         Population population;
+
         RunningAverage<Fitness> runningAverageFitness{};
         size_t generationCount = 0;
         const Chance initialMutationRate; static const size_t mutationRateLevels = 12;

@@ -14,7 +14,7 @@ namespace GC {
         using FakeStream = std::vector<T>;
 
         auto metric = [](const T &a, const T &b) -> Field {
-            return (a < b ? (b - a) : (a - b));
+            return (a < b ? (b - a) : (a - b)); //has to be done like this because T might be unsigned, and a-b would misbehave
         };
 
         auto addToAccumulator = [&](const Cluster &cluster, Accumulator &acc) {
