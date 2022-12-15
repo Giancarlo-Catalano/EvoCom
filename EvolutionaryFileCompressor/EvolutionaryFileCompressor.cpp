@@ -23,6 +23,7 @@
 #include "../Transformation/Transformations/StackTransform.hpp"
 #include "../Transformation/Transformations/IdentityTransform.hpp"
 #include "../Compression/SmallValueCompression/SmallValueCompression.hpp"
+#include "../Transformation/Transformations/LempelZivWelchTransform.hpp"
 
 #include <future>
 #include <queue>
@@ -297,6 +298,7 @@ namespace GC {
             GC_APPLY_T_CASE_X(SubtractAverageTransform);
             GC_APPLY_T_CASE_X(SubtractXORAverageTransform);
             GC_APPLY_T_CASE_X(IdentityTransform);
+            GC_APPLY_T_CASE_X(LempelZivWelchTransform);
         }
 
     }
@@ -318,6 +320,7 @@ namespace GC {
             GC_UNDO_T_CASE(SubtractAverageTransform);
             GC_UNDO_T_CASE(SubtractXORAverageTransform);
             GC_UNDO_T_CASE(IdentityTransform);
+            GC_UNDO_T_CASE(LempelZivWelchTransform);
         }
         LOG("The new block size is", block.size());
     }
