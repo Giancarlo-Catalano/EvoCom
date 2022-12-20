@@ -12,16 +12,18 @@ namespace GC {
         C_HuffmanCompression,
         C_RunLengthCompression,
         C_SmallValueCompression,
+        C_LZWCompression
     };
 
     const std::vector<std::string> CCodesAsStrings = {
             "IDENT",
             "HUFFM",
             "RLCOM",
-            "SMLVL"
+            "SMLVL",
+            "LZWCM"
     };
 
-    const std::vector<CCode> availableCCodes = {C_IdentityCompression, C_HuffmanCompression, C_RunLengthCompression, C_SmallValueCompression};
+    const std::vector<CCode> availableCCodes = {C_IdentityCompression, C_HuffmanCompression, C_RunLengthCompression, C_SmallValueCompression, C_LZWCompression};
 
 
     //TODO define a macro which does something for each compression method

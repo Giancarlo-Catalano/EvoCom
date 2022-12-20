@@ -2,6 +2,7 @@
 #include "Utilities/utilities.hpp"
 #include "EvolutionaryFileCompressor/EvolutionaryFileCompressor.hpp"
 #include "BlockReport/BlockReport.hpp"
+#include "Transformation/Transformations/BurrowsWheelerTransform.hpp"
 
 #include <future>
 #include <queue>
@@ -97,5 +98,13 @@ int main(int argc, char**argv) {
 
     LOG("all done!");
 
+#endif
+
+#if 0 //BWT
+    Block block = {1, 12, 123, 234, 2, 3, 4, 2, 3, 6, 23, 2,3,2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2};
+    Block transformed = GC::BurrowsWheelerTransform().apply_copy(block);
+    LOG("The transformed block is", containerToString(transformed));
+    Block undone = GC::BurrowsWheelerTransform().undo_copy(transformed);
+    LOG("The undone block is", containerToString(undone));
 #endif
 }

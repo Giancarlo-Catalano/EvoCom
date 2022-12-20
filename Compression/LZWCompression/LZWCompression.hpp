@@ -1,26 +1,12 @@
 //
-// Created by gian on 14/12/22.
+// Created by gian on 15/12/22.
 //
 
-#ifndef EVOCOM_LEMPELZIVWELCHTRANSFORM_HPP
-#define EVOCOM_LEMPELZIVWELCHTRANSFORM_HPP
+#ifndef EVOCOM_LZWCOMPRESSION_HPP
+#define EVOCOM_LZWCOMPRESSION_HPP
 
-#include <algorithm>
-#include <array>
-#include <climits>
-#include <cstddef>
-#include <fstream>
-#include <iostream>
-#include <limits>
-#include <memory>
-#include <ostream>
-#include <stdexcept>
-#include <utility>
-#include <vector>
-#include "../../Utilities/utilities.hpp"
-#include "../Transformation.hpp"
-#include "../../Compression/LZWCompression/LZW.hpp"
-
+#include "LZW.hpp"
+#include "../Compression.hpp"
 
 namespace JP {
 ///
@@ -28,7 +14,7 @@ namespace JP {
 /// @param [in] is      input stream
 /// @param [out] os     output stream
 ///
-    Block compress(const Block &input) {
+    void compress(const Block &input, GC::AbstractBitWriter& writer) {
         EncoderDictionary ed;
         CodeType i{globals::dms}; // Index
         char c;
@@ -41,8 +27,7 @@ namespace JP {
 
         Block result;
         auto pushCodeToOutput = [&](const CodeType code) {
-            result.push_back(((int) ((code >> 8) & 0xff)));
-            result.push_back(((char) (code & 0xff)));
+            writer.writeSmallAmount(code);
         };
 
         while (inputIndex < input.size()) {
@@ -55,11 +40,8 @@ namespace JP {
             }
         }
 
-        if (i != globals::dms) {
+        if (i != globals::dms)
             pushCodeToOutput(i);
-        }
-
-        return result;
     }
 
 ///
@@ -67,7 +49,7 @@ namespace JP {
 /// @param [in] is      input stream
 /// @param [out] os     output stream
 ///
-    Block decompress(const Block &input) {
+    Block decompress(const size_t sizeOfResult, GC::FileBitReader& reader) {
 
         std::vector<std::pair<CodeType, char>> dictionary;
 
@@ -105,19 +87,14 @@ namespace JP {
         CodeType i{globals::dms}; // Index
         CodeType k; // Key
 
-        size_t inputIndex = 0;
         auto readCodeFromInput = [&]() -> CodeType {
-
-            char head = input[inputIndex];
-            char tail = input[inputIndex + 1];
-            CodeType toReturn = (((unsigned char) head) << 8) | (unsigned char) (tail);
-            inputIndex += 2;
-            return toReturn;
+            return reader.readSmallAmount();
         };
 
-        Block output;
+        Block output(sizeOfResult);
+        size_t indexInOutput = 0;
         auto writeCharToOutput = [&](const char toWrite) {
-            output.push_back(toWrite);
+            output[indexInOutput++]=toWrite;
         };
         auto writeStringToOutput = [&](const std::vector<char> *str) {
             for (size_t i = 0; i < str->size(); i++) {
@@ -126,7 +103,7 @@ namespace JP {
 
         };
 
-        while (inputIndex < input.size()) {
+        while (indexInOutput<sizeOfResult) {
             k = readCodeFromInput();
             // dictionary's maximum size was reached
             if (dictionary.size() == globals::dms)
@@ -150,7 +127,6 @@ namespace JP {
             writeStringToOutput(s);
             i = k;
         }
-
         return output;
     }
 
@@ -158,17 +134,24 @@ namespace JP {
 
 namespace GC {
 
-    class LempelZivWelchTransform : public Transformation{
+    class LZWCompression : public Compression {
     public:
-        std::string to_string() const { return "{LempelZivWelchTransform}";}
-        Block apply_copy(const Block& block) const {
-            return JP::compress(block);
+
+        std::string to_string() const {return "{LZWCompression}";}
+
+        void compress(const Block& block, AbstractBitWriter& writer) const {
+            writer.writeSmallAmount(block.size()); //the decompressor needs to know when to stop
+            JP::compress(block, writer);
         }
-        Block undo_copy(const Block& block) const {
-            return JP::decompress(block);
+
+        Block decompress(FileBitReader& reader) const {
+            const size_t resultSize = reader.readSmallAmount();
+            LOG("the decompressed size of the block is", resultSize);
+            return JP::decompress(resultSize, reader);
         }
+
     };
 
 } // GC
 
-#endif //EVOCOM_LEMPELZIVWELCHTRANSFORM_HPP
+#endif //EVOCOM_LZWCOMPRESSION_HPP

@@ -7,7 +7,6 @@
 
 #include "../Transformation.hpp"
 #include "../../Utilities/utilities.hpp"
-#include "../../BlockReport/BlockReport.hpp"
 
 namespace GC {
 

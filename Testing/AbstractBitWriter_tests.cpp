@@ -11,7 +11,7 @@ namespace GC {
             GIVEN("Starting from an empty vector") {
                 VectorBitWriter writer;
                 THEN("It should be initially empty") {
-                    CHECK(writer.getVector().empty());
+                    CHECK(writer.getVectorOfBits().empty());
                 }
 
 
@@ -19,7 +19,7 @@ namespace GC {
                     writer.pushBit(false);
                     std::vector<bool> expected{false};
                     THEN("we expect the result to be just {0}") {
-                        CHECK(writer.getVector() == expected);
+                        CHECK(writer.getVectorOfBits() == expected);
                     }
                 }
 
@@ -27,7 +27,7 @@ namespace GC {
                     writer.pushBit(true);
                     std::vector<bool> expected{true};
                     THEN("we expect the result to be just {1}") {
-                        CHECK(writer.getVector() == expected);
+                        CHECK(writer.getVectorOfBits() == expected);
                     }
                 }
             }
@@ -41,7 +41,7 @@ namespace GC {
                     THEN("It should be appended to the already written vector") {
                         writer.pushBit(true);
                         std::vector<bool> expected{false, false, true};
-                        CHECK(writer.getVector() == expected);
+                        CHECK(writer.getVectorOfBits() == expected);
                     }
                 }
             }
@@ -55,12 +55,12 @@ namespace GC {
                     THEN("the bits are written in the right order") {
                         writer.writeAmountOfBits(0b1010010001, 10);
                         std::vector<bool> expected{1, 0, 1, 0, 0, 1, 0, 0, 0, 1};
-                        CHECK(writer.getVector() == expected);
+                        CHECK(writer.getVectorOfBits() == expected);
                     }
 
                     THEN("We can ask for as much as 64 bits to be written") {
                         writer.writeAmountOfBits(0, 64);
-                        CHECK(writer.getVector().size() == 64);
+                        CHECK(writer.getVectorOfBits().size() == 64);
                     }
                 }
 
@@ -68,23 +68,23 @@ namespace GC {
                     THEN("Writing 0 works as expected") {
                         writer.writeRiceEncoded(0);
                         std::vector<bool> expected{1, 0, 0};
-                        CHECK(writer.getVector() == expected);
+                        CHECK(writer.getVectorOfBits() == expected);
                     }
                     THEN("Writing 1 works as expected") {
                         writer.writeRiceEncoded(1);
                         std::vector<bool> expected{1, 0, 1};
-                        CHECK(writer.getVector() == expected);
+                        CHECK(writer.getVectorOfBits() == expected);
                     }
 
                     THEN("Writing 4 works as expected") {
                         writer.writeRiceEncoded(4);
                         std::vector<bool> expected{0, 1, 0, 0, 0, 0};
-                        CHECK(writer.getVector() == expected);
+                        CHECK(writer.getVectorOfBits() == expected);
                     }
                     THEN("Writing 12 works as expected") {
                         writer.writeRiceEncoded(20);
                         std::vector<bool> expected{0, 0, 1, 0, 0, 0, 0, 0, 0};
-                        CHECK(writer.getVector() == expected);
+                        CHECK(writer.getVectorOfBits() == expected);
                     }
                 }
             }
@@ -137,7 +137,7 @@ namespace GC {
 #define TO_BOTH_WRITERS(funcCall) bitCounter . funcCall; vectorWriter . funcCall
 
             auto stillConsistent = [&bitCounter, &vectorWriter]()->bool {
-                return bitCounter.getCounterValue() == vectorWriter.getVector().size();
+                return bitCounter.getCounterValue() == vectorWriter.getVectorOfBits().size();
             };
 
             WHEN("Pushing a single value") {

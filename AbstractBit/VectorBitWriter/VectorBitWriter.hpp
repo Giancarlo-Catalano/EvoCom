@@ -35,8 +35,32 @@ namespace GC {
         }
 
 
-        std::vector<bool> getVector() {
+        std::vector<bool> getVectorOfBits() {
             return savedBits;
+        }
+
+        std::vector<Unit> getVectorOfBytes() {
+            auto vectorOfBitsToVectorOfBytes = [&](const std::vector<bool>& bitVector) -> std::vector<Unit>{
+                std::vector<Unit> result;
+                size_t accumulatorUsage = 0;
+                Unit accumulator = 0;
+                size_t bitsInAccumulator = bitsInType<Unit>();
+                for (size_t i=0;i<bitVector.size();i++) {
+                    accumulator<<=1;
+                    accumulator|=bitVector[i];
+                    accumulatorUsage++;
+                    if (accumulatorUsage == bitsInAccumulator) {
+                        accumulatorUsage = 0;
+                        result.push_back(accumulator);
+                    }
+                }
+                if (accumulatorUsage != 0) {
+                    result.push_back(accumulator<<(bitsInAccumulator-accumulatorUsage));
+                }
+                return result;
+            };
+
+            return vectorOfBitsToVectorOfBytes(savedBits);
         }
 
     };

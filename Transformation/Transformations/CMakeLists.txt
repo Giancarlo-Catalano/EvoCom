@@ -8,3 +8,4 @@ add_library(SubtractXORAverageTransform SubtractXORAverageTransform.hpp Subtract
 add_library(IdentityTransform IdentityTransform.cpp IdentityTransform.hpp)
 add_library(StackTransform StackTransform.cpp StackTransform.hpp)
 add_library(LempelZivWelchTransform LempelZivWelchTransform.cpp LempelZivWelchTransform.hpp)
+add_library(BWTransform BurrowsWheelerTransform.cpp BurrowsWheelerTransform.hpp)

@@ -18,7 +18,8 @@ namespace GC {
         T_StrideTransform_4,
         T_SubtractAverageTransform,
         T_SubtractXORAverageTransform,
-        T_LempelZivWelchTransform
+        T_LempelZivWelchTransform,
+        T_BurrowsWheelerTransform
     };
 
     const std::vector<std::string> TCodesAsStrings = {
@@ -33,7 +34,8 @@ namespace GC {
             "STRD4",
             "SUBAV",  //subtract average transform
             "SBXAV",   //subtract xor average transform
-            "LZWv5"     //lempel ziv welch version 5
+            "LZWv5",     //lempel ziv welch version 5
+            "BWTra"     //Burrows Wheeler Transform
     };
 
     const std::vector<TCode> availableTCodes = {T_IdentityTransform,
@@ -47,7 +49,8 @@ namespace GC {
                                                 T_StrideTransform_4,
                                                 T_SubtractAverageTransform,
                                                 T_SubtractXORAverageTransform,
-                                                T_LempelZivWelchTransform};
+                                                T_LempelZivWelchTransform,
+                                                T_BurrowsWheelerTransform};
 
 
 }

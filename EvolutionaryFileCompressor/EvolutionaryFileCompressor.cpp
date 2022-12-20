@@ -24,6 +24,8 @@
 #include "../Transformation/Transformations/IdentityTransform.hpp"
 #include "../Compression/SmallValueCompression/SmallValueCompression.hpp"
 #include "../Transformation/Transformations/LempelZivWelchTransform.hpp"
+#include "../Compression/LZWCompression/LZWCompression.hpp"
+#include "../Transformation/Transformations/BurrowsWheelerTransform.hpp"
 
 #include <future>
 #include <queue>
@@ -278,6 +280,7 @@ namespace GC {
             case C_HuffmanCompression: return HuffmanCompression().compress(block, writer);
             case C_RunLengthCompression: return NRLCompression().compress(block, writer);
             case C_SmallValueCompression: return SmallValueCompression().compress(block, writer);
+            case C_LZWCompression: return LZWCompression().compress(block, writer);
 
         }
     }
@@ -299,6 +302,7 @@ namespace GC {
             GC_APPLY_T_CASE_X(SubtractXORAverageTransform);
             GC_APPLY_T_CASE_X(IdentityTransform);
             GC_APPLY_T_CASE_X(LempelZivWelchTransform);
+            GC_APPLY_T_CASE_X(BurrowsWheelerTransform);
         }
 
     }
@@ -321,6 +325,7 @@ namespace GC {
             GC_UNDO_T_CASE(SubtractXORAverageTransform);
             GC_UNDO_T_CASE(IdentityTransform);
             GC_UNDO_T_CASE(LempelZivWelchTransform);
+            GC_UNDO_T_CASE(BurrowsWheelerTransform);
         }
         LOG("The new block size is", block.size());
     }
@@ -331,6 +336,7 @@ namespace GC {
             case C_HuffmanCompression: return HuffmanCompression().decompress(reader);
             case C_RunLengthCompression: return NRLCompression().decompress(reader);
             case C_SmallValueCompression: return SmallValueCompression().decompress(reader);
+            case C_LZWCompression: return LZWCompression().decompress(reader);
         }
     }
 

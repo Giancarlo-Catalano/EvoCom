@@ -3,6 +3,7 @@ add_subdirectory(RunLengthCompression)
 add_subdirectory(IdentityCompression)
 add_subdirectory(NRLCompression)
 add_subdirectory(SmallValueCompression)
+add_subdirectory(LZWCompression)
 
 add_library(Compression Compression.hpp Compression.cpp)
 
