@@ -28,8 +28,6 @@ namespace GC {
         using CompressionCode = CCode;
         using Fitness = Individual::FitnessScore;
 
-        static const size_t blockSize = 512; //for no reason in particular
-
         std::string to_string();
 
 

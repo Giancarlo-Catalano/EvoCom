@@ -57,7 +57,6 @@ namespace GC {
                 if (offsetStartB == cyclicSizeOfInput-1) return false;
 
                 return block[offsetStartA] < block[offsetStartB];
-                std::set<Index> rotations;
             };
 
 

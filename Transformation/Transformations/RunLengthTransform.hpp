@@ -20,27 +20,38 @@ namespace GC {
             if (block.empty())
                 return block;
 
-            Unit repeatingUnit = block[0];
-            Unit runLength = 1;
-            const size_t maximumStorableRunLength = typeVolume<Unit>()-1;
 
+
+            Unit repeatingUnit;
+            Unit runLength;
+
+            auto startNewRun = [&](const Unit newUnit) {
+                repeatingUnit = newUnit;
+                runLength = 1;
+            };
+
+            startNewRun(block[0]);
+            const size_t maximumStorableRunLength = typeVolume<Unit>()-1; //for a byte that's 255
             Block result;
+
             auto pushRLPair = [&]() {
                 result.push_back(repeatingUnit);
                 result.push_back(runLength);
             };
+
             for (size_t i=1;i<block.size();i++) {
                 Unit currentUnit = block[i];
                 if (currentUnit == repeatingUnit) {
-                    if (runLength == maximumStorableRunLength)
+                    if (runLength == maximumStorableRunLength) {
                         pushRLPair();
+                        startNewRun(currentUnit);
+                    }
                     else
                         runLength++;
                 }
                 else {
                     pushRLPair();
-                    repeatingUnit = currentUnit;
-                    runLength = 1;
+                    startNewRun(currentUnit);
                 }
             }
             pushRLPair();

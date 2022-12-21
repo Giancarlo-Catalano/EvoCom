@@ -1,18 +1,5 @@
 #include <catch2/catch.hpp>
-#include "../Transformation/Transformation.hpp"
-#include "../Transformation/Transformations/BurrowsWheelerTransform.hpp"
-#include "../Transformation/Transformations/DeltaTransform.hpp"
-#include "../Transformation/Transformations/DeltaXORTransform.hpp"
-#include "../Transformation/Transformations/IdentityTransform.hpp"
-#include "../Transformation/Transformations/LempelZivWelchTransform.hpp"
-#include "../Transformation/Transformations/RunLengthTransform.hpp"
-#include "../Transformation/Transformations/SplitTransform.hpp"
-#include "../Transformation/Transformations/StackTransform.hpp"
-#include "../Transformation/Transformations/StrideTransform.hpp"
-#include "../Transformation/Transformations/SubtractAverageTransform.hpp"
-#include "../Transformation/Transformations/SubtractXORAverageTransform.hpp"
 #include "../EvolutionaryFileCompressor/EvolutionaryFileCompressor.hpp"
-#include "../Evolver/Individual/TCodes.hpp"
 
 namespace GC {
 
