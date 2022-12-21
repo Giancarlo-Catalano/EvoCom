@@ -44,6 +44,8 @@ namespace GC {
 
         static Block readBlock(size_t size, FileBitReader &reader);
 
+
+    public: //for the purposes of testing
         static void applyTransformCode(const TransformCode &tc, Block &block);
 
         static void applyCompressionCode(const CompressionCode &cc, const Block &block, AbstractBitWriter& writer);
@@ -55,6 +57,8 @@ namespace GC {
         static void undoTransformCode(const TransformCode &tc, Block &block);
 
         static Block undoCompressionCode(const CompressionCode &cc, FileBitReader &reader);
+
+    private:
 
         static TransformCode decodeTransformCode(FileBitReader &reader);
 

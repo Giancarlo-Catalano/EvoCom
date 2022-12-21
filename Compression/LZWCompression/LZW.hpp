@@ -20,6 +20,8 @@
 
 namespace JP {
 
+    //TODO include the original credits and licence header
+
 
 /// Type used to store and retrieve codes.
     using CodeType = std::uint16_t;

@@ -1,6 +1,4 @@
 #include <catch2/catch.hpp>
-
-
 #include "../Utilities/StreamingClusterer/StreamingClusterer.hpp"
 
 
@@ -12,7 +10,6 @@ namespace GC {
         using Accumulator = std::vector<Cluster>;
         using Clusterer = StreamingClusterer<T, Field>;
         using FakeStream = std::vector<T>;
-
         auto metric = [](const T &a, const T &b) -> Field {
             return (a < b ? (b - a) : (a - b)); //has to be done like this because T might be unsigned, and a-b would misbehave
         };
