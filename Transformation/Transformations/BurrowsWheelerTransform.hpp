@@ -30,38 +30,29 @@ namespace GC {
         };
 
         static BlockWithTerminator apply(const Block& block) {
-            const size_t cyclicSizeOfInput = block.size()+1; //it accounts for the terminator symbol as well, $
+            const auto less_lexicographic = [&block](const Index startA, const Index startB) -> bool {
+                const size_t blockSize = block.size();
+                const auto validIndex = [&blockSize](const Index index) {return index < blockSize;};
+                const auto pointsToTerminator = [&blockSize](const Index index) {return index==blockSize;};
 
-            const auto isValidIndex = [&](const Index index)->bool { return index < block.size(); };
-
-            const auto addCyclic = [&](const Index index, const Amount offset) -> Index { return (index + offset) % cyclicSizeOfInput; };
-
-            const auto getSharedPrefixLength = [&](const Index startA, const Index startB)-> Amount {
-                size_t result = 0;
                 Index fromA = startA;
                 Index fromB = startB;
-
-                while (isValidIndex(startA) && isValidIndex(startB) && (block[fromA] == block[fromB])) {
-                    result++;fromA++;fromB++;
+                while (validIndex(fromA) && validIndex(fromB) && (block[fromA] == block[fromB])) {  //progress while the prefixes are the same
+                    fromA++;fromB++;
                 }
-                return result;
-            };
-
-            const auto less_lex = [&block, &getSharedPrefixLength, &addCyclic, &cyclicSizeOfInput](const Index startA, const Index startB) -> bool {
-                const Amount sharedPrefixLen = getSharedPrefixLength(startA, startB);
-                const Index offsetStartA = addCyclic(startA, sharedPrefixLen);
-                const Index offsetStartB = addCyclic(startB, sharedPrefixLen);
-
-                //if one of the offsets points to $, $ is less than anything else
-                if (offsetStartA == cyclicSizeOfInput-1) return true;
-                if (offsetStartB == cyclicSizeOfInput-1) return false;
-
-                return block[offsetStartA] < block[offsetStartB];
+                if (pointsToTerminator(fromA)) return true;       //$ less than everything
+                if (pointsToTerminator(fromB)) return false;      //everything greater than $
+                return (block[fromA] < block[fromB]);
             };
 
 
-            std::set<Index, decltype(less_lex)> sorted(less_lex);
-            for (size_t i = 0;i<cyclicSizeOfInput;i++) sorted.insert(i);
+
+
+
+
+            std::set<Index, decltype(less_lexicographic)> sorted(less_lexicographic);
+            for (size_t i = 0;i<=block.size();i++) sorted.insert(i); //note how block.size is included because the terminator also counts
+            LOG("The order of the sorted rotation starts is", containerToString(sorted));
 
             Block result(block.size());
             size_t indexOfLastInserted = 0;
@@ -188,7 +179,7 @@ namespace GC {
             return result;
         }
         Block undo_copy(const Block& block) const {
-            auto isEndOfHeader = [&](const Unit byte) -> bool {
+            auto isEndOfHeader = [&](const Unit byte) -> bool { //a byte is the end of the header if the first bit from the left is 0
                 return !(byte>>7);
             };
 

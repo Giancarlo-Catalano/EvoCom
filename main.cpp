@@ -101,7 +101,7 @@ int main(int argc, char**argv) {
 #endif
 
 #if 1 //BWT
-    Block block = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    Block block = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     Block transformed = GC::BurrowsWheelerTransform().apply_copy(block);
     LOG("The transformed block is", containerToString(transformed));
     Block undone = GC::BurrowsWheelerTransform().undo_copy(transformed);
