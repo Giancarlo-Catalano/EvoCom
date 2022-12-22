@@ -11,7 +11,7 @@
 int main(int argc, char**argv) {
 
 
-#if 0 //compression
+#if 1 //compression
     std::string compressedExtension = "gac";
     using FileName = std::string;
     GC::EvoComSettings settings(argc, argv);
@@ -100,7 +100,7 @@ int main(int argc, char**argv) {
 
 #endif
 
-#if 1 //BWT
+#if 0 //BWT
     Block block = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     Block transformed = GC::BurrowsWheelerTransform().apply_copy(block);
     LOG("The transformed block is", containerToString(transformed));

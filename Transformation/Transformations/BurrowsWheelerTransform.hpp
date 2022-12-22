@@ -52,7 +52,6 @@ namespace GC {
 
             std::set<Index, decltype(less_lexicographic)> sorted(less_lexicographic);
             for (size_t i = 0;i<=block.size();i++) sorted.insert(i); //note how block.size is included because the terminator also counts
-            LOG("The order of the sorted rotation starts is", containerToString(sorted));
 
             Block result(block.size());
             size_t indexOfLastInserted = 0;
@@ -138,12 +137,8 @@ namespace GC {
         }
 
         static std::vector<Unit> encodeHeader(const size_t terminator) {
-            //LOG"Encoding the header");
             const size_t bitSize = std::max(floor_log2(terminator), 1UL);
-            //LOG"The bit size is", bitSize);
             const size_t bytesRequired = greaterMultipleOf(bitSize, 7)/7;
-            //LOG"The bytes required are", bytesRequired);
-
             std::vector<Unit> result;
             for (size_t i=0;i<bytesRequired;i++) {
                 const Unit septet = (terminator>>(7*(bytesRequired-1-i)))&0x7f;
@@ -166,15 +161,8 @@ namespace GC {
         std::string to_string() const { return "{BWTransform}";}
         Block apply_copy(const Block& block) const {
             BWT_Helper::BlockWithTerminator blockWithTerminator = BWT_Helper::apply(block);
-            //LOG"The terminator position is", blockWithTerminator.terminatorPosition);
             std::vector<Unit> header = encodeHeader(blockWithTerminator.terminatorPosition);
             Block result = header;
-            /*
-            LOG_NONEWLINE("Obtained the following header:");
-            for (const auto item: header) {
-                LOG_NONEWLINE_NOSPACES("[", ((unsigned int)item), "]");
-            }*/
-            //LOG"");
             result.insert(result.end(), blockWithTerminator.block.begin(), blockWithTerminator.block.end());
             return result;
         }
@@ -189,16 +177,8 @@ namespace GC {
                 if (isEndOfHeader(byte))
                     break;
             }
-            /*
-            LOG_NONEWLINE("Obtained the following header:");
-            for (const auto item: header) {
-                LOG_NONEWLINE_NOSPACES("[", ((unsigned int)item), "]");
-            }*/
-            //LOG"");
             const size_t positionOfTerminator = decodeHeader(header);
-            //LOG"The position of the terminator is", positionOfTerminator);
             const Block body(block.begin()+header.size(), block.end());
-
             return BWT_Helper::undo(body, positionOfTerminator);
         }
 
