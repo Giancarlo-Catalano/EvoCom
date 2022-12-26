@@ -123,6 +123,64 @@ namespace GC {
 
             return result;
         }
+
+
+
+        /////////EXperimental
+
+        static bool E_less_lexicographic(const Block& block, const Index startA, const Index startB) {
+            const size_t blockSize = block.size();
+            const auto validIndex = [&blockSize](const Index index) {return index < blockSize;};
+            const auto pointsToTerminator = [&blockSize](const Index index) {return index==blockSize;};
+
+            Index fromA = startA;
+            Index fromB = startB;
+            while (validIndex(fromA) && validIndex(fromB) && (block[fromA] == block[fromB])) {  //progress while the prefixes are the same
+                fromA++;fromB++;
+            }
+            if (pointsToTerminator(fromA)) return true;       //$ less than everything
+            if (pointsToTerminator(fromB)) return false;      //everything greater than $
+            return (block[fromA] < block[fromB]);
+        }
+
+
+        static BlockWithTerminator E_apply(const Block& block) {
+            //setting up the sorted sets
+            const auto less_lex_second = [&block](const Index startA, const Index startB) -> bool {
+                return E_less_lexicographic(block, startA+1, startB+1);
+            };
+
+            using CollectionForSameLetter = std::vector<Index>;
+            constexpr size_t amountOfFirstChars = 256;
+            std::array<CollectionForSameLetter, 256> setsByFirstChar;
+
+            //for (size_t i=0;i<amountOfFirstChars;i++) setsByFirstChar[i] = SecondarySortedSet(less_lex_second);
+
+            for (size_t i=0;i<block.size();i++) setsByFirstChar[block[i]].push_back(i); //block[i] is an unsigned byte
+
+            //taking the last letter of each rotation
+            Block result(block.size());
+            size_t indexOfLastInserted = 0;
+            Index terminator;
+
+            auto addFromRotation = [&](const Index rotStart) {
+                if (rotStart == 0) terminator = indexOfLastInserted;
+                else result[indexOfLastInserted++] = block[rotStart-1];
+            };
+
+            //since we know that the rotation starting with $ is the lowest one, we can add it "manually"
+            addFromRotation(block.size());
+
+            //then we can add the sets
+            auto addSet = [&](CollectionForSameLetter& sss) {
+                std::sort(sss.begin(), sss.end(), less_lex_second);
+                std::for_each(sss.begin(), sss.end(), addFromRotation);
+            };
+
+            for (size_t i=0;i<amountOfFirstChars;i++)
+                addSet(setsByFirstChar[i]);
+            return BlockWithTerminator(result, terminator);
+        }
     };
 
 
@@ -160,7 +218,7 @@ namespace GC {
     public:
         std::string to_string() const { return "{BWTransform}";}
         Block apply_copy(const Block& block) const {
-            BWT_Helper::BlockWithTerminator blockWithTerminator = BWT_Helper::apply(block);
+            BWT_Helper::BlockWithTerminator blockWithTerminator = BWT_Helper::E_apply(block);
             std::vector<Unit> header = encodeHeader(blockWithTerminator.terminatorPosition);
             Block result = header;
             result.insert(result.end(), blockWithTerminator.block.begin(), blockWithTerminator.block.end());
