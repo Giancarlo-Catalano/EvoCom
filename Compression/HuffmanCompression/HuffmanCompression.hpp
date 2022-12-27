@@ -32,7 +32,7 @@ namespace GC {
 
         static SmallFrequencyReport getSmallFrequencyReport(const Block& block) {
             auto normalFrequencies = GC::BlockReport::getFrequencyArray(block);
-            StatisticalFeatures<BlockReport::Frequency> frequencyFeatures(normalFrequencies);
+            StatisticalFeatures frequencyFeatures(normalFrequencies);
             auto minFreq = frequencyFeatures.minimum;
             auto maxFreq = frequencyFeatures.maximum;
 

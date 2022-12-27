@@ -13,117 +13,79 @@
 
 namespace GC {
 
-    template <class T>
     class StatisticalFeatures {
+        using S = double;
 
-        using SumType = double;
 
     public:
-        T average;
-        T mode;
-        T standardDeviation;
-        T minimum;
-        T maximum;
+        S average, standardDeviation;
+        S firstQuantile, median, thirdQuantile;
+        S minimum, maximum;
 
     public:
 
         template <class Container>
-        static T getAverage(const Container& c) {
+        static S getAverage(const Container& c) {
             ASSERT_NOT_EMPTY(c);
-            SumType sum = 0;
+            S sum = 0;
             for (const auto& item : c)
                 sum += item;
-            return (T)(sum/c.size());
+            return (S)(sum / c.size());
         }
 
         template <class Container>
-        static T getMode(const Container& c) {
+        static S getStandardDeviation(const Container& c, const S precalculatedAverage) {
             ASSERT_NOT_EMPTY(c);
-            //TODO implement this in a more efficient way, perhaps
-            /**
-             * Container temp = c;
-             * size_t middleIndex = c.size()/2;
-             * std::nth_element(temp.begin(),  temp.begin()+middleIndex), temp.end());
-             * return temp[middleIndex];
-             */
-            size_t middleIndex = c.size()/2;
-            Container sorted = c;
-            std::sort(sorted.begin(), sorted.end());
-            return sorted[middleIndex];
-        }
-
-
-        template <class Container>
-        static T getStandardDeviation(const Container& c) {
-            ASSERT_NOT_EMPTY(c);
-            T localAverage = getAverage(c);
             auto squared = [](auto n) {return n*n;};
-            auto distanceSquaredFromAverage = [&](const T x) {
-                return squared(x-localAverage);
+            auto distanceSquaredFromAverage = [&](const S x) {
+                return squared(x - precalculatedAverage);
             };
 
-            SumType sum = 0;
+            S sum = 0;
             for (const auto& x :c)
                 sum += distanceSquaredFromAverage(x);
 
-            return std::sqrt(sum/localAverage); //TODO this should be approximated better
+            return std::sqrt(sum / precalculatedAverage); //TODO this should be approximated better
         }
 
-        template <class Container>
-        static std::pair<T, T> getBounds(const Container& c) {
-            ASSERT_NOT_EMPTY(c);
-            auto iterators = std::minmax_element(c.begin(), c.end());
-            T min = *iterators.first;
-            T max = *iterators.second;
-            return std::pair<T, T>(min, max);
-        }
+
         template <class Container> //container of T's
-        StatisticalFeatures(const Container& c):
-            average(getAverage(c)),
-            mode(getMode(c)),
-            standardDeviation(getStandardDeviation(c)){
-                auto bounds = getBounds(c);
-                minimum = bounds.first;
-                maximum = bounds.second;
-        }
+        StatisticalFeatures(const Container& c){
+            ASSERT_NOT_EMPTY(c);
+            average = getAverage(c);
+            standardDeviation = getStandardDeviation(c, average);
 
-        StatisticalFeatures() :
-            average(0),
-            mode(0),
-            standardDeviation(0)
-        {
+            Container sorted = c;
+            std::sort(sorted.begin(), sorted.end());
+            minimum = sorted[0];
+            const size_t lastIndex = sorted.size()-1;
+            maximum = sorted[lastIndex];
+            const size_t middle = lastIndex/2;
+            const size_t firstQuartileIndex = lastIndex/4;
+            const size_t thirdQuartileIndex = (lastIndex*3)/4;
+            firstQuantile = sorted[firstQuartileIndex];
+            median = sorted[middle];
+            thirdQuantile = sorted[thirdQuantile];
         }
 
         std::string to_string() const {
-            auto printableValue = [&](auto item) {
-                if (sizeof(item) == 1)
-                    return std::to_string((size_t)item);
-                else return std::to_string(item);
-            };
             std::stringstream ss;
+            auto pushVarWithoutComma = [&](const std::string& varName, const S actualVar) {
+                ss << varName <<"="<<actualVar;
+            };
+            auto pushVar = [&](const std::string& varName, const S actualVar) {
+                ss << varName <<"="<<actualVar<<", ";
+            };
             ss<<"StatisticalFeatures {";
-            ss<<"average:"<<printableValue(average)<<", ";
-            ss<<"mode:"<<printableValue(mode)<<", ";
-            ss<<"std.deviation:"<<printableValue(standardDeviation)<<", ";
-            ss<<"minimum:"<<printableValue(minimum)<<", ";
-            ss<<"maximum:"<<printableValue(maximum);
+            pushVar("avg", average);
+            pushVar("std", standardDeviation);
+            pushVar("min", minimum);
+            pushVar("1qu", firstQuantile);
+            pushVar("med", median);
+            pushVar("3qu", thirdQuantile);
+            pushVarWithoutComma("max", maximum);
             ss<<"}";
             return ss.str();
-        }
-
-
-
-
-        template <class Metric>
-        double distanceFrom(const StatisticalFeatures<T>& other, const Metric metric) const {
-#define GC_SF_DISTANCE_OF_FIELD(field) metric(field, other . field)
-#define GC_SF_SIGNIFICANCE(field, prob) metric(field, other . field)*prob(field)*prob(other . field)
-
-            return std::min({GC_SF_DISTANCE_OF_FIELD(average),
-                             GC_SF_DISTANCE_OF_FIELD(mode),
-                             GC_SF_DISTANCE_OF_FIELD(standardDeviation)});/*,
-                            GC_SF_DISTANCE_OF_FIELD(minimum),
-                            GC_SF_DISTANCE_OF_FIELD(maximum)});*/
         }
     };
 

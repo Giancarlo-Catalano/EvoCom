@@ -34,43 +34,24 @@ namespace GC {
 
     public: //structs
         size_t size;
-        StatisticalFeatures<Unit> unitFeatures;
-        StatisticalFeatures<Frequency> frequencyFeatures;
-        StatisticalFeatures<Difference> difference2Features, difference3Features, difference4Features;
-        StatisticalFeatures<NormalisedRunLength> normalisedRunLengthFeatures;
-        size_t uniqueSymbolsAmount;
+        StatisticalFeatures unitFeatures;
+        StatisticalFeatures frequencyFeatures;
+        StatisticalFeatures deltaFeatures;
 
     public:
-        static decltype(size) getSize(const Block& block);
-        static decltype(uniqueSymbolsAmount) getUniqueSymbolsAmount(const Block& block);
-
         static Frequencies getFrequencyArray(const Block& block);
 
-        static std::vector<RunLength> getRunLengths(const Block &block);
+        static std::vector<int> getDeltaArray(const Block& block);
 
-        static std::vector<BlockReport::Difference> getDeltas(const Block& block, const size_t Jump) {
-            if (block.size() < Jump) {
-                //we can be sure that the size is at least 2
-                return getDeltas(block, block.size()); //get the biggest delta you can
-            }
-            std::vector<Difference> deltas;
-            for (size_t i=0;i<block.size()-(Jump-1);i++)
-                deltas.push_back(block[i+(Jump-1)]-block[i]);
-            return deltas;
-        }
 
         static Unit getXorAverage(const Block &block);
 
         double distanceFrom(const BlockReport& other) const;
-        double distanceFrom_Complex(const BlockReport& other) const;
 
+        //this is a rough distance metric, which only assumes that the blocks are non-empty
+        static double differentialSampleDistance(const Block& A, const Block& B);
 
-
-        std::vector<NormalisedRunLength> getNormalisedRunLengths(const Block &block);
     };
-
-    double differentialSampleDistance(const Block& A, const Block& B);
-
 } // GC
 
 #endif //DISS_SIMPLEPROTOTYPE_BLOCKREPORT_HPP
