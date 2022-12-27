@@ -11,7 +11,6 @@
 #include "../Transformation/Transformations/DeltaXORTransform.hpp"
 #include "../Transformation/Transformations/RunLengthTransform.hpp"
 #include "../Compression/HuffmanCompression/HuffmanCompression.hpp"
-#include "../Compression/RunLengthCompression/RunLengthCompression.hpp"
 #include "../Compression/IdentityCompression/IdentityCompression.hpp"
 #include "../Evolver/Evolver.hpp"
 #include "../Transformation/Transformations/SplitTransform.hpp"
@@ -35,14 +34,14 @@ namespace GC {
 
     void EvolutionaryFileCompressor::compress(const EvoComSettings& settings) {
 
-        LOG("Compressing using the following settings:");
+        JSONer js("EvoComExecutionDetails");
         LOG(settings.to_string());
 
         size_t originalFileSize = getFileSize(settings.inputFile);
         std::string outputFile = settings.inputFile+".gac";
-        LOG("the file has size", originalFileSize);
+        js.pushVar("originalFileSize", originalFileSize);
 
-        if (originalFileSize < 2) { LOG("I refuse to compress such a small file"); return; }
+        if (originalFileSize <= 2) {LOG("ERROR: File is too small"); return;}
 
         std::ifstream inStream(settings.inputFile);
         FileBitReader reader(inStream);
@@ -50,16 +49,18 @@ namespace GC {
         std::ofstream outStream(outputFile);
         FileBitWriter writer(outStream);
 
-        if (!inStream || !outStream) {LOG("There was a problem when opening the files"); return;}
+        if (!inStream || !outStream) {LOG("ERROR: There was a problem when opening the files"); return;}
 
         if (settings.async)
-            compressToStreamsAsync(reader, writer, originalFileSize, settings);
+            compressToStreamsAsync(reader, writer, originalFileSize, settings, js);
         else
-            compressToStreamsSequentially(reader, writer, originalFileSize, settings);
+            compressToStreamsSequentially(reader, writer, originalFileSize, settings, js);
+
+        LOG(js.end());
     }
 
 
-    void EvolutionaryFileCompressor::compressToStreamsSequentially(FileBitReader& reader, FileBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings) {
+    void EvolutionaryFileCompressor::compressToStreamsSequentially(FileBitReader& reader, FileBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings, JSONer& js) {
         bool isFirstSegment = true;
         Evolver::EvolutionSettings evoSettings(settings);
         auto compressBlock = [&](const Block& block) {
@@ -69,7 +70,7 @@ namespace GC {
             if (!isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
             isFirstSegment = false;
             encodeIndividual(bestIndividual, writer);
-            compressBlockUsingRecipe(bestIndividual, block, writer);
+            compressBlockUsingRecipe_logged(bestIndividual, block, writer, js);
 
         };
 
@@ -82,7 +83,7 @@ namespace GC {
         writer.forceLast();
     }
 
-    void EvolutionaryFileCompressor::compressToStreamsAsync(FileBitReader& reader, FileBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings) {
+    void EvolutionaryFileCompressor::compressToStreamsAsync(FileBitReader& reader, FileBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings, JSONer& js) {
         using Job = std::pair<Block, std::future<Individual>>;
         using JobQueue = std::queue<Job>;
 
@@ -107,7 +108,7 @@ namespace GC {
             if (!isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
             isFirstSegment = false;
             encodeIndividual(recipe, writer);
-            compressBlockUsingRecipe(recipe, block, writer);
+            compressBlockUsingRecipe_logged(recipe, block, writer, js);
         };
 
         if (settings.segmentationMethod == EvoComSettings::Clustered)
@@ -164,6 +165,14 @@ namespace GC {
 
     void EvolutionaryFileCompressor::compressBlockUsingRecipe(const Individual &individual, const Block &block, AbstractBitWriter& writer) {
         ////LOG("Applying individual ", individual.to_string());
+        Block toBeProcessed = block;
+        for (auto tCode : individual.tList) applyTransformCode(tCode, toBeProcessed);
+        applyCompressionCode(individual.cCode, toBeProcessed, writer);
+    }
+
+    void EvolutionaryFileCompressor::compressBlockUsingRecipe_logged(const Individual &individual, const Block &block, AbstractBitWriter& writer, JSONer& js) {
+        ////LOG("Applying individual ", individual.to_string());
+        //TODO here add details of how the block was finally compressed
         Block toBeProcessed = block;
         for (auto tCode : individual.tList) applyTransformCode(tCode, toBeProcessed);
         applyCompressionCode(individual.cCode, toBeProcessed, writer);

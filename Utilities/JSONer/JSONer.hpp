@@ -80,7 +80,6 @@ namespace GC {
 
         template <class T>
         void pushVar(const std::string varName, T varValue) {
-            LOG("Pushing the var", varName, "and value", varValue);
             addCommaIfNecessary();
             pushValue(varName); //will push the string
             ss<<": ";
@@ -90,14 +89,12 @@ namespace GC {
 
         JSONer(const std::string className):
         ss(){
-            LOG("Started a JSONer");
             increaseNesting();
             pushValue(className); //will push the string
             ss<<": {";
         }
 
         std::string end() {
-            LOG("Finished the JSONer");
             ss<<"}";
             return ss.str();
         }

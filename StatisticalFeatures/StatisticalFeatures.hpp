@@ -6,6 +6,7 @@
 #define DISS_SIMPLEPROTOTYPE_STATISTICALFEATURES_HPP
 
 #include "../Utilities/utilities.hpp"
+#include "../Utilities/JSONer/JSONer.hpp"
 #include <algorithm>
 #include <numeric>
 #include <cmath>
@@ -69,23 +70,15 @@ namespace GC {
         }
 
         std::string to_string() const {
-            std::stringstream ss;
-            auto pushVarWithoutComma = [&](const std::string& varName, const S actualVar) {
-                ss << varName <<"="<<actualVar;
-            };
-            auto pushVar = [&](const std::string& varName, const S actualVar) {
-                ss << varName <<"="<<actualVar<<", ";
-            };
-            ss<<"StatisticalFeatures {";
-            pushVar("avg", average);
-            pushVar("std", standardDeviation);
-            pushVar("min", minimum);
-            pushVar("1qu", firstQuantile);
-            pushVar("med", median);
-            pushVar("3qu", thirdQuantile);
-            pushVarWithoutComma("max", maximum);
-            ss<<"}";
-            return ss.str();
+            JSONer js("Stats");
+            js.pushVar("avg", average);
+            js.pushVar("stdev", standardDeviation);
+            js.pushVar("min", minimum);
+            js.pushVar("firstQ", firstQuantile);
+            js.pushVar("median", median);
+            js.pushVar("thirdQ", thirdQuantile);
+            js.pushVar("max", maximum);
+            return js.end();
         }
     };
 

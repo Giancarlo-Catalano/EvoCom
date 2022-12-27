@@ -8,6 +8,7 @@
 #include <map>
 #include <fstream>
 #include "../../Utilities/utilities.hpp"
+#include "../../Utilities/JSONer/JSONer.hpp"
 #include <sstream>
 
 namespace GC {
@@ -199,35 +200,34 @@ namespace GC {
         }
 
         std::string to_string() const {
-            std::stringstream ss;
-            ss << "{";
-            ss << "mode=" << (mode == Compress ? "Compress" : "Decompress") << ",";
-            ss << "inputFile=\"" << inputFile << "\",";
-            ss << "configFile=\"" << configFile << "\",";
+            JSONer js("EvoComSettings");
+            js.pushVar("mode",  (mode == Compress ? "Compress" : "Decompress"));
+            js.pushVar("inputFile", inputFile);
+            js.pushVar("configFile", configFile);
+
             if (segmentationMethod == Fixed) {
-                ss << "segMethod=Fixed,fixedSegSize=" << fixedSegmentSize << ",";
+                js.pushVar("segmentationMethod", "fixed");
+                js.pushVar("segmentSize", fixedSegmentSize);
             } else {
-                ss << "segMethod=Clustered,threshold=" << clusteredSegmentThreshold << ",cooldown="
-                   << clusteredSegmentCooldown << ",";
+                js.pushVar("segmentationMethod", "clustered");
+                js.pushVar("clusteringThreshold", clusteredSegmentThreshold);
+                js.pushVar("clusteringPardonCooldown", clusteredSegmentCooldown);
             }
 
-            ss << "generations=" << generations << ",";
-            ss << "population=" << population << ",";
-            ss << "mutationRate=" << mutationRate << ",";
-            ss << "compCrossOverRate=" << compressionCrossoverRate << ",";
-            ss << "usesAnnealing=" << usesAnnealing << ",";
-            ss << "eliteSize=" << eliteSize << ",";
-            ss << "tournamentSelectionSize=" << tournamentSelectionSize << ",";
-            ss << "excessiveMutationThreshold=" << excessiveMutationThreshold << ",";
-            ss << "unstabilityThreshold=" << unstabilityThreshold << ",";
-            ss << "minTransformAmount=" << minTransformAmount << ",";
-            ss << "maxTransformAmount=" << maxTransformAmount << ",";
-            ss << "asynchronous=" << async;
+            js.pushVar("generations", generations);
+            js.pushVar("populationSize", population);
+            js.pushVar("mutationRate", mutationRate);
+            js.pushVar("compressionCrossoverRate", compressionCrossoverRate);
+            js.pushVar("usesAnnealing", usesAnnealing);
+            js.pushVar("eliteSize", eliteSize);
+            js.pushVar("tournamentSelectionSize", tournamentSelectionSize);
+            js.pushVar("excessiveMutationThreshold", excessiveMutationThreshold);
+            js.pushVar("unstabilityThreshold", unstabilityThreshold);
+            js.pushVar("asynchronous", async);
+            js.pushVar("minTransformAmount", minTransformAmount);
+            js.pushVar("maxTransformAmount", maxTransformAmount);
 
-            ss<<"}";
-
-
-            return ss.str();
+            return js.end();
         }
     };
 

@@ -3,6 +3,7 @@
 //
 
 #include "BlockReport.hpp"
+#include "../Utilities/JSONer/JSONer.hpp"
 #include <cmath>
 #include <algorithm>
 #include <numeric>
@@ -25,8 +26,25 @@ namespace GC {
     }
 
     std::string BlockReport::to_string() const{
-        //TODO
-        return "";
+        JSONer js("BlockReport");
+        auto pushStats = [&](const std::string& statsName, const  StatisticalFeatures& sf) {
+            js.beginObject(statsName);
+            js.pushVar("avg", sf.average);
+            js.pushVar("stdev", sf.standardDeviation);
+            js.pushVar("min", sf.minimum);
+            js.pushVar("firstQ", sf.firstQuantile);
+            js.pushVar("median", sf.median);
+            js.pushVar("thirdQ", sf.thirdQuantile);
+            js.pushVar("max", sf.maximum);
+            js.endObject();
+        };
+
+        js.pushVar("Size", size);
+        pushStats("unitFeatures", unitFeatures);
+        pushStats("deltaFeatures", deltaFeatures);
+        pushStats("frequencyFeatures", frequencyFeatures);
+        return js.end();
+
     }
 
     BlockReport::Frequencies BlockReport::getFrequencyArray(const Block &block) {

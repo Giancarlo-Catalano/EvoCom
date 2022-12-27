@@ -12,7 +12,7 @@
 int main(int argc, char**argv) {
 
 
-#if 0 //compression
+#if 1 //compression
     std::string compressedExtension = "gac";
     using FileName = std::string;
     GC::EvoComSettings settings(argc, argv);
@@ -107,25 +107,5 @@ int main(int argc, char**argv) {
     LOG("The transformed block is", containerToString(transformed));
     Block undone = GC::BurrowsWheelerTransform().undo_copy(transformed);
     LOG("The undone block is", containerToString(undone));
-#endif
-
-#if 1 //testing the JSONer
-    GC::JSONer js("main");
-    js.pushVar<std::string>("name", "Giancarlo");
-    js.pushVar("age", 22);
-    js.pushVar("isAlive", true);
-    js.pushVar("height", 1.63);
-    js.beginObject("Interests");
-    js.pushVar("crafty", "origami");
-    js.pushVar("academic", "programming");
-    js.beginObject("Favourites");
-    js.pushVar("colour", "green");
-    js.pushVar("number", 6);
-    js.endObject();
-    js.pushVar("likes", "snails");
-    js.endObject();
-    js.pushVar("Surname", "Catalano");
-    LOG(js.end());
-
 #endif
 }
