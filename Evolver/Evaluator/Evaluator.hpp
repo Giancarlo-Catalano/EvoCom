@@ -21,7 +21,7 @@ namespace GC {
         using FitnessFunction = std::function<FitnessScore(Individual)>;
 
     private:
-        Reliability reliabilityThreshold;
+        Reliability reliabilityThreshold; //what is the minimum accepted reliability? (always in [0, 1])
         mutable RandomChance randomEvaluationChooser;
         FitnessFunction fitnessFunction;
 
@@ -65,7 +65,7 @@ namespace GC {
     public:
         Evaluator(const FitnessFunction fitnessFunction) :
             fitnessFunction(fitnessFunction),
-            reliabilityThreshold(0.5),
+            reliabilityThreshold(0.2),
             randomEvaluationChooser(0.05){
         }
 
