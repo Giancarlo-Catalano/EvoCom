@@ -83,6 +83,12 @@ namespace GC {
             increaseNesting();
         }
 
+        void beginUnnamedObject() {
+            addCommaIfNecessary();
+            ss<<"{";
+            increaseNesting();
+        }
+
         void endObject() {
             ss<<"}";
             decreaseNesting();
@@ -93,6 +99,12 @@ namespace GC {
             addCommaIfNecessary();
             pushValue(varName);
             ss<<": [";
+            increaseNesting();
+        }
+
+        void beginUnnamedList() {
+            addCommaIfNecessary();
+            ss<<"[";
             increaseNesting();
         }
 
@@ -130,6 +142,7 @@ namespace GC {
             ss<<"}";
             return ss.str();
         }
+
 
     };
 

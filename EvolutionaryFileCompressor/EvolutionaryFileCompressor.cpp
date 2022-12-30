@@ -124,11 +124,13 @@ namespace GC {
 
         };
 
+        logger.beginList("Reports");
         if (settings.segmentationMethod == EvoComSettings::Clustered)
             clusterFileInSegments(reader, compressBlock, originalFileSize, settings);
         else
             processFileAsFixedSegments(reader, compressBlock, originalFileSize, settings);
 
+        logger.endList();
         writer.pushBit(0);
     }
 
@@ -228,7 +230,7 @@ namespace GC {
 
     template <class TorC>
     void logBlockAndOperation(const Block& block, const TorC operation, Logger& logger) {
-        logger.beginObject("ReportWithTransform");
+        logger.beginUnnamedObject();
         BlockReport report(block);
         report.log(logger);
         logOperation(operation, logger);
@@ -238,7 +240,7 @@ namespace GC {
 
     void EvolutionaryFileCompressor::compressBlockUsingRecipe_DataCollection(const Individual &individual, const Block &block, AbstractBitWriter& writer, Logger& logger) {
         ////LOG("Applying individual ", individual.to_string());
-        logger.beginList("Reports");
+        logger.beginUnnamedList();
 
         Block toBeProcessed = block;
         for (auto tCode : individual.tList) {
@@ -248,7 +250,7 @@ namespace GC {
         logBlockAndOperation(block, individual.cCode, logger);
         applyCompressionCode(individual.cCode, toBeProcessed, writer);
 
-        logger.endList(); //ends Reports
+        logger.endList();
     }
 
 

@@ -46,7 +46,7 @@ namespace GC {
             for (const auto& x :c)
                 sum += distanceSquaredFromAverage(x);
 
-            return std::sqrt(sum / precalculatedAverage); //TODO this should be approximated better
+            return std::sqrt(sum / (c.size()-1)); //TODO this should be approximated better
         }
 
 
@@ -58,15 +58,15 @@ namespace GC {
 
             Container sorted = c;
             std::sort(sorted.begin(), sorted.end());
-            minimum = sorted[0];
             const size_t lastIndex = sorted.size()-1;
-            maximum = sorted[lastIndex];
-            const size_t middle = lastIndex/2;
+            const size_t middleIndex = lastIndex / 2;
             const size_t firstQuartileIndex = lastIndex/4;
             const size_t thirdQuartileIndex = (lastIndex*3)/4;
+            minimum = sorted[0];
             firstQuantile = sorted[firstQuartileIndex];
-            median = sorted[middle];
-            thirdQuantile = sorted[thirdQuantile];
+            median = sorted[middleIndex];
+            thirdQuantile = sorted[thirdQuartileIndex];
+            maximum = sorted[lastIndex];
         }
 
         std::string to_string() const {

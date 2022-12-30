@@ -206,7 +206,9 @@ namespace GC {
         }
 
         void log(Logger& logger) const {
-            logger.addVar("mode", (mode == Compress ? "Compress" : "Decompress"));
+            const std::map<EvoComSettings::Mode, std::string> modesAsStrings{{Compress, "Compress"}, {Decompress, "Decompress"}, {CompressionDataCollection, "CompressionDataCollection"}, {DecompressionDataCollection, "DecompressionDataCollection"}};
+
+            logger.addVar("mode", modesAsStrings.at(mode));
             logger.addVar("inputFile", inputFile);
             logger.addVar("configFile", configFile);
 
