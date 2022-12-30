@@ -19,7 +19,7 @@ namespace GC {
     class BlockReport {
     public:
         static const size_t AmountOfValues = typeVolume<Unit>();
-        using Frequency = double;
+        using Frequency = double; //here intented to be normalised, ie 0.5 means that something appeared half of the time
         using Frequencies = std::array<Frequency, AmountOfValues>;
         using Difference = Unit;
         using RunLength = Unit;

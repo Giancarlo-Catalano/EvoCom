@@ -20,7 +20,7 @@ namespace GC {
         using Param = std::string;
 
     public:
-        enum Mode {Compress, Decompress} mode;
+        enum Mode {Compress, Decompress, CompressionDataCollection, DecompressionDataCollection} mode;
         FileName inputFile;
         FileName configFile;
         enum SegmentationMethod {Fixed, Clustered} segmentationMethod;
@@ -134,7 +134,7 @@ namespace GC {
         }
 
         EvoComSettings(const Dictionary& dict){
-            mode = getEnumFromDict<Mode>(dict, "MODE", {{"compress", Compress}, {"decompress", Decompress}}, Compress);
+            mode = getEnumFromDict<Mode>(dict, "MODE", {{"compress", Compress}, {"decompress", Decompress}, {"compressionDataCollection", CompressionDataCollection}, {"decompressionDataCollection", DecompressionDataCollection}}, Compress);
             inputFile = getStringFromDict(dict, "FILE", "input");
             configFile = getStringFromDict(dict, "CONFIG", "../build/simple.config");
             segmentationMethod = getEnumFromDict(dict, "SEGMENT_TYPE", {{"fixed", Fixed}, {"clustered", Clustered}}, Fixed);

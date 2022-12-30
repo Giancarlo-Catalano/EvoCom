@@ -284,8 +284,8 @@ double timeFunction(const Func func) {
     auto end = std::chrono::steady_clock::now();
     auto diff = end-start;
 
-    auto inSeconds = std::chrono::duration_cast<std::chrono::seconds>(diff);
-    return inSeconds.count();
+    auto inMilliSeconds = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
+    return inMilliSeconds.count();
 }
 
 

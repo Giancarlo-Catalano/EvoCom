@@ -100,14 +100,14 @@ namespace GC {
             BitCounter writer;
 
             THEN("It should be initially 0") {
-                CHECK(writer.getCounterValue() == 0);
+                CHECK(writer.getAmountOfBits() == 0);
             }
 
 
             WHEN("call .push(0)") {
                 writer.pushBit(false);
                 THEN("we expect the result to be just 1") {
-                    CHECK(writer.getCounterValue() == 1);
+                    CHECK(writer.getAmountOfBits() == 1);
                 }
             }
 
@@ -116,14 +116,14 @@ namespace GC {
                 writer.pushBit(false);
                 writer.pushBit(false);
                 THEN("we expect the result to be just 3") {
-                    CHECK(writer.getCounterValue() == 3);
+                    CHECK(writer.getAmountOfBits() == 3);
                 }
             }
 
             WHEN("pushing more than 8 items") {
                 repeat(9, [&](){writer.pushBit(false);});
                 THEN("we expect the counter to be more than 8 as well") {
-                    CHECK(writer.getCounterValue() == 9);
+                    CHECK(writer.getAmountOfBits() == 9);
                 }
             }
         }
@@ -137,7 +137,7 @@ namespace GC {
 #define TO_BOTH_WRITERS(funcCall) bitCounter . funcCall; vectorWriter . funcCall
 
             auto stillConsistent = [&bitCounter, &vectorWriter]()->bool {
-                return bitCounter.getCounterValue() == vectorWriter.getVectorOfBits().size();
+                return bitCounter.getAmountOfBits() == vectorWriter.getVectorOfBits().size();
             };
 
             WHEN("Pushing a single value") {

@@ -35,6 +35,10 @@ namespace GC {
         static void compress(const EvoComSettings &settings);
         static void decompress(const FileName& fileToDecompress, const FileName& outputFile);
 
+
+        static void generateCompressionData(const EvoComSettings &settings, Logger& logger);
+
+
     private:
         static const size_t bitSizeForTransformCode = 4;
         static const size_t bitSizeForCompressionCode = 4;
@@ -48,7 +52,7 @@ namespace GC {
 
         static void applyCompressionCode(const CompressionCode &cc, const Block &block, AbstractBitWriter& writer);
 
-        static void compressBlockUsingRecipe_logged(const Individual &individual, const Block &block, AbstractBitWriter& writer, Logger& js);
+        static void compressBlockUsingRecipe_DataCollection(const Individual &individual, const Block &block, AbstractBitWriter& writer, Logger& logger);
         static void compressBlockUsingRecipe(const Individual &individual, const Block &block, AbstractBitWriter& writer);
 
         static void encodeIndividual(const Individual &individual, AbstractBitWriter& writer);
@@ -87,10 +91,15 @@ namespace GC {
 
 
         static void compressToStreamsSequentially(FileBitReader &reader, FileBitWriter &writer, const size_t originalFileSize,
-                                                  const EvoComSettings &settings, Logger& logger);
+                                                  const EvoComSettings &settings);
 
         static void compressToStreamsAsync(FileBitReader &reader, FileBitWriter &writer, const size_t originalFileSize,
-                                           const EvoComSettings &settings, Logger& logger);
+                                           const EvoComSettings &settings);
+
+        static void compressToStreamsSequentially_DataCollection(FileBitReader &reader, AbstractBitWriter &writer,
+                                                          const size_t originalFileSize, const EvoComSettings &settings,
+                                                          Logger &logger);
+
     };
 
 } // GC

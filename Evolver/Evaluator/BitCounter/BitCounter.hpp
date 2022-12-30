@@ -19,7 +19,8 @@ namespace GC {
         virtual void incrementCounter() { counter++;}
         virtual void increaseCounter(const size_t amount) {counter += amount;}
 
-        virtual size_t getCounterValue() {return counter;}
+        virtual size_t getAmountOfBits() {return counter;}
+        virtual size_t getAmountOfBytes() {if (counter==0) return 0; else return ((counter-1)/8)+1;}
 
         virtual void pushBit(bool b) override {incrementCounter();}
 

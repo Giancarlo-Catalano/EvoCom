@@ -12,8 +12,8 @@
 int main(int argc, char**argv) {
 
 
-#if 1 //compression
-    std::string compressedExtension = "gac";
+#if 1 //normal application behaviour
+    const std::string compressedExtension = "gac";
     using FileName = std::string;
     GC::EvoComSettings settings(argc, argv);
 
@@ -23,21 +23,31 @@ int main(int argc, char**argv) {
         FileName compressedFile = fileToCompress + "." + compressedExtension;
 
 
-        size_t durationInSeconds = timeFunction([&]() { GC::EvolutionaryFileCompressor::compress(settings); });
+        size_t durationInSeconds = timeFunction([&]() {
+            GC::EvolutionaryFileCompressor::compress(settings); })/1000;
         LOG("The compression took", durationInSeconds, "seconds");
         const size_t originalSize = getFileSize(fileToCompress);
         const size_t compressedSize = getFileSize(compressedFile);
         const double ratio = (double)(compressedSize)/ (double)(originalSize);
         LOG("size reduction:", originalSize, "->", compressedSize, ", that is a", (int)(100*(1-ratio)), "% reduction!");
     }
-    else {
+    else if (settings.mode == GC::EvoComSettings::Decompress) {
         LOG("Decompressing!----------------------------------------------");
         std::string compressedFile = settings.inputFile;
         std::string decompressedFile = compressedFile.substr(0, compressedFile.size()-1-compressedExtension.size());
         GC::EvolutionaryFileCompressor::decompress(compressedFile, decompressedFile);
     }
+    else if (settings.mode == GC::EvoComSettings::CompressionDataCollection) {
+        GC::Logger logger;
+        size_t durationInMilliSeconds = timeFunction([&]() {
+            GC::EvolutionaryFileCompressor::generateCompressionData(settings, logger); });
+        logger.addVar("ExecutionTime", durationInMilliSeconds);
+        LOG(logger.end());
+    }
 
 #endif
+
+
 
 #if 0 //futures
     using Individual = GC::Individual;

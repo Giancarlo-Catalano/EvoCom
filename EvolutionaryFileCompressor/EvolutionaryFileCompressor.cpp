@@ -34,18 +34,12 @@ namespace GC {
 
     void EvolutionaryFileCompressor::compress(const EvoComSettings& settings) {
 
-        Logger logger;
-        logger.beginObject("Settings");
-        settings.log(logger);
-
-
         size_t originalFileSize = getFileSize(settings.inputFile);
         std::string outputFile = settings.inputFile+".gac";
-        logger.addVar("originalFileSize", originalFileSize);
-        logger.endObject();
+        LOG("The original file size is", originalFileSize);
 
 
-        if (originalFileSize <= 2) {logger.addVar("Error", "FileTooSmall"); return;}
+        if (originalFileSize <= 2) {LOG("ERROR: file too small!"); return;}
 
         std::ifstream inStream(settings.inputFile);
         FileBitReader reader(inStream);
@@ -53,18 +47,45 @@ namespace GC {
         std::ofstream outStream(outputFile);
         FileBitWriter writer(outStream);
 
-        if (!inStream || !outStream) {logger.addVar("Error", "FileCouldNotBeOpened"); return;}
+        if (!inStream || !outStream) {LOG("ERROR: file could not be openend"); return;}
 
         if (settings.async)
-            compressToStreamsAsync(reader, writer, originalFileSize, settings, logger);
+            compressToStreamsAsync(reader, writer, originalFileSize, settings);
         else
-            compressToStreamsSequentially(reader, writer, originalFileSize, settings, logger);
+            compressToStreamsSequentially(reader, writer, originalFileSize, settings);
+    }
 
-        LOG(logger.end());
+    /**
+     * This function is used to generate the data about what transformations and compressions worked best for a given block report
+     * @param settings
+     */
+    void EvolutionaryFileCompressor::generateCompressionData(const EvoComSettings& settings, Logger& logger) {
+        logger.beginObject("Settings");
+        settings.log(logger);
+        size_t originalFileSize = getFileSize(settings.inputFile);
+        std::string outputFile = settings.inputFile+".gac";
+        logger.addVar("originalFileSize", originalFileSize);
+        logger.endObject();
+
+
+        if (originalFileSize <= 2) {logger.addVar("Error_FileTooSmall", true); return;}
+
+        std::ifstream inStream(settings.inputFile);
+        FileBitReader reader(inStream);
+
+        BitCounter writer;
+
+        if (!inStream ) {logger.addVar("Error_FileUnopenable", true); return;}
+
+        //ignores async settings
+        compressToStreamsSequentially_DataCollection(reader, writer, originalFileSize, settings, logger);
+
+        logger.addVar("FinalFileSize", writer.getAmountOfBytes());
     }
 
 
-    void EvolutionaryFileCompressor::compressToStreamsSequentially(FileBitReader& reader, FileBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings, Logger& logger) {
+
+    void EvolutionaryFileCompressor::compressToStreamsSequentially(FileBitReader& reader, FileBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings) {
         bool isFirstSegment = true;
         Evolver::EvolutionSettings evoSettings(settings);
         auto compressBlock = [&](const Block& block) {
@@ -74,7 +95,7 @@ namespace GC {
             if (!isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
             isFirstSegment = false;
             encodeIndividual(bestIndividual, writer);
-            compressBlockUsingRecipe_logged(bestIndividual, block, writer, logger);
+            compressBlockUsingRecipe(bestIndividual, block, writer);
 
         };
 
@@ -87,7 +108,31 @@ namespace GC {
         writer.forceLast();
     }
 
-    void EvolutionaryFileCompressor::compressToStreamsAsync(FileBitReader& reader, FileBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings, Logger& logger) {
+    void EvolutionaryFileCompressor::compressToStreamsSequentially_DataCollection(FileBitReader &reader,
+                                                                                  AbstractBitWriter &writer,
+                                                                                  const size_t originalFileSize,
+                                                                                  const EvoComSettings &settings,
+                                                                                  Logger &logger) {
+        bool isFirstSegment = true;
+        Evolver::EvolutionSettings evoSettings(settings);
+        auto compressBlock = [&](const Block& block) {
+            const Individual bestIndividual = evolveBestIndividualForBlock(block, evoSettings);
+            if (!isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
+            isFirstSegment = false;
+            encodeIndividual(bestIndividual, writer);
+            compressBlockUsingRecipe_DataCollection(bestIndividual, block, writer, logger);
+
+        };
+
+        if (settings.segmentationMethod == EvoComSettings::Clustered)
+            clusterFileInSegments(reader, compressBlock, originalFileSize, settings);
+        else
+            processFileAsFixedSegments(reader, compressBlock, originalFileSize, settings);
+
+        writer.pushBit(0);
+    }
+
+    void EvolutionaryFileCompressor::compressToStreamsAsync(FileBitReader& reader, FileBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings) {
         using Job = std::pair<Block, std::future<Individual>>;
         using JobQueue = std::queue<Job>;
 
@@ -104,15 +149,15 @@ namespace GC {
         };
 
         bool isFirstSegment = true;
-        size_t processedSoFar = 0;
+        //size_t processedSoFar = 0;
         auto compressBlock = [&](const Block& block, const Individual& recipe) {
-            processedSoFar += block.size();
-            size_t progress = 100.0*(double)(processedSoFar) / (double)originalFileSize;
-            LOG_NOSPACES("(Progress ", progress, "%) Received the block (size ", block.size(), "), and the recipe ", recipe.to_string());
+            //processedSoFar += block.size();
+            //size_t progress = 100.0*(double)(processedSoFar) / (double)originalFileSize;
+            //LOG_NOSPACES("(Progress ", progress, "%) Received the block (size ", block.size(), "), and the recipe ", recipe.to_string());
             if (!isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
             isFirstSegment = false;
             encodeIndividual(recipe, writer);
-            compressBlockUsingRecipe_logged(recipe, block, writer, logger);
+            compressBlockUsingRecipe(recipe, block, writer);
         };
 
         if (settings.segmentationMethod == EvoComSettings::Clustered)
@@ -143,7 +188,6 @@ namespace GC {
     void EvolutionaryFileCompressor::processFileAsFixedSegments(FileBitReader& reader, std::function<void(const Block&)> blockHandler,
                                                                 const size_t fileSize, const EvoComSettings& settings) {
 
-        LOG("Processing the file as fixed segments of size", settings.fixedSegmentSize);
         size_t remaining = fileSize;
         const size_t blockSize = settings.fixedSegmentSize;
         while (remaining > blockSize * 2) {
@@ -192,7 +236,7 @@ namespace GC {
     }
 
 
-    void EvolutionaryFileCompressor::compressBlockUsingRecipe_logged(const Individual &individual, const Block &block, AbstractBitWriter& writer, Logger& logger) {
+    void EvolutionaryFileCompressor::compressBlockUsingRecipe_DataCollection(const Individual &individual, const Block &block, AbstractBitWriter& writer, Logger& logger) {
         ////LOG("Applying individual ", individual.to_string());
         logger.beginList("Reports");
 
@@ -295,7 +339,7 @@ namespace GC {
         BitCounter counterWriter;
         encodeIndividual(individual, counterWriter);
         compressBlockUsingRecipe(individual, block, counterWriter);
-        size_t compressedSize = counterWriter.getCounterValue();
+        size_t compressedSize = counterWriter.getAmountOfBits();
         //a compressed block is a sequence of bits, not necessarly in multiples of 8
                 ASSERT_NOT_EQUALS(compressedSize, 0); //would be impossible
         ASSERT_NOT_EQUALS(originalSize, 0);   //would cause errors
@@ -381,8 +425,6 @@ namespace GC {
     void EvolutionaryFileCompressor::clusterFileInSegments(FileBitReader &reader,
                                                            std::function<void(const Block&)> blockHandler,
                                                            const size_t fileSize, const EvoComSettings& settings) {
-
-        LOG("Compressing in clusters");
 
         const size_t microUnitSize = 256; //bytes
         size_t remaining = fileSize;
