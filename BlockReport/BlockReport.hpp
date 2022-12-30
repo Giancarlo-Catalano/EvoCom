@@ -29,6 +29,7 @@ namespace GC {
         explicit BlockReport();
 
         std::string to_string() const;
+        void log(Logger& log) const;
 
 
 

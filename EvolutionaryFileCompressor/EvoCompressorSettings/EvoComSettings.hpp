@@ -8,7 +8,7 @@
 #include <map>
 #include <fstream>
 #include "../../Utilities/utilities.hpp"
-#include "../../Utilities/JSONer/JSONer.hpp"
+#include "../../Utilities/Logger/Logger.hpp"
 #include <sstream>
 
 namespace GC {
@@ -200,34 +200,37 @@ namespace GC {
         }
 
         std::string to_string() const {
-            JSONer js("EvoComSettings");
-            js.pushVar("mode",  (mode == Compress ? "Compress" : "Decompress"));
-            js.pushVar("inputFile", inputFile);
-            js.pushVar("configFile", configFile);
+            Logger logger;
+            log(logger);
+            return logger.end();
+        }
+
+        void log(Logger& logger) const {
+            logger.addVar("mode", (mode == Compress ? "Compress" : "Decompress"));
+            logger.addVar("inputFile", inputFile);
+            logger.addVar("configFile", configFile);
 
             if (segmentationMethod == Fixed) {
-                js.pushVar("segmentationMethod", "fixed");
-                js.pushVar("segmentSize", fixedSegmentSize);
+                logger.addVar("segmentationMethod", "fixed");
+                logger.addVar("segmentSize", fixedSegmentSize);
             } else {
-                js.pushVar("segmentationMethod", "clustered");
-                js.pushVar("clusteringThreshold", clusteredSegmentThreshold);
-                js.pushVar("clusteringPardonCooldown", clusteredSegmentCooldown);
+                logger.addVar("segmentationMethod", "clustered");
+                logger.addVar("clusteringThreshold", clusteredSegmentThreshold);
+                logger.addVar("clusteringPardonCooldown", clusteredSegmentCooldown);
             }
 
-            js.pushVar("generations", generations);
-            js.pushVar("populationSize", population);
-            js.pushVar("mutationRate", mutationRate);
-            js.pushVar("compressionCrossoverRate", compressionCrossoverRate);
-            js.pushVar("usesAnnealing", usesAnnealing);
-            js.pushVar("eliteSize", eliteSize);
-            js.pushVar("tournamentSelectionSize", tournamentSelectionSize);
-            js.pushVar("excessiveMutationThreshold", excessiveMutationThreshold);
-            js.pushVar("unstabilityThreshold", unstabilityThreshold);
-            js.pushVar("asynchronous", async);
-            js.pushVar("minTransformAmount", minTransformAmount);
-            js.pushVar("maxTransformAmount", maxTransformAmount);
-
-            return js.end();
+            logger.addVar("generations", generations);
+            logger.addVar("populationSize", population);
+            logger.addVar("mutationRate", mutationRate);
+            logger.addVar("compressionCrossoverRate", compressionCrossoverRate);
+            logger.addVar("usesAnnealing", usesAnnealing);
+            logger.addVar("eliteSize", eliteSize);
+            logger.addVar("tournamentSelectionSize", tournamentSelectionSize);
+            logger.addVar("excessiveMutationThreshold", excessiveMutationThreshold);
+            logger.addVar("unstabilityThreshold", unstabilityThreshold);
+            logger.addVar("asynchronous", async);
+            logger.addVar("minTransformAmount", minTransformAmount);
+            logger.addVar("maxTransformAmount", maxTransformAmount);
         }
     };
 

@@ -3,7 +3,7 @@
 //
 
 #include "BlockReport.hpp"
-#include "../Utilities/JSONer/JSONer.hpp"
+#include "../Utilities/Logger/Logger.hpp"
 #include <cmath>
 #include <algorithm>
 #include <numeric>
@@ -25,26 +25,32 @@ namespace GC {
         ASSERT_GREATER(block.size(), 1);
     }
 
-    std::string BlockReport::to_string() const{
-        JSONer js("BlockReport");
+    void BlockReport::log(Logger& logger) const {
         auto pushStats = [&](const std::string& statsName, const  StatisticalFeatures& sf) {
-            js.beginObject(statsName);
-            js.pushVar("avg", sf.average);
-            js.pushVar("stdev", sf.standardDeviation);
-            js.pushVar("min", sf.minimum);
-            js.pushVar("firstQ", sf.firstQuantile);
-            js.pushVar("median", sf.median);
-            js.pushVar("thirdQ", sf.thirdQuantile);
-            js.pushVar("max", sf.maximum);
-            js.endObject();
+            logger.beginObject(statsName);
+            logger.addVar("avg", sf.average);
+            logger.addVar("stdev", sf.standardDeviation);
+            logger.addVar("min", sf.minimum);
+            logger.addVar("firstQ", sf.firstQuantile);
+            logger.addVar("median", sf.median);
+            logger.addVar("thirdQ", sf.thirdQuantile);
+            logger.addVar("max", sf.maximum);
+            logger.endObject();
         };
+        logger.beginObject("BlockReport");
 
-        js.pushVar("Size", size);
+        logger.addVar("Size", size);
         pushStats("unitFeatures", unitFeatures);
         pushStats("deltaFeatures", deltaFeatures);
         pushStats("frequencyFeatures", frequencyFeatures);
-        return js.end();
 
+        logger.endObject(); //ends BlockReport
+    }
+
+    std::string BlockReport::to_string() const{
+        Logger logger;
+        log(logger);
+        return logger.end();
     }
 
     BlockReport::Frequencies BlockReport::getFrequencyArray(const Block &block) {

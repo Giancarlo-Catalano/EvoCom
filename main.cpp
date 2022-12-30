@@ -3,7 +3,7 @@
 #include "EvolutionaryFileCompressor/EvolutionaryFileCompressor.hpp"
 #include "BlockReport/BlockReport.hpp"
 #include "Transformation/Transformations/BurrowsWheelerTransform.hpp"
-#include "Utilities/JSONer/JSONer.hpp"
+#include "Utilities/Logger/Logger.hpp"
 
 #include <future>
 #include <queue>
@@ -107,5 +107,24 @@ int main(int argc, char**argv) {
     LOG("The transformed block is", containerToString(transformed));
     Block undone = GC::BurrowsWheelerTransform().undo_copy(transformed);
     LOG("The undone block is", containerToString(undone));
+#endif
+
+#if 0 //Logger
+
+    GC::Logger logger;
+    logger.addVar("Head", "hello");
+    logger.beginList("List");
+    logger.addListItem(1);
+    logger.addListItem(6);
+    logger.endList();
+    logger.beginObject("Object");
+    logger.addVar("Properties", "Lacking");
+    logger.addVar("Other", 4);
+    logger.endObject();
+
+
+    LOG(logger.end());
+
+
 #endif
 }

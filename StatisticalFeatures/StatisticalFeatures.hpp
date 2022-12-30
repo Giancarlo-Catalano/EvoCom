@@ -6,7 +6,7 @@
 #define DISS_SIMPLEPROTOTYPE_STATISTICALFEATURES_HPP
 
 #include "../Utilities/utilities.hpp"
-#include "../Utilities/JSONer/JSONer.hpp"
+#include "../Utilities/Logger/Logger.hpp"
 #include <algorithm>
 #include <numeric>
 #include <cmath>
@@ -70,15 +70,15 @@ namespace GC {
         }
 
         std::string to_string() const {
-            JSONer js("Stats");
-            js.pushVar("avg", average);
-            js.pushVar("stdev", standardDeviation);
-            js.pushVar("min", minimum);
-            js.pushVar("firstQ", firstQuantile);
-            js.pushVar("median", median);
-            js.pushVar("thirdQ", thirdQuantile);
-            js.pushVar("max", maximum);
-            return js.end();
+            Logger logger;
+            logger.addVar("avg", average);
+            logger.addVar("stdev", standardDeviation);
+            logger.addVar("min", minimum);
+            logger.addVar("firstQ", firstQuantile);
+            logger.addVar("median", median);
+            logger.addVar("thirdQ", thirdQuantile);
+            logger.addVar("max", maximum);
+            return logger.end();
         }
     };
 

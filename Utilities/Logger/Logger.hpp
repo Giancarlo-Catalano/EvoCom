@@ -2,8 +2,8 @@
 // Created by gian on 27/12/22.
 //
 
-#ifndef EVOCOM_JSONER_HPP
-#define EVOCOM_JSONER_HPP
+#ifndef EVOCOM_LOGGER_HPP
+#define EVOCOM_LOGGER_HPP
 
 #include <sstream>
 #include <stack>
@@ -12,7 +12,7 @@
 
 namespace GC {
 
-    class JSONer {
+    class Logger {
     private:
         std::stringstream ss;
         std::stack<bool> nestingStack; //the values determine if we're currently in the first item of an object
@@ -58,8 +58,20 @@ namespace GC {
         }
 
         void addCommaIfNecessary() {
-            if (!isFirstItem())
-                ss<<", ";
+            if (!isFirstItem()) {
+                ss << ", ";
+            }
+
+            newLine();
+            indent();
+        }
+
+        void indent() {
+            repeat(nestingStack.size(), [&](){ss<<"\t";});
+        }
+
+        void newLine() {
+            ss<<"\n";
         }
 
     public:
@@ -77,9 +89,30 @@ namespace GC {
             firstItemWasAdded();
         }
 
+        void beginList(const std::string& varName) {
+            addCommaIfNecessary();
+            pushValue(varName);
+            ss<<": [";
+            increaseNesting();
+        }
+
+        void endList() {
+            ss<<"]";
+            decreaseNesting();
+            firstItemWasAdded();
+        }
 
         template <class T>
-        void pushVar(const std::string varName, T varValue) {
+        void addListItem(T varValue) {
+            addCommaIfNecessary();
+            pushValue(varValue);
+            firstItemWasAdded();
+        }
+
+
+
+        template <class T>
+        void addVar(const std::string varName, T varValue) {
             addCommaIfNecessary();
             pushValue(varName); //will push the string
             ss<<": ";
@@ -87,11 +120,10 @@ namespace GC {
             firstItemWasAdded();
         }
 
-        JSONer(const std::string className):
+        Logger():
         ss(){
             increaseNesting();
-            pushValue(className); //will push the string
-            ss<<": {";
+            ss<<"{";
         }
 
         std::string end() {
@@ -103,4 +135,4 @@ namespace GC {
 
 } // GC
 
-#endif //EVOCOM_JSONER_HPP
+#endif //EVOCOM_LOGGER_HPP
