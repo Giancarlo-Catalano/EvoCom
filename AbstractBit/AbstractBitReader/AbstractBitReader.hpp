@@ -11,7 +11,10 @@ namespace GC {
 
     class AbstractBitReader {
     public:
+        //minimum requirements
         virtual bool readBit() = 0;
+
+
 
         virtual size_t readAmountOfBits(const size_t amountOfBits) {
             size_t result = 0;

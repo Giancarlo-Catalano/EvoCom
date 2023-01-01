@@ -1,0 +1,3 @@
+add_library(VectorBitReader VectorBitReader.cpp VectorBitReader.hpp)
+target_link_libraries(VectorBitReader AbstractBitReader)
+
