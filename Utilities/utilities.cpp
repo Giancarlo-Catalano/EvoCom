@@ -117,4 +117,11 @@ size_t ceil_div(const size_t input, const size_t divisor) {
     return (input+divisor-1)/divisor;
 }
 
+size_t greaterMultipleOf(const size_t input, const size_t multipleOf) {
+    if (input == 0)
+        return 0;
+    else
+        return (((input-1)/multipleOf)+1)*multipleOf;
+}
+
 

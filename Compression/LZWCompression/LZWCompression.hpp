@@ -49,7 +49,7 @@ namespace JP {
 /// @param [in] is      input stream
 /// @param [out] os     output stream
 ///
-    Block decompress(const size_t sizeOfResult, GC::FileBitReader& reader) {
+    Block decompress(const size_t sizeOfResult, GC::AbstractBitReader& reader) {
 
         std::vector<std::pair<CodeType, char>> dictionary;
 
@@ -144,7 +144,7 @@ namespace GC {
             JP::compress(block, writer);
         }
 
-        Block decompress(FileBitReader& reader) const {
+        Block decompress(AbstractBitReader& reader) const {
             const size_t resultSize = reader.readSmallAmount();
             LOG("the decompressed size of the block is", resultSize);
             return JP::decompress(resultSize, reader);

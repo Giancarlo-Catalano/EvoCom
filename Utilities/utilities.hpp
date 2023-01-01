@@ -289,6 +289,9 @@ double timeFunction(const Func func) {
 }
 
 
+size_t greaterMultipleOf(const size_t input, const size_t multipleOf);
+
+
 
 #endif //DISS_SIMPLEPROTOTYPE_UTILITIES_HPP
 

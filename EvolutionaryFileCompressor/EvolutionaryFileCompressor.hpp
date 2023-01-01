@@ -13,7 +13,7 @@
 #include "../BlockReport/BlockReport.hpp"
 #include "../Evolver/Individual/Individual.hpp"
 #include "../AbstractBit/AbstractBitWriter/AbstractBitWriter.hpp"
-#include "../AbstractBit/FileBitWriter/FileBitWriter.hpp"
+#include "../AbstractBit/AbstractBitReader/AbstractBitReader.hpp"
 #include "EvoCompressorSettings/EvoComSettings.hpp"
 #include "../Evolver/Evolver.hpp"
 
@@ -44,7 +44,7 @@ namespace GC {
         static const size_t bitSizeForCompressionCode = 4;
         static const size_t bitsForAmountOfTransforms = 4;
 
-        static Block readBlock(size_t size, FileBitReader &reader);
+        static Block readBlock(size_t size, AbstractBitReader &reader);
 
 
     public: //for the purposes of testing
@@ -59,44 +59,44 @@ namespace GC {
 
         static void undoTransformCode(const TransformCode &tc, Block &block);
 
-        static Block undoCompressionCode(const CompressionCode &cc, FileBitReader &reader);
+        static Block undoCompressionCode(const CompressionCode &cc, AbstractBitReader &reader);
 
     private:
 
-        static TransformCode decodeTransformCode(FileBitReader &reader);
+        static TransformCode decodeTransformCode(AbstractBitReader &reader);
 
-        static CompressionCode decodeCompressionCode(FileBitReader &reader);
+        static CompressionCode decodeCompressionCode(AbstractBitReader &reader);
 
-        static void readBlockAndEncode(size_t size, FileBitReader &reader, FileBitWriter &writer);
+        static void readBlockAndEncode(size_t size, AbstractBitReader &reader, AbstractBitWriter &writer);
 
-        static Block decodeSingleBlock(FileBitReader &reader);
+        static Block decodeSingleBlock(AbstractBitReader &reader);
 
-        static void writeBlock(Block &block, FileBitWriter &writer);
+        static void writeBlock(Block &block, AbstractBitWriter &writer);
 
         static Fitness compressionRatioForIndividualOnBlock(const Individual &individual, const Block &block);
 
-        static Individual decodeIndividual(FileBitReader &reader);
+        static Individual decodeIndividual(AbstractBitReader &reader);
 
-        static Block decodeUsingIndividual(const Individual &individual, FileBitReader &reader);
+        static Block decodeUsingIndividual(const Individual &individual, AbstractBitReader &reader);
 
         static void
-        clusterFileInSegments(FileBitReader &reader, std::function<void(const Block &)> blockHandler,
+        clusterFileInSegments(AbstractBitReader &reader, std::function<void(const Block &)> blockHandler,
                               const size_t fileSize, const EvoComSettings& settings);
 
 
         static Individual evolveBestIndividualForBlock(const Block &block, const Evolver::EvolutionSettings& evoSettings);
 
-        static void processFileAsFixedSegments(FileBitReader &reader, std::function<void(const Block &)> blockHandler,
+        static void processFileAsFixedSegments(AbstractBitReader &reader, std::function<void(const Block &)> blockHandler,
                                         const size_t fileSize, const EvoComSettings &settings);
 
 
-        static void compressToStreamsSequentially(FileBitReader &reader, FileBitWriter &writer, const size_t originalFileSize,
+        static void compressToStreamsSequentially(AbstractBitReader &reader, AbstractBitWriter &writer, const size_t originalFileSize,
                                                   const EvoComSettings &settings);
 
-        static void compressToStreamsAsync(FileBitReader &reader, FileBitWriter &writer, const size_t originalFileSize,
+        static void compressToStreamsAsync(AbstractBitReader &reader, AbstractBitWriter &writer, const size_t originalFileSize,
                                            const EvoComSettings &settings);
 
-        static void compressToStreamsSequentially_DataCollection(FileBitReader &reader, AbstractBitWriter &writer,
+        static void compressToStreamsSequentially_DataCollection(AbstractBitReader &reader, AbstractBitWriter &writer,
                                                           const size_t originalFileSize, const EvoComSettings &settings,
                                                           Logger &logger);
 

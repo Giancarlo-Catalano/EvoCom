@@ -106,7 +106,7 @@ namespace GC {
             encoder.encodeAll(block);
         }
 
-        Block decompress(FileBitReader& reader) override {
+        Block decompress(AbstractBitReader& reader) override {
             auto readSingleWeight = [&]() -> Weight { return reader.readAmountOfBits(bitSizeOfFrequency) + 1;};
 
             auto readSmallFrequencyReport = [&]() -> SmallFrequencyReport {

@@ -29,6 +29,8 @@ namespace GC {
         void writeSmallAmount(const size_t value);
 
         void writeBigAmount(const size_t value);
+
+        virtual void writeLastByte() = 0;
     };
 
 } // GC

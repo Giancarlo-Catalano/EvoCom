@@ -60,11 +60,11 @@ namespace GC {
             for (const auto rlPair: pairs) encodeRLPair(rlPair, writer);
         }
 
-        static RLPair readPair(FileBitReader& reader) {
+        static RLPair readPair(AbstractBitReader& reader) {
             return {reader.readAmountOfBits(bitsInType<Unit>()), reader.readRiceEncoded() + 1};
         }
 
-        static std::vector<RLPair> readPairs(size_t expectedAmount, FileBitReader& reader) {
+        static std::vector<RLPair> readPairs(size_t expectedAmount, AbstractBitReader& reader) {
             std::vector<RLPair> result;
             auto decodeAndPush = [&](){
                 result.push_back(readPair(reader));
@@ -84,7 +84,7 @@ namespace GC {
             return result;
         }
 
-        Block decompress(FileBitReader& reader) const{
+        Block decompress(AbstractBitReader& reader) const{
             Block result;
             size_t expectedVectorSize = reader.readRiceEncoded();
             std::vector<RLPair> pairs = readPairs(expectedVectorSize, reader);

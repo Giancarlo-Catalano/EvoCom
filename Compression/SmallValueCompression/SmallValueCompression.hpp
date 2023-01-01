@@ -20,7 +20,7 @@ namespace GC {
             for (const auto& unit: block) writer.writeSmallAmount(unit);
         }
 
-        Block decompress(FileBitReader& reader) const {
+        Block decompress(AbstractBitReader& reader) const {
             Block result;
             auto readAndAppendUnit = [&]() -> Unit {
                 result.push_back(reader.readSmallAmount());

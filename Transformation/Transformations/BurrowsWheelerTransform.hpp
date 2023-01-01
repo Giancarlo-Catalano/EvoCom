@@ -187,13 +187,6 @@ namespace GC {
     class BurrowsWheelerTransform : public Transformation{
     private:
 
-        static size_t greaterMultipleOf(const size_t input, const size_t multipleOf) {
-            if (input == 0)
-                return 0;
-            else
-                return (((input-1)/multipleOf)+1)*multipleOf;
-        }
-
         static std::vector<Unit> encodeHeader(const size_t terminator) {
             const size_t bitSize = std::max(floor_log2(terminator), 1UL);
             const size_t bytesRequired = greaterMultipleOf(bitSize, 7)/7;

@@ -20,7 +20,7 @@ namespace GC {
         virtual void increaseCounter(const size_t amount) {counter += amount;}
 
         virtual size_t getAmountOfBits() {return counter;}
-        virtual size_t getAmountOfBytes() {if (counter==0) return 0; else return ((counter-1)/8)+1;}
+        virtual size_t getAmountOfBytes() {if (counter==0) return 0; else return greaterMultipleOf(counter, 8);}
 
         virtual void pushBit(bool b) override {incrementCounter();}
 
@@ -35,6 +35,10 @@ namespace GC {
 
             size_t bitLength = getFutureBitLength(value);
             increaseCounter((bitLength/2)+bitLength);
+        }
+
+        void writeLastByte() override {
+            counter =  greaterMultipleOf(counter, 8);
         }
     };
 

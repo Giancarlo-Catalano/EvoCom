@@ -9,7 +9,7 @@
 #include <fstream>
 #include "../AbstractBit/AbstractBitWriter/AbstractBitWriter.hpp"
 #include "../names.hpp"
-#include "../FileBitReader/FileBitReader.hpp"
+#include "../AbstractBit/AbstractBitReader/AbstractBitReader.hpp"
 
 namespace GC {
 
@@ -17,7 +17,7 @@ namespace GC {
     public:
         virtual void compress(const Block& block, AbstractBitWriter& writer){};
 
-        virtual Block decompress(FileBitReader& reader){};
+        virtual Block decompress(AbstractBitReader& reader){};
 
         virtual std::string to_string() const = 0;
     };

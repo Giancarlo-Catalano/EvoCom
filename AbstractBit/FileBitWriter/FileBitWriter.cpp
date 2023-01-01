@@ -25,7 +25,7 @@ namespace GC {
         pushBit_unsafe(b);
     }
 
-    void FileBitWriter::forceLast() {
+    void FileBitWriter::writeLastByte() {
         if (occupied != 0) {
             outStream.put(bitBuffer << (sizeOfBuffer - occupied));
         }

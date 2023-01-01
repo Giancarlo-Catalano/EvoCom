@@ -21,7 +21,7 @@ namespace GC {
             for (const auto& unit: block) writer.writeByte(unit);
         }
 
-        Block decompress(FileBitReader& reader) const {
+        Block decompress(AbstractBitReader& reader) const {
             Block result;
             auto readAndAppendUnit = [&]() -> Unit {
                 result.push_back(reader.readAmountOfBits(bitsInType<Unit>()));

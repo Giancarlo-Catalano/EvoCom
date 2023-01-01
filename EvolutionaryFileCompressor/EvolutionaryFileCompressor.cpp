@@ -25,6 +25,10 @@
 #include "../Transformation/Transformations/LempelZivWelchTransform.hpp"
 #include "../Compression/LZWCompression/LZWCompression.hpp"
 #include "../Transformation/Transformations/BurrowsWheelerTransform.hpp"
+#include "../AbstractBit/FileBitReader/FileBitReader.hpp"
+#include "../AbstractBit/FileBitWriter/FileBitWriter.hpp"
+#include "../AbstractBit/AbstractBitReader/AbstractBitReader.hpp"
+#include "../AbstractBit/AbstractBitWriter/AbstractBitWriter.hpp"
 
 #include <future>
 #include <queue>
@@ -85,7 +89,7 @@ namespace GC {
 
 
 
-    void EvolutionaryFileCompressor::compressToStreamsSequentially(FileBitReader& reader, FileBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings) {
+    void EvolutionaryFileCompressor::compressToStreamsSequentially(AbstractBitReader& reader, AbstractBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings) {
         bool isFirstSegment = true;
         Evolver::EvolutionSettings evoSettings(settings);
         auto compressBlock = [&](const Block& block) {
@@ -105,10 +109,10 @@ namespace GC {
             processFileAsFixedSegments(reader, compressBlock, originalFileSize, settings);
 
         writer.pushBit(0);
-        writer.forceLast();
+        writer.writeLastByte();
     }
 
-    void EvolutionaryFileCompressor::compressToStreamsSequentially_DataCollection(FileBitReader &reader,
+    void EvolutionaryFileCompressor::compressToStreamsSequentially_DataCollection(AbstractBitReader &reader,
                                                                                   AbstractBitWriter &writer,
                                                                                   const size_t originalFileSize,
                                                                                   const EvoComSettings &settings,
@@ -134,7 +138,7 @@ namespace GC {
         writer.pushBit(0);
     }
 
-    void EvolutionaryFileCompressor::compressToStreamsAsync(FileBitReader& reader, FileBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings) {
+    void EvolutionaryFileCompressor::compressToStreamsAsync(AbstractBitReader& reader, AbstractBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings) {
         using Job = std::pair<Block, std::future<Individual>>;
         using JobQueue = std::queue<Job>;
 
@@ -184,10 +188,10 @@ namespace GC {
         LOG("all done!");
 
         writer.pushBit(0);
-        writer.forceLast();
+        writer.writeLastByte();
     }
 
-    void EvolutionaryFileCompressor::processFileAsFixedSegments(FileBitReader& reader, std::function<void(const Block&)> blockHandler,
+    void EvolutionaryFileCompressor::processFileAsFixedSegments(AbstractBitReader& reader, std::function<void(const Block&)> blockHandler,
                                                                 const size_t fileSize, const EvoComSettings& settings) {
 
         size_t remaining = fileSize;
@@ -201,7 +205,7 @@ namespace GC {
         blockHandler(finalBlock);
     }
 
-    Block EvolutionaryFileCompressor::readBlock(size_t size, FileBitReader &reader) {
+    Block EvolutionaryFileCompressor::readBlock(size_t size, AbstractBitReader &reader) {
         Block block;
         auto readUnitAndPush = [&]() {
             block.push_back(reader.readAmountOfBits(bitsInType<Unit>()));
@@ -297,11 +301,11 @@ namespace GC {
             decodeAndWriteOnFile();
         } while (thereAreMoreSegments()); //if there is a bit following a segment, there is another segment to be decoded
 
-        writer.forceLast();
+        writer.writeLastByte();
 
     }
 
-    Individual EvolutionaryFileCompressor::decodeIndividual(FileBitReader& reader) {
+    Individual EvolutionaryFileCompressor::decodeIndividual(AbstractBitReader& reader) {
         std::vector<TCode> tList;
         auto addTCode = [&](){
             tList.push_back(static_cast<TCode>(reader.readAmountOfBits(bitSizeForTransformCode)));
@@ -316,7 +320,7 @@ namespace GC {
         return Individual(tList, extractCCode());
     }
 
-    Block EvolutionaryFileCompressor::decodeUsingIndividual(const Individual& individual, FileBitReader& reader) {
+    Block EvolutionaryFileCompressor::decodeUsingIndividual(const Individual& individual, AbstractBitReader& reader) {
         Block transformedBlock = undoCompressionCode(individual.cCode, reader);
         LOG("Undone the compression successfully, now we undo the transformations");
         std::for_each(individual.tList.rbegin(), individual.tList.rend(), [&](auto tc){
@@ -324,7 +328,7 @@ namespace GC {
         return transformedBlock;
     }
 
-    void EvolutionaryFileCompressor::writeBlock(Block &block, FileBitWriter &writer) {
+    void EvolutionaryFileCompressor::writeBlock(Block &block, AbstractBitWriter &writer) {
         auto writeUnit = [&](const Unit unit) {
             writer.writeAmountOfBits(unit, bitsInType<Unit>());
         };
@@ -414,7 +418,7 @@ namespace GC {
         LOG("The new block size is", block.size());
     }
 
-    Block EvolutionaryFileCompressor::undoCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, FileBitReader& reader) {
+    Block EvolutionaryFileCompressor::undoCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, AbstractBitReader& reader) {
         switch (cc) {
             case C_IdentityCompression: return IdentityCompression().decompress(reader);
             case C_HuffmanCompression: return HuffmanCompression().decompress(reader);
@@ -424,7 +428,7 @@ namespace GC {
         }
     }
 
-    void EvolutionaryFileCompressor::clusterFileInSegments(FileBitReader &reader,
+    void EvolutionaryFileCompressor::clusterFileInSegments(AbstractBitReader &reader,
                                                            std::function<void(const Block&)> blockHandler,
                                                            const size_t fileSize, const EvoComSettings& settings) {
 

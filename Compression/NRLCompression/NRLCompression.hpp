@@ -68,7 +68,7 @@ namespace GC {
                 writer.writeByte(pair.unit);
         }
 
-        RLPair decodeRLPair(FileBitReader& reader) {
+        RLPair decodeRLPair(AbstractBitReader& reader) {
             RLPair result;
             Unit firstByte = reader.readByte();
             if (firstByte == escapeCharacter) {
@@ -83,7 +83,7 @@ namespace GC {
             return result;
         }
 
-        std::vector<RLPair> decodeRLPairs(FileBitReader& reader) {
+        std::vector<RLPair> decodeRLPairs(AbstractBitReader& reader) {
             size_t expectedAmount = reader.readSmallAmount();
             std::vector<RLPair> pairs;
             auto decodeAndSavePair = [&](){pairs.push_back(decodeRLPair(reader));};
@@ -117,7 +117,7 @@ namespace GC {
             for (const auto& rlPair: rlPairs) encodeRLPair(rlPair, writer);
         }
 
-        virtual Block decompress(FileBitReader& reader) {
+        virtual Block decompress(AbstractBitReader& reader) {
             std::vector<RLPair> pairs = decodeRLPairs(reader);
             log_pairs(pairs);
             return expressRLPairs(pairs);

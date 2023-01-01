@@ -63,6 +63,14 @@ namespace GC {
             return vectorOfBitsToVectorOfBytes(savedBits);
         }
 
+
+        void writeLastByte() override {
+            const size_t amountOfBits = savedBits.size();
+            const size_t roundToBytes = greaterMultipleOf(amountOfBits, 8);
+            const size_t bitsToAdd = roundToBytes-amountOfBits;
+            repeat(bitsToAdd, [&](){ pushBit(0);});
+        }
+
     };
 
 } // GC

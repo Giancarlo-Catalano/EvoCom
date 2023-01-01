@@ -29,7 +29,7 @@ namespace GC {
 
         virtual void pushBit(const bool b) override;
 
-        void forceLast();
+        void writeLastByte() override;
     };
 } // GC
 
