@@ -28,8 +28,6 @@ namespace GC {
         using CompressionCode = CCode;
         using Fitness = Individual::FitnessScore;
 
-        std::string to_string();
-
 
         EvolutionaryFileCompressor() {};
         static void compress(const EvoComSettings &settings);
@@ -71,7 +69,7 @@ namespace GC {
 
         static Block decodeSingleBlock(AbstractBitReader &reader);
 
-        static void writeBlock(Block &block, AbstractBitWriter &writer);
+        static void writeBlock(const Block &block, AbstractBitWriter &writer);
 
         static Fitness compressionRatioForIndividualOnBlock(const Individual &individual, const Block &block);
 

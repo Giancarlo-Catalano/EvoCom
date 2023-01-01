@@ -282,19 +282,15 @@ namespace GC {
         FileBitWriter writer(outStream);
 
         auto decodeAndWriteOnFile = [&]() {
-            LOG("Decompressing new block");
-            Individual individual = decodeIndividual(reader);
-            LOG("Extracted that the recipe for the next block is ", individual.to_string());
-            Block decodedBlock = decodeUsingIndividual(individual, reader);
+            const Individual individual = decodeIndividual(reader);
+            const Block decodedBlock = decodeUsingIndividual(individual, reader);
             writeBlock(decodedBlock, writer);
         };
 
         //LOG("starting the decoding of blocks");
 
         auto thereAreMoreSegments = [&]() -> bool {
-            LOG("Are there more segments?");
             bool morePresent = reader.readBit();
-            LOG("Morepresent =", morePresent);
             return morePresent;
         };
         do {
@@ -322,22 +318,18 @@ namespace GC {
 
     Block EvolutionaryFileCompressor::decodeUsingIndividual(const Individual& individual, AbstractBitReader& reader) {
         Block transformedBlock = undoCompressionCode(individual.cCode, reader);
-        LOG("Undone the compression successfully, now we undo the transformations");
         std::for_each(individual.tList.rbegin(), individual.tList.rend(), [&](auto tc){
             undoTransformCode(tc, transformedBlock);});
         return transformedBlock;
     }
 
-    void EvolutionaryFileCompressor::writeBlock(Block &block, AbstractBitWriter &writer) {
+    void EvolutionaryFileCompressor::writeBlock(const Block &block, AbstractBitWriter &writer) {
         auto writeUnit = [&](const Unit unit) {
             writer.writeAmountOfBits(unit, bitsInType<Unit>());
         };
         std::for_each(block.begin(), block.end(), writeUnit);
     }
 
-    std::string EvolutionaryFileCompressor::to_string() {
-        return "SimpleCompressor";
-    }
 
     EvolutionaryFileCompressor::Fitness EvolutionaryFileCompressor::compressionRatioForIndividualOnBlock(const Individual& individual, const Block& block) {
         size_t originalSize = block.size()*8;

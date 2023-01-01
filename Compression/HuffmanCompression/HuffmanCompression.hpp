@@ -118,11 +118,11 @@ namespace GC {
             };
 
             SmallFrequencyReport sfr = readSmallFrequencyReport();
-            LOG("read a small frequency report:", containerToString(sfr));
+            //LOG("read a small frequency report:", containerToString(sfr));
             HuffmanCoder huffmanCoder(expandSmallFrequencyReport(sfr));
 
             size_t expectedBlockSize = reader.readSmallAmount();
-            LOG("expecting a block of size", expectedBlockSize);
+            //LOG("expecting a block of size", expectedBlockSize);
 
             Block result;
             auto pushToResult = [&](const Symbol s) {
