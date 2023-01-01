@@ -1,4 +1,4 @@
-add_library(EvolutionaryFileCompressor EvolutionaryFileCompressor.hpp EvolutionaryFileCompressor.cpp)
+add_library(EvolutionaryFileCompressor EvolutionaryFileCompressor.hpp EvolutionaryFileCompressor.cpp CompressionAndTransformationDispatch.cpp)
 add_subdirectory(EvoCompressorSettings)
 target_link_libraries(EvolutionaryFileCompressor BlockReport Individual FileBitWriter BitCounter EvoCompressorSettings)
 
