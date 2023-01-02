@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <chrono>
 #include <functional>
+#include <fstream>
 #include "../names.hpp"
 
 #define GC_DEBUG 1
@@ -290,6 +291,9 @@ double timeFunction(const Func func) {
 
 
 size_t greaterMultipleOf(const size_t input, const size_t multipleOf);
+
+
+std::vector<std::string> getLinesFromFile(const std::string& fileName);
 
 
 

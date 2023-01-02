@@ -35,6 +35,7 @@ namespace GC {
         static void decompress(const FileName& fileToDecompress, const FileName& outputFile);
 
 
+        static void processSingleFileForCompressionDataCollection(const FileName& file, const EvoComSettings& settings, Logger& logger);
         static void generateCompressionData(const EvoComSettings &settings, Logger& logger);
 
 

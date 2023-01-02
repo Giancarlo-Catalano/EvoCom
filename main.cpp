@@ -120,7 +120,6 @@ int main(int argc, char**argv) {
 #endif
 
 #if 0 //Logger
-
     GC::Logger logger;
     logger.addVar("Head", "hello");
     logger.beginList("List");
@@ -134,7 +133,28 @@ int main(int argc, char**argv) {
 
 
     LOG(logger.end());
+#endif
+
+#if 0 //trying to read from a file
+
+    std::ifstream inputFile("../SampleFiles/lines.txt");
+    if (!inputFile)  {
+        LOG("There was an error opening the file");
+        return 1;
+    }
+
+    std::string temp;
+    std::vector<std::string> lines;
+    while (getline(inputFile, temp)) {
+        lines.push_back(temp);
+    }
+
+    LOG("There were", lines.size(), "lines in total:");
+    for (const auto item: lines) {
+        LOG("Item: ", item);
+    }
 
 
 #endif
+
 }

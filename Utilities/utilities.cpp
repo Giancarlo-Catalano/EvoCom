@@ -124,4 +124,18 @@ size_t greaterMultipleOf(const size_t input, const size_t multipleOf) {
         return (((input-1)/multipleOf)+1)*multipleOf;
 }
 
+std::vector<std::string> getLinesFromFile(const std::string &fileName) {
+    std::ifstream inputFile(fileName);
+    if (!inputFile)  {
+        return {};
+    }
+
+    std::string temp;
+    std::vector<std::string> lines;
+    while (getline(inputFile, temp))
+        lines.push_back(temp);
+
+    return lines;
+}
+
 

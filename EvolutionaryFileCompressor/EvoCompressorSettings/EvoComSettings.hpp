@@ -23,6 +23,9 @@ namespace GC {
         enum Mode {Compress, Decompress, CompressionDataCollection, DecompressionDataCollection} mode;
         FileName inputFile;
         FileName configFile;
+        FileName testSetFile;
+        std::vector<FileName> testSet;
+
         enum SegmentationMethod {Fixed, Clustered} segmentationMethod;
         size_t fixedSegmentSize;
         double clusteredSegmentThreshold;
@@ -135,32 +138,46 @@ namespace GC {
 
         EvoComSettings(const Dictionary& dict){
             mode = getEnumFromDict<Mode>(dict, "MODE", {{"compress", Compress}, {"decompress", Decompress}, {"compressionDataCollection", CompressionDataCollection}, {"decompressionDataCollection", DecompressionDataCollection}}, Compress);
-            inputFile = getStringFromDict(dict, "FILE", "input");
             configFile = getStringFromDict(dict, "CONFIG", "../build/simple.config");
-            segmentationMethod = getEnumFromDict(dict, "SEGMENT_TYPE", {{"fixed", Fixed}, {"clustered", Clustered}}, Fixed);
-            if (segmentationMethod == Fixed) {
-                fixedSegmentSize = getIntFromDict(dict, "FIXED_SEGMENT_SIZE", 256);
+
+            if (mode == Compress || mode == CompressionDataCollection) {
+
+                if (mode == CompressionDataCollection) {
+                    testSetFile = getStringFromDict(dict, "TESTSET", "../build/testset.txt");
+                    testSet = getLinesFromFile(testSetFile);
+                }
+                else if (mode == Compress)
+                    inputFile = getStringFromDict(dict, "FILE", "input");
+
+                segmentationMethod = getEnumFromDict(dict, "SEGMENT_TYPE", {{"fixed", Fixed}, {"clustered", Clustered}}, Fixed);
+                if (segmentationMethod == Fixed) {
+                    fixedSegmentSize = getIntFromDict(dict, "FIXED_SEGMENT_SIZE", 256);
+                }
+                else {
+                    clusteredSegmentCooldown = getIntFromDict(dict, "CLUSTERED_SEGMENT_COOLDOWN", 2);
+                    clusteredSegmentThreshold = getDoubleFromDict(dict, "CLUSTERED_SEGMENT_THRESHOLD", 0.1);
+                }
+
+                generations = getIntFromDict(dict, "GENERATIONS", 36);
+                population = getIntFromDict(dict, "POPULATION", 36);
+                mutationRate = getDoubleFromDict(dict, "MUTATION_RATE", 0.1);
+                compressionCrossoverRate = getDoubleFromDict(dict, "COMPRESSION_CROSSOVER_RATE", 0.3);
+                usesAnnealing = getBoolFromDict(dict, "USES_ANNEALING", true);
+                eliteSize = getIntFromDict(dict, "ELITE_SIZE", 3);
+
+                tournamentSelectionSize = getIntFromDict(dict, "TOURNAMENT_SELECTION_SIZE", 1);
+                excessiveMutationThreshold = getDoubleFromDict(dict, "EXCESSIVE_MUTATION_THRESHOLD", 0.75);
+                unstabilityThreshold = getDoubleFromDict(dict, "UNSTABILITY_THRESHOLD", 0.4);
+
+                minTransformAmount = getIntFromDict(dict, "MIN_TRANSFORM_AMOUNT", 0);
+                maxTransformAmount = getIntFromDict(dict, "MAX_TRANSFORM_AMOUNT", 6);
+
+                async = getBoolFromDict(dict, "ASYNC", true);
             }
-            else {
-                clusteredSegmentCooldown = getIntFromDict(dict, "CLUSTERED_SEGMENT_COOLDOWN", 2);
-                clusteredSegmentThreshold = getDoubleFromDict(dict, "CLUSTERED_SEGMENT_THRESHOLD", 0.1);
+            else if (mode == Decompress) {
+                inputFile = getStringFromDict(dict, "FILE", "input");
             }
 
-            generations = getIntFromDict(dict, "GENERATIONS", 36);
-            population = getIntFromDict(dict, "POPULATION", 36);
-            mutationRate = getDoubleFromDict(dict, "MUTATION_RATE", 0.1);
-            compressionCrossoverRate = getDoubleFromDict(dict, "COMPRESSION_CROSSOVER_RATE", 0.3);
-            usesAnnealing = getBoolFromDict(dict, "USES_ANNEALING", true);
-            eliteSize = getIntFromDict(dict, "ELITE_SIZE", 3);
-
-            tournamentSelectionSize = getIntFromDict(dict, "TOURNAMENT_SELECTION_SIZE", 1);
-            excessiveMutationThreshold = getDoubleFromDict(dict, "EXCESSIVE_MUTATION_THRESHOLD", 0.75);
-            unstabilityThreshold = getDoubleFromDict(dict, "UNSTABILITY_THRESHOLD", 0.4);
-
-            minTransformAmount = getIntFromDict(dict, "MIN_TRANSFORM_AMOUNT", 0);
-            maxTransformAmount = getIntFromDict(dict, "MAX_TRANSFORM_AMOUNT", 6);
-
-            async = getBoolFromDict(dict, "ASYNC", true);
 
         }
 
@@ -206,33 +223,44 @@ namespace GC {
         }
 
         void log(Logger& logger) const {
+            logger.beginObject("Settings");
             const std::map<EvoComSettings::Mode, std::string> modesAsStrings{{Compress, "Compress"}, {Decompress, "Decompress"}, {CompressionDataCollection, "CompressionDataCollection"}, {DecompressionDataCollection, "DecompressionDataCollection"}};
 
             logger.addVar("mode", modesAsStrings.at(mode));
-            logger.addVar("inputFile", inputFile);
             logger.addVar("configFile", configFile);
 
-            if (segmentationMethod == Fixed) {
-                logger.addVar("segmentationMethod", "fixed");
-                logger.addVar("segmentSize", fixedSegmentSize);
-            } else {
-                logger.addVar("segmentationMethod", "clustered");
-                logger.addVar("clusteringThreshold", clusteredSegmentThreshold);
-                logger.addVar("clusteringPardonCooldown", clusteredSegmentCooldown);
-            }
+            if (mode == Compress || CompressionDataCollection) {
+                if (mode == Compress)
+                    logger.addVar("inputFile", inputFile);
+                else if (mode == CompressionDataCollection) {
+                    logger.addVar("testSetFile", testSetFile);
+                    logger.beginList("testSet");
+                    std::for_each(testSet.begin(), testSet.end(), [&](auto testFile) {logger.addListItem(testFile);});
+                    logger.endList();
+                }
+                if (segmentationMethod == Fixed) {
+                    logger.addVar("segmentationMethod", "fixed");
+                    logger.addVar("segmentSize", fixedSegmentSize);
+                } else {
+                    logger.addVar("segmentationMethod", "clustered");
+                    logger.addVar("clusteringThreshold", clusteredSegmentThreshold);
+                    logger.addVar("clusteringPardonCooldown", clusteredSegmentCooldown);
+                }
 
-            logger.addVar("generations", generations);
-            logger.addVar("populationSize", population);
-            logger.addVar("mutationRate", mutationRate);
-            logger.addVar("compressionCrossoverRate", compressionCrossoverRate);
-            logger.addVar("usesAnnealing", usesAnnealing);
-            logger.addVar("eliteSize", eliteSize);
-            logger.addVar("tournamentSelectionSize", tournamentSelectionSize);
-            logger.addVar("excessiveMutationThreshold", excessiveMutationThreshold);
-            logger.addVar("unstabilityThreshold", unstabilityThreshold);
-            logger.addVar("asynchronous", async);
-            logger.addVar("minTransformAmount", minTransformAmount);
-            logger.addVar("maxTransformAmount", maxTransformAmount);
+                logger.addVar("generations", generations);
+                logger.addVar("populationSize", population);
+                logger.addVar("mutationRate", mutationRate);
+                logger.addVar("compressionCrossoverRate", compressionCrossoverRate);
+                logger.addVar("usesAnnealing", usesAnnealing);
+                logger.addVar("eliteSize", eliteSize);
+                logger.addVar("tournamentSelectionSize", tournamentSelectionSize);
+                logger.addVar("excessiveMutationThreshold", excessiveMutationThreshold);
+                logger.addVar("unstabilityThreshold", unstabilityThreshold);
+                logger.addVar("asynchronous", async);
+                logger.addVar("minTransformAmount", minTransformAmount);
+                logger.addVar("maxTransformAmount", maxTransformAmount);
+            }
+            logger.endObject(); //ends settings
         }
     };
 

@@ -46,22 +46,31 @@ namespace GC {
      * @param settings
      */
     void EvolutionaryFileCompressor::generateCompressionData(const EvoComSettings& settings, Logger& logger) {
-        logger.beginObject("Settings");
         settings.log(logger);
-        size_t originalFileSize = getFileSize(settings.inputFile);
-        std::string outputFile = settings.inputFile+".gac";
+        logger.beginList("parsingOfFiles");
+        auto parseFile = [&](const FileName& file) {
+            LOG("Processing", file);
+            processSingleFileForCompressionDataCollection(file, settings, logger);
+        };
+
+        std::for_each(settings.testSet.begin(), settings.testSet.end(), parseFile);
+        logger.endList(); //ends parsing of file
+    }
+
+    void EvolutionaryFileCompressor::processSingleFileForCompressionDataCollection(
+            const EvolutionaryFileCompressor::FileName &file, const EvoComSettings &settings, Logger &logger) {
+        logger.beginUnnamedObject();
+        logger.addVar("fileName", file);
+        size_t originalFileSize = getFileSize(file);
         logger.addVar("originalFileSize", originalFileSize);
-        logger.endObject();
 
+        if (originalFileSize <= 2) {logger.addVar("Error_FileTooSmall", true); logger.endObject(); return;}
 
-        if (originalFileSize <= 2) {logger.addVar("Error_FileTooSmall", true); return;}
-
-        std::ifstream inStream(settings.inputFile);
+        std::ifstream inStream(file);
         FileBitReader reader(inStream);
 
         BitCounter writer;
-
-        if (!inStream ) {logger.addVar("Error_FileUnopenable", true); return;}
+        if (!inStream ) {logger.addVar("Error_FileUnopenable", true);  logger.endObject(); return;}
 
         //ignores async settings
         compressToStreamsSequentially_DataCollection(reader, writer, originalFileSize, settings, logger);
@@ -376,6 +385,8 @@ namespace GC {
         clusterer.pushItem(readBlock(remaining, reader));
         clusterer.finish();
     }
+
+
 
 
 } // GC
