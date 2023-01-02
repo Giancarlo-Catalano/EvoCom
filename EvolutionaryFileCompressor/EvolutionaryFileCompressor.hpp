@@ -16,6 +16,7 @@
 #include "../AbstractBit/AbstractBitReader/AbstractBitReader.hpp"
 #include "EvoCompressorSettings/EvoComSettings.hpp"
 #include "../Evolver/Evolver.hpp"
+#include "../Evolver/Evaluator/BitCounter/BitCounter.hpp"
 
 namespace GC {
 
@@ -50,7 +51,7 @@ namespace GC {
 
         static void applyCompressionCode(const CompressionCode &cc, const Block &block, AbstractBitWriter& writer);
 
-        static void compressBlockUsingRecipe_DataCollection(const Individual &individual, const Block &block, AbstractBitWriter& writer, Logger& logger);
+        static size_t compressBlockUsingRecipe_DataCollection(const Individual &individual, const Block &block, GC::BitCounter &writer, Logger& logger);
         static void compressBlockUsingRecipe(const Individual &individual, const Block &block, AbstractBitWriter& writer);
 
         static void encodeIndividual(const Individual &individual, AbstractBitWriter& writer);
@@ -94,9 +95,9 @@ namespace GC {
         static void compressToStreamsAsync(AbstractBitReader &reader, AbstractBitWriter &writer, const size_t originalFileSize,
                                            const EvoComSettings &settings);
 
-        static void compressToStreamsSequentially_DataCollection(AbstractBitReader &reader, AbstractBitWriter &writer,
-                                                          const size_t originalFileSize, const EvoComSettings &settings,
-                                                          Logger &logger);
+        static void compressToStreamsSequentially_DataCollection(AbstractBitReader &reader, BitCounter &writer,
+                                                                 const size_t originalFileSize, const EvoComSettings &settings,
+                                                                 Logger &logger);
 
     };
 

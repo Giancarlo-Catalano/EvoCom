@@ -95,7 +95,7 @@ namespace GC {
     }
 
     void EvolutionaryFileCompressor::compressToStreamsSequentially_DataCollection(AbstractBitReader &reader,
-                                                                                  AbstractBitWriter &writer,
+                                                                                  BitCounter &writer,
                                                                                   const size_t originalFileSize,
                                                                                   const EvoComSettings &settings,
                                                                                   Logger &logger) {
@@ -206,37 +206,46 @@ namespace GC {
         applyCompressionCode(individual.cCode, toBeProcessed, writer);
     }
 
-    void logOperation(const TCode tCode, Logger& logger) {
-        logger.addVar("Transform", Individual::TCode_as_string(tCode));
-    }
-
-    void logOperation(const CCode cCode, Logger& logger) {
-        logger.addVar("Compression", Individual::CCode_as_string(cCode));
-    }
-
-    template <class TorC>
-    void logBlockAndOperation(const Block& block, const TorC operation, Logger& logger) {
+    void logBlockAndTransform(const Block& block, const TCode operation, Logger& logger) {
         logger.beginUnnamedObject();
         BlockReport report(block);
         report.log(logger);
-        logOperation(operation, logger);
-        logger.endObject();  //ends ReportWithTransform
+        logger.addVar("Transform", Individual::TCode_as_string(operation));
+        logger.endObject();
+    }
+
+    void logBlockAndCompression(const Block& block, const CCode operation, const size_t compressedSize, Logger& logger) {
+        logger.beginObject("FinalCompression");
+        BlockReport report(block);
+        report.log(logger);
+        logger.addVar("Compression", Individual::CCode_as_string(operation));
+        logger.addVar("FinalSize", compressedSize);
+        logger.endObject();
     }
 
 
-    void EvolutionaryFileCompressor::compressBlockUsingRecipe_DataCollection(const Individual &individual, const Block &block, AbstractBitWriter& writer, Logger& logger) {
+    size_t EvolutionaryFileCompressor::compressBlockUsingRecipe_DataCollection(const Individual &individual, const Block &block, BitCounter &writer, Logger& logger) {
         ////LOG("Applying individual ", individual.to_string());
-        logger.beginUnnamedList();
+        const size_t writtenBefore = writer.getAmountOfBits();
+        logger.beginUnnamedObject();
+        logger.beginObject("StartingState");
+        BlockReport initialReport(block);
+        initialReport.log(logger);
+        logger.endObject();//ends StartingState
+        logger.beginList("IntermediateStates");
 
         Block toBeProcessed = block;
         for (auto tCode : individual.tList) {
-            logBlockAndOperation(block, tCode, logger);
+            logBlockAndTransform(block, tCode, logger);
             applyTransformCode(tCode, toBeProcessed);
         }
-        logBlockAndOperation(block, individual.cCode, logger);
+        logger.endList(); //ends IntermediateStates
         applyCompressionCode(individual.cCode, toBeProcessed, writer);
 
-        logger.endList();
+        const size_t writtenAfter = writer.getAmountOfBits();
+        const size_t sizeOfCompressed = writtenAfter-writtenBefore;
+        logBlockAndCompression(toBeProcessed, individual.cCode, sizeOfCompressed, logger);
+        logger.endObject();
     }
 
 

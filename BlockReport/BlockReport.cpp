@@ -13,8 +13,6 @@
 namespace GC {
 #define ASSERT_BLOCK_NOT_EMPTY() ASSERT_NOT_EMPTY(block)
 
-    //I'm gutting this!!!
-
     BlockReport::BlockReport(const Block &block):
             size(block.size()),
             unitFeatures(block),
