@@ -6,3 +6,9 @@ FetchContent_Declare(Catch2
         GIT_TAG v2.13.3)
 
 FetchContent_MakeAvailable(Catch2)
+
+
+FetchContent_Declare(JSON
+        GIT_REPOSITORY https://github.com/nlohmann/json.git)
+
+FETCHCONTENT_MAKEAVAILABLE(JSON)
