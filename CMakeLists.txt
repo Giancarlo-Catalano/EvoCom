@@ -16,7 +16,7 @@ add_subdirectory(StatisticalFeatures)
 add_subdirectory(Compression)
 add_subdirectory(HuffmanCoder)
 add_subdirectory(EvolutionaryFileCompressor)
-add_subdirectory(DecisionTree)
+#add_subdirectory(DecisionTree)
 
 add_subdirectory(Random)
 add_subdirectory(Evolver)
