@@ -92,7 +92,7 @@ namespace GC {
 
             while (index<block.size()) {
                 SubsegmentDescriptor descriptor = readStarter();
-                LOG("The descriptor is min=", ((int)descriptor.minimum), ", and the length=", ((int)descriptor.length));
+                //LOG("The descriptor is min=", ((int)descriptor.minimum), ", and the length=", ((int)descriptor.length));
                 processDescriptor(descriptor);
 
             }

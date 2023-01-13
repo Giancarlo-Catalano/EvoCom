@@ -61,7 +61,7 @@ namespace GC {
     }
 
     void EvolutionaryFileCompressor::undoTransformCode(const TransformCode& tc, Block& block) {
-        LOG("undoing transform", Individual::TCode_as_string(tc), ", size was", block.size());
+        //LOG("undoing transform", Individual::TCode_as_string(tc), ", size was", block.size());
 
 #define GC_UNDO_T_CASE(TRANS, ...) case T_##TRANS : TRANS(__VA_ARGS__).undo(block);break;
 #define GC_UNDO_T_STRIDE_CASE(NUM) case T_StrideTransform_##NUM : StrideTransform(NUM).undo(block);break;
@@ -81,7 +81,7 @@ namespace GC {
             GC_UNDO_T_CASE(BurrowsWheelerTransform);
             GC_UNDO_T_CASE(SubMinAdaptiveTransform);
         }
-        LOG("The new block size is", block.size());
+        //LOG("The new block size is", block.size());
     }
 
     Block EvolutionaryFileCompressor::undoCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, AbstractBitReader& reader) {

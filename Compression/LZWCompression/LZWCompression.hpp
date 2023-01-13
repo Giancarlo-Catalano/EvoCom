@@ -146,7 +146,7 @@ namespace GC {
 
         Block decompress(AbstractBitReader& reader) const {
             const size_t resultSize = reader.readSmallAmount();
-            LOG("the decompressed size of the block is", resultSize);
+            //LOG("the decompressed size of the block is", resultSize);
             return JP::decompress(resultSize, reader);
         }
 
