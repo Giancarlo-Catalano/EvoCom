@@ -57,8 +57,10 @@ namespace GC {
     } \
     THEN("The SubtractXORAverageTransform is inverted correctly") { \
         CHECK(isInvertedCorrectly(T_SubtractXORAverageTransform, input)); \
+    } \
+    THEN("The SubMinAdaptiveTransform is inverted correctly") { \
+        CHECK(isInvertedCorrectly(T_SubMinAdaptiveTransform, input)); \
     }
-
             WHEN("The input is a block of 2 bytes") {
                 const Unit firstValue = GENERATE(0, 1, 6, 128, 255);
                 const Unit secondValue = GENERATE(0, 1, 2, 200, 255);

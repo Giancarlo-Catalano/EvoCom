@@ -4,15 +4,18 @@
 #include "BlockReport/BlockReport.hpp"
 #include "Transformation/Transformations/BurrowsWheelerTransform.hpp"
 #include "Utilities/Logger/Logger.hpp"
+#include "Transformation/Transformations/SubMinAdaptiveTransform.hpp"
 
 #include <future>
+#include <optional>
 #include <queue>
+#include <iterator>
 
 
 int main(int argc, char**argv) {
 
 
-#if 1 //normal application behaviour
+#if 0 //normal application behaviour
     const std::string compressedExtension = "gac";
     using FileName = std::string;
     GC::EvoComSettings settings(argc, argv);
@@ -153,6 +156,28 @@ int main(int argc, char**argv) {
     for (const auto item: lines) {
         LOG("Item: ", item);
     }
+
+
+#endif
+
+#if 1 //testing MaxMin Transform
+
+    auto logBlock = [&](const Block& block) {
+        std::for_each(block.begin(), block.end(), [&](const Unit unit){ LOG_NONEWLINE((unsigned int)unit, ",");});
+        LOG("");
+    };
+
+    Block testBlock = {6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6};
+    Block result = GC::SubMinAdaptiveTransform().apply_copy(testBlock);
+    Block undone = GC::SubMinAdaptiveTransform().undo_copy(result);
+    LOG("the original is \n");
+    logBlock(testBlock);
+    LOG("the transformed is \n");
+    logBlock(result);
+    LOG("The undone is \n");
+    logBlock(undone);
+
+
 
 
 #endif

@@ -23,6 +23,7 @@
 #include "../Transformation/Transformations/LempelZivWelchTransform.hpp"
 #include "../Compression/LZWCompression/LZWCompression.hpp"
 #include "../Transformation/Transformations/BurrowsWheelerTransform.hpp"
+#include "../Transformation/Transformations/SubMinAdaptiveTransform.hpp"
 
 namespace GC {
     void EvolutionaryFileCompressor::applyCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, const Block &block, AbstractBitWriter& writer) {
@@ -54,6 +55,7 @@ namespace GC {
             GC_APPLY_T_CASE_X(IdentityTransform);
             GC_APPLY_T_CASE_X(LempelZivWelchTransform);
             GC_APPLY_T_CASE_X(BurrowsWheelerTransform);
+            GC_APPLY_T_CASE_X(SubMinAdaptiveTransform);
         }
 
     }
@@ -77,6 +79,7 @@ namespace GC {
             GC_UNDO_T_CASE(IdentityTransform);
             GC_UNDO_T_CASE(LempelZivWelchTransform);
             GC_UNDO_T_CASE(BurrowsWheelerTransform);
+            GC_UNDO_T_CASE(SubMinAdaptiveTransform);
         }
         LOG("The new block size is", block.size());
     }
