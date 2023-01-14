@@ -19,6 +19,10 @@ namespace GC {
 
 
     public:
+        StatisticalFeatures() {
+            //necessary for weird constructors
+        }
+
         S average, standardDeviation;
         S firstQuantile, median, thirdQuantile;
         S minimum, maximum;

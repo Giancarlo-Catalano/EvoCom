@@ -4,11 +4,11 @@
 
 #include "BlockReport.hpp"
 #include "../Utilities/Logger/Logger.hpp"
+#include <math.h>
 #include <cmath>
 #include <algorithm>
 #include <numeric>
 #include <bitset>
-#include <set>
 
 namespace GC {
 #define ASSERT_BLOCK_NOT_EMPTY() ASSERT_NOT_EMPTY(block)
@@ -17,10 +17,12 @@ namespace GC {
             size(block.size()),
             unitFeatures(block),
             deltaFeatures(getDeltaArray(block)),
-            frequencyFeatures(getFrequencyArray(block))
-
+            frequencyFeatures()
     {
         ASSERT_GREATER(block.size(), 1);
+        Frequencies frequencies = getFrequencyArray(block);
+        entropy = getEntropy(frequencies);
+        frequencyFeatures = StatisticalFeatures(frequencies);
     }
 
     void BlockReport::log(Logger& logger) const {
@@ -37,7 +39,8 @@ namespace GC {
         };
         logger.beginObject("BlockReport");
 
-        logger.addVar("Size", size);
+        logger.addVar("size", size);
+        logger.addVar("entropy", entropy);
         pushStats("unitFeatures", unitFeatures);
         pushStats("deltaFeatures", deltaFeatures);
         pushStats("frequencyFeatures", frequencyFeatures);
@@ -142,5 +145,12 @@ namespace GC {
 
 
 
+    }
+
+    double BlockReport::getEntropy(const BlockReport::Frequencies &frequencies) {
+        auto addToAcc = [&](const double acc, const double input) -> double {
+            return acc-(input!=0? std::log2(input)*input : 0);
+        };
+        return std::accumulate(frequencies.begin(), frequencies.end(), (double)0, addToAcc);
     }
 } // GC

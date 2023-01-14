@@ -35,6 +35,7 @@ namespace GC {
 
     public: //structs
         size_t size;
+        double entropy;
         StatisticalFeatures unitFeatures;
         StatisticalFeatures frequencyFeatures;
         StatisticalFeatures deltaFeatures;
@@ -44,13 +45,14 @@ namespace GC {
 
         static std::vector<int> getDeltaArray(const Block& block);
 
-
         static Unit getXorAverage(const Block &block);
 
         double distanceFrom(const BlockReport& other) const;
 
         //this is a rough distance metric, which only assumes that the blocks are non-empty
         static double differentialSampleDistance(const Block& A, const Block& B);
+
+        static double getEntropy(const Frequencies& frequencies);
 
     };
 } // GC

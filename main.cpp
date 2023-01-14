@@ -9,13 +9,14 @@
 #include <future>
 #include <optional>
 #include <queue>
+#include <numeric>
 #include <iterator>
 
 
 int main(int argc, char**argv) {
 
 
-#if 0 //normal application behaviour
+#if 1 //normal application behaviour
     const std::string compressedExtension = "gac";
     using FileName = std::string;
     GC::EvoComSettings settings(argc, argv);
@@ -160,8 +161,7 @@ int main(int argc, char**argv) {
 
 #endif
 
-#if 1 //testing MaxMin Transform
-
+#if 0 //testing MaxMin Transform
     auto logBlock = [&](const Block& block) {
         std::for_each(block.begin(), block.end(), [&](const Unit unit){ LOG_NONEWLINE((unsigned int)unit, ",");});
         LOG("");
@@ -176,9 +176,19 @@ int main(int argc, char**argv) {
     logBlock(result);
     LOG("The undone is \n");
     logBlock(undone);
+#endif
 
+#if 0 //testing the entropy
+    auto getEntropy = [&](const std::vector<double> &frequencies) -> double {
+        auto addToAcc = [](const double acc, const double input) -> double {
+            return acc-(input!=0? std::log2(input)*input : 0);
+        };
+        return std::accumulate(frequencies.begin(), frequencies.end(), (double)0.0, addToAcc);
+    };
 
-
+    std::vector<double> elems = {0, 0.5, 0.5};
+    double entropy = getEntropy(elems);
+    LOG("the entropy is ", entropy);
 
 #endif
 

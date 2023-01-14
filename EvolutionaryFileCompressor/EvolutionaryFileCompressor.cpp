@@ -59,7 +59,7 @@ namespace GC {
 
     void EvolutionaryFileCompressor::processSingleFileForCompressionDataCollection(
             const EvolutionaryFileCompressor::FileName &file, const EvoComSettings &settings, Logger &logger) {
-        logger.beginUnnamedObject();
+        logger.beginUnnamedObject(); //start compression data for file
         logger.addVar("fileName", file);
         size_t originalFileSize = getFileSize(file);
         logger.addVar("originalFileSize", originalFileSize);
@@ -76,6 +76,7 @@ namespace GC {
         compressToStreamsSequentially_DataCollection(reader, writer, originalFileSize, settings, logger);
 
         logger.addVar("FinalFileSize", writer.getAmountOfBytes());
+        logger.endObject(); // end  compression data for file
     }
 
 
