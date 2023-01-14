@@ -43,9 +43,7 @@ int main(int argc, char**argv) {
     }
     else if (settings.mode == GC::EvoComSettings::CompressionDataCollection) {
         GC::Logger logger;
-        size_t durationInMilliSeconds = timeFunction([&]() {
-            GC::EvolutionaryFileCompressor::generateCompressionData(settings, logger); });
-        logger.addVar("ExecutionTime", durationInMilliSeconds);
+        GC::EvolutionaryFileCompressor::generateCompressionData(settings, logger);
         LOG(logger.end());
     }
 

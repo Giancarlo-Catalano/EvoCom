@@ -50,7 +50,10 @@ namespace GC {
         logger.beginList("parsingOfFiles");
         auto parseFile = [&](const FileName& file) {
             LOG("Processing", file);
-            processSingleFileForCompressionDataCollection(file, settings, logger);
+            logger.beginUnnamedObject();
+            double timeInMilliseconds = timeFunction([&](){ processSingleFileForCompressionDataCollection(file, settings, logger);});
+            logger.addVar("timeForFile", timeInMilliseconds);
+            logger.endObject();
         };
 
         std::for_each(settings.testSet.begin(), settings.testSet.end(), parseFile);
@@ -59,7 +62,6 @@ namespace GC {
 
     void EvolutionaryFileCompressor::processSingleFileForCompressionDataCollection(
             const EvolutionaryFileCompressor::FileName &file, const EvoComSettings &settings, Logger &logger) {
-        logger.beginUnnamedObject(); //start compression data for file
         logger.addVar("fileName", file);
         size_t originalFileSize = getFileSize(file);
         logger.addVar("originalFileSize", originalFileSize);
@@ -76,7 +78,6 @@ namespace GC {
         compressToStreamsSequentially_DataCollection(reader, writer, originalFileSize, settings, logger);
 
         logger.addVar("FinalFileSize", writer.getAmountOfBytes());
-        logger.endObject(); // end  compression data for file
     }
 
 
