@@ -5,6 +5,7 @@
 #include "Transformation/Transformations/BurrowsWheelerTransform.hpp"
 #include "Utilities/Logger/Logger.hpp"
 #include "Transformation/Transformations/SubMinAdaptiveTransform.hpp"
+#include "Compression/ANSCompression/ANSCompression.hpp"
 
 #include <future>
 #include <optional>
@@ -16,7 +17,7 @@
 int main(int argc, char**argv) {
 
 
-#if 1 //normal application behaviour
+#if 0 //normal application behaviour
     const std::string compressedExtension = "gac";
     using FileName = std::string;
     GC::EvoComSettings settings(argc, argv);
@@ -138,7 +139,6 @@ int main(int argc, char**argv) {
 #endif
 
 #if 0 //trying to read from a file
-
     std::ifstream inputFile("../SampleFiles/lines.txt");
     if (!inputFile)  {
         LOG("There was an error opening the file");
@@ -155,8 +155,6 @@ int main(int argc, char**argv) {
     for (const auto item: lines) {
         LOG("Item: ", item);
     }
-
-
 #endif
 
 #if 0 //testing MaxMin Transform
@@ -187,6 +185,28 @@ int main(int argc, char**argv) {
     std::vector<double> elems = {0, 0.5, 0.5};
     double entropy = getEntropy(elems);
     LOG("the entropy is ", entropy);
+#endif
+
+#if 1 //testing the ANS encoder
+    auto logBlock = [&](const Block& block) {
+        std::for_each(block.begin(), block.end(), [&](const Unit unit){ LOG_NONEWLINE((unsigned int)unit, ",");});
+        LOG("");
+    };
+
+    auto logBoolVec = [&](const std::vector<bool>& boolvec) {
+        std::for_each(boolvec.begin(), boolvec.end(), [&](const bool b) { LOG_NONEWLINE(b, " ");});
+        LOG("");
+    };
+
+    Block testBlock = {0, 0, 2, 2, 2, 2, 2,2, 3, 2, 3, 3, 3, 3,3, 5, 3, 5, 2, 5, 2, 5, 2, 5, 2, 5, 2, 5, 2, 5, 2, 5, 3, 5, 2, 5, 3, 5, 3, 5, 6, 3, 5, 2, 2, 2, 2, 2, 2, 4, 1, 2, 2, 2, 1, 3, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5};
+
+    GC::VectorBitWriter writer;
+    GC::ANSCompression().compress(testBlock, writer);
+    std::vector<bool> result = writer.getVectorOfBits();
+
+    LOG("the compressed bool vector is ");
+    logBoolVec(result);
+    LOG("it has length", result.size());
 
 #endif
 

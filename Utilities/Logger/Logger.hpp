@@ -143,6 +143,26 @@ namespace GC {
             return ss.str();
         }
 
+        template <class Collection>
+        void addNamedListFromCollection(const std::string& varName, const Collection& collection) {
+            beginList(varName);
+            std::for_each(collection.begin(), collection.end(), [&](auto item) {
+                addListItem(item);
+            });
+            endList();
+        }
+
+        template <class Collection>
+        void addNamedListFromCollection(const std::string& varName, const Collection& collection, const size_t howMany) {
+            const size_t actualItemCount = std::min(collection.size(), howMany);
+            beginList(varName);
+            for (int i=0;i<actualItemCount;i++) {
+                addListItem(collection[i]);
+            }
+            endList();
+        }
+
+
 
     };
 
