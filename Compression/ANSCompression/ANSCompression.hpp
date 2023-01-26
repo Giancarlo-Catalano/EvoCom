@@ -62,11 +62,16 @@ namespace GC {
                         exponentOfDenominator++; //panic and increase the available range
                     }
                 };
+
                 const size_t occupied = std::accumulate(frequencies.begin(), frequencies.end(), 0);
                 const size_t available = 1ULL<<exponentOfDenominator;
+
+                auto getMinimumFittingExponent = [&]() {
+                    return ceil_log2(occupied);
+                };
+
                 if (occupied > available) {
-                    const size_t toRemove = occupied - available;
-                    repeat(toRemove, decreaseFrequency);
+                    exponentOfDenominator = getMinimumFittingExponent();
                 }
             }
 
@@ -87,7 +92,11 @@ namespace GC {
                     writer.writeSmallAmount(freq);
                     lastUnit = which;
                 };
+                auto encodeExponent = [&]() {
+                    writer.writeSmallAmount(exponentOfDenominator);
+                };
 
+                encodeExponent();
                 for (size_t i=0;i<256;i++)
                     encodeFrequency(i, frequencies[i]);
                 writer.writeSmallAmount(256-lastUnit);
@@ -95,6 +104,10 @@ namespace GC {
 
             QuantizedFrequencies(AbstractBitReader& reader) :
                 frequencies{0}{
+
+                exponentOfDenominator = reader.readSmallAmount();
+                LOG("Read that the exponent is ", exponentOfDenominator);
+
                 size_t lastUnit = 0;
                 auto addFrequency = [&]() -> bool{
                     const size_t deltaFromLast = reader.readSmallAmount();
@@ -186,6 +199,7 @@ namespace GC {
              * @return
              */
             void renormalizeAndEmit(AbstractBitWriter &writer) {
+                ASSERT(exponentOfDenominator<32);
                 auto renormalizeOnce = [&]() -> bool {
                     LOG("\t called renormalise on ", to_string());
                     if (isContainedByLeftSide()) {
@@ -391,7 +405,7 @@ namespace GC {
                 LOG("After renormalising, the current range is ", currentRange.to_string());
                 LOG("Before adding a new symbol, the range is", currentRange.to_string_double());
 
-                const size_t worstCaseNextDenominator = currentRange.exponentOfDenominator*2+rangeExponent;
+                const size_t worstCaseNextDenominator = currentRange.exponentOfDenominator*2+cqf.exponentOfDenominator;
                 if (worstCaseNextDenominator >= 32) {
                     LOG("Reached the limit, flushing");
                     currentRange.emitApproximatedRange(writer);
@@ -480,9 +494,9 @@ namespace GC {
 
                 const Unit symbol = nextSymbol.value();
                 LOG("The symbol is", (int) symbol);
-                dummyEncoder.addSymbol(symbol);
+                //dummyEncoder.addSymbol(symbol);
                 currentRange.applySubRange(dummyEncoder.getRangeOfSymbol(symbol));
-                if (dummyEncoder.justFlushed) {resetState();};
+                if (currentRange.exponentOfDenominator*2+dummyEncoder.cqf.exponentOfDenominator) {LOG("FLUSHED!");resetState();};
 
                 return symbol;
             }
@@ -540,6 +554,7 @@ namespace GC {
 
             LOG("Starting to decode");
             repeat(amountOfSymbols, [&](){result.push_back(decoder.getSymbol());});
+            return result;
         }
 
 

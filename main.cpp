@@ -14,11 +14,28 @@
 #include <numeric>
 #include <iterator>
 
+namespace GC {
+    Block applyAndUndoCompression(const CCode ccode, const Block &input) {
+        VectorBitWriter writer;
+        EvolutionaryFileCompressor::applyCompressionCode(ccode, input, writer);
+        const std::vector<bool> compressed = writer.getVectorOfBits();
+
+        VectorBitReader reader(compressed);
+        const Block undone = EvolutionaryFileCompressor::undoCompressionCode(ccode, reader);
+        return undone;
+    }
+    bool isInvertedCorrectly(const CCode ccode, const Block& input) {
+        LOG("The input is ", (int)input[0], " ", (int)input[1]);
+        Block undone = applyAndUndoCompression(ccode, input);
+        LOG("The output is ", (int)undone[0], " ", (int)undone[1]);
+        return input == applyAndUndoCompression(ccode, input);
+    }
+}
 
 int main(int argc, char**argv) {
 
 
-#if 0 //normal application behaviour
+#if 1 //normal application behaviour
     const std::string compressedExtension = "gac";
     using FileName = std::string;
     GC::EvoComSettings settings(argc, argv);
@@ -188,7 +205,7 @@ int main(int argc, char**argv) {
     LOG("the entropy is ", entropy);
 #endif
 
-#if 1 //testing the ANS encoder
+#if 0 //testing the ANS encoder
     auto logBlock = [&](const Block& block) {
         std::for_each(block.begin(), block.end(), [&](const Unit unit){ LOG_NONEWLINE((unsigned int)unit, ",");});
         LOG("");
@@ -199,21 +216,16 @@ int main(int argc, char**argv) {
         LOG("");
     };
 
-    Block testBlock = {0, 1, 2, 3, 4};
+    Block testBlock;
+    for (int i=0;i<256;i++) {
+        testBlock.push_back(i);
+    }
+    Block decoded = applyAndUndoCompression(GC::C_ANSCompression, testBlock);
 
-    GC::VectorBitWriter writer;
-    GC::ANSCompression().compress(testBlock, writer);
-    std::vector<bool> result = writer.getVectorOfBits();
+    LOG("The decoded result is", containerToString(decoded));
 
-    LOG("the compressed bool vector is ");
-    logBoolVec(result);
-    LOG("it has length", result.size());
-
-    LOG("----------DECODING");
-    GC::VectorBitReader reader(result);
-    Block decoded = GC::ANSCompression().decompress(reader);
-
-    LOG("The decoded result is", containerToString(testBlock));
+    bool invertible = GC::isInvertedCorrectly(GC::C_ANSCompression, testBlock);
+    LOG("Inverted:", invertible);
 
 #endif
 

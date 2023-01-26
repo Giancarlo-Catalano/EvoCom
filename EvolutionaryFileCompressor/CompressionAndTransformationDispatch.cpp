@@ -10,6 +10,7 @@
 #include "../Transformation/Transformations/RunLengthTransform.hpp"
 #include "../Compression/HuffmanCompression/HuffmanCompression.hpp"
 #include "../Compression/IdentityCompression/IdentityCompression.hpp"
+#include "../Compression/ANSCompression/ANSCompression.hpp"
 
 #include "../Transformation/Transformations/SplitTransform.hpp"
 #include "../Transformation/Transformations/SubtractAverageTransform.hpp"
@@ -28,12 +29,11 @@
 namespace GC {
     void EvolutionaryFileCompressor::applyCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, const Block &block, AbstractBitWriter& writer) {
         switch (cc) {
-            case C_IdentityCompression: return IdentityCompression().compress(block, writer);
-            case C_HuffmanCompression: return HuffmanCompression().compress(block, writer);
-            case C_RunLengthCompression: return NRLCompression().compress(block, writer);
-            case C_SmallValueCompression: return SmallValueCompression().compress(block, writer);
-            case C_LZWCompression: return LZWCompression().compress(block, writer);
-
+            case C_IdentityCompression:     return IdentityCompression().compress(block, writer);
+            case C_HuffmanCompression:      return HuffmanCompression().compress(block, writer);
+            case C_RunLengthCompression:    return NRLCompression().compress(block, writer);
+            case C_SmallValueCompression:   return SmallValueCompression().compress(block, writer);
+            case C_LZWCompression:          return LZWCompression().compress(block, writer);
         }
     }
 
@@ -86,11 +86,11 @@ namespace GC {
 
     Block EvolutionaryFileCompressor::undoCompressionCode(const EvolutionaryFileCompressor::CompressionCode &cc, AbstractBitReader& reader) {
         switch (cc) {
-            case C_IdentityCompression: return IdentityCompression().decompress(reader);
-            case C_HuffmanCompression: return HuffmanCompression().decompress(reader);
-            case C_RunLengthCompression: return NRLCompression().decompress(reader);
-            case C_SmallValueCompression: return SmallValueCompression().decompress(reader);
-            case C_LZWCompression: return LZWCompression().decompress(reader);
+            case C_IdentityCompression:     return IdentityCompression().decompress(reader);
+            case C_HuffmanCompression:      return HuffmanCompression().decompress(reader);
+            case C_RunLengthCompression:    return NRLCompression().decompress(reader);
+            case C_SmallValueCompression:   return SmallValueCompression().decompress(reader);
+            case C_LZWCompression:          return LZWCompression().decompress(reader);
         }
     }
 }

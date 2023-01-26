@@ -20,7 +20,7 @@ namespace GC {
             "HUFFM",
             "RLCOM",
             "SMLVL",
-            "LZWCM"
+            "LZWCM",
     };
 
     const std::vector<CCode> availableCCodes = {C_IdentityCompression, C_HuffmanCompression, C_RunLengthCompression, C_SmallValueCompression, C_LZWCompression};
