@@ -6,6 +6,7 @@
 #include "Utilities/Logger/Logger.hpp"
 #include "Transformation/Transformations/SubMinAdaptiveTransform.hpp"
 #include "Compression/ANSCompression/ANSCompression.hpp"
+#include "AbstractBit/VectorBitReader/VectorBitReader.hpp"
 
 #include <future>
 #include <optional>
@@ -198,7 +199,7 @@ int main(int argc, char**argv) {
         LOG("");
     };
 
-    Block testBlock = {0, 0, 2, 2, 2, 2, 2,2, 3, 2, 3, 3, 3, 3,3, 5, 3, 5, 2, 5, 2, 5, 2, 5, 2, 5, 2, 5, 2, 5, 2, 5, 3, 5, 2, 5, 3, 5, 3, 5, 6, 3, 5, 2, 2, 2, 2, 2, 2, 4, 1, 2, 2, 2, 1, 3, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5};
+    Block testBlock = {0, 1, 2, 3, 4};
 
     GC::VectorBitWriter writer;
     GC::ANSCompression().compress(testBlock, writer);
@@ -207,6 +208,12 @@ int main(int argc, char**argv) {
     LOG("the compressed bool vector is ");
     logBoolVec(result);
     LOG("it has length", result.size());
+
+    LOG("----------DECODING");
+    GC::VectorBitReader reader(result);
+    Block decoded = GC::ANSCompression().decompress(reader);
+
+    LOG("The decoded result is", containerToString(testBlock));
 
 #endif
 

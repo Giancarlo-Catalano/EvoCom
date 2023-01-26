@@ -8,6 +8,7 @@
 #include "../Compression.hpp"
 #include "../../Utilities/utilities.hpp"
 #include "../../AbstractBit/AbstractBitWriter/AbstractBitWriter.hpp"
+#include "../../Evolver/Evaluator/BitCounter/BitCounter.hpp"
 #include "../../BlockReport/BlockReport.hpp"
 
 namespace GC {
@@ -38,7 +39,7 @@ namespace GC {
 
 
             QuantizedFrequencies(const Frequencies& freqs) {
-                exponentOfDenominator = rangeExponent; //i chose this arbtrarly
+                exponentOfDenominator = rangeExponent; //i chose this arbitrarly
                 LOG("it will use denominator ", exponentOfDenominator);
                 const size_t denominator = 1ULL<<exponentOfDenominator;
                 auto scaleByDenominator = [&](const double frequency) -> size_t {
@@ -76,19 +77,12 @@ namespace GC {
                 return logger.end();
             }
 
-            void encodeIntoWriter2(AbstractBitWriter& writer) const {
-                auto encodeFrequency = [&](const size_t freq){
-                    writer.writeAmountOfBits(freq, exponentOfDenominator);
-                };
-                writer.writeSmallAmount(exponentOfDenominator);
-                std::for_each(frequencies.begin(), frequencies.end(), encodeFrequency);
-            }
-
             void encodeIntoWriter(AbstractBitWriter& writer) const {
-                Unit lastUnit = 0;
+                size_t lastUnit = 0;
                 auto encodeFrequency = [&](const Unit which, const size_t freq) {
                     if (freq == 0) return;
                     const size_t diff_from_last_unit = which-lastUnit;
+                    LOG("Writing the difference", diff_from_last_unit);
                     writer.writeSmallAmount(diff_from_last_unit);
                     writer.writeSmallAmount(freq);
                     lastUnit = which;
@@ -97,6 +91,23 @@ namespace GC {
                 for (size_t i=0;i<256;i++)
                     encodeFrequency(i, frequencies[i]);
                 writer.writeSmallAmount(256-lastUnit);
+            }
+
+            QuantizedFrequencies(AbstractBitReader& reader) :
+                frequencies{0}{
+                size_t lastUnit = 0;
+                auto addFrequency = [&]() -> bool{
+                    const size_t deltaFromLast = reader.readSmallAmount();
+                    lastUnit+=deltaFromLast;
+                    LOG("Read that the delta is ", deltaFromLast, "and the lastUnit is now", (int)lastUnit);
+                    if (lastUnit > 255) return false;
+                    const size_t freq = reader.readSmallAmount(); //note that it only reads this if it's not the last freq
+                    frequencies[lastUnit] = freq;
+                    LOG("read that the frequency is", freq);
+                    return true;
+                };
+
+                while (addFrequency()){};
             }
         };
 
@@ -124,200 +135,225 @@ namespace GC {
 
         };
 
-        struct RangeEncoder {
-            //types
+        struct StateRange {
+            size_t startNumerator;
+            size_t endNumerator;
+            size_t exponentOfDenominator;
 
-            struct StateRange {
-                size_t startNumerator;
-                size_t endNumerator;
-                size_t exponentOfDenominator;
+            StateRange(const size_t startNumerator, const size_t endNumerator, const size_t exponentOfDenominator) :
+                    startNumerator(startNumerator),
+                    endNumerator(endNumerator),
+                    exponentOfDenominator(exponentOfDenominator)
+            {
 
-                StateRange(const size_t startNumerator, const size_t endNumerator, const size_t exponentOfDenominator) :
-                startNumerator(startNumerator),
-                endNumerator(endNumerator),
-                exponentOfDenominator(exponentOfDenominator)
-                {
+            }
 
-                }
-
-                StateRange():  //sets it to [0, 1)
+            StateRange():  //sets it to [0, 1)
                     startNumerator(0),
                     endNumerator(1),
                     exponentOfDenominator(0){
 
-                }
+            }
 
-                bool isContainedByLeftSide() const {  //assumes end >= start
-                    if (exponentOfDenominator == 0) return false;
-                    return endNumerator <= (1<<(exponentOfDenominator-1));
-                }
+            bool isContainedByLeftSide() const {  //assumes end >= start
+                if (exponentOfDenominator == 0) return false;
+                return endNumerator <= (1<<(exponentOfDenominator-1));
+            }
 
-                bool isContainedByRightSide() const { //assumes end >= start
-                    if (exponentOfDenominator == 0) return false;
-                    return startNumerator >= (1<<(exponentOfDenominator-1));
-                }
+            bool isContainedByRightSide() const { //assumes end >= start
+                if (exponentOfDenominator == 0) return false;
+                return startNumerator >= (1<<(exponentOfDenominator-1));
+            }
 
-                void expandToRight() {
-                    LOG("Expanding right, the denExp is", exponentOfDenominator);
-                    ASSERT(exponentOfDenominator > 0);
-                    exponentOfDenominator --;
-                }
+            void expandToRight() {
+                LOG("Expanding right, the denExp is", exponentOfDenominator);
+                ASSERT(exponentOfDenominator > 0);
+                exponentOfDenominator --;
+            }
 
-                void expandToLeft() {
-                    LOG("Expanding left, the denExp is", exponentOfDenominator);
-                    ASSERT(exponentOfDenominator > 0);
-                    exponentOfDenominator--;
-                    const size_t numeratorOfOne = 1ULL<<exponentOfDenominator;
-                    startNumerator -= numeratorOfOne;
-                    endNumerator -= numeratorOfOne;
-                }
+            void expandToLeft() {
+                LOG("Expanding left, the denExp is", exponentOfDenominator);
+                ASSERT(exponentOfDenominator > 0);
+                exponentOfDenominator--;
+                const size_t numeratorOfOne = 1ULL<<exponentOfDenominator;
+                startNumerator -= numeratorOfOne;
+                endNumerator -= numeratorOfOne;
+            }
 
-                /**
-                 * Checks if the range can be renormalised, and if so the normalisation gets emitted into the writer
-                 * @param writer where to emit the renorm, 0 if on left side, 1 on right side
-                 * @return
-                 */
-                void renormalizeAndEmit(AbstractBitWriter &writer) {
-                    auto renormalizeOnce = [&]() -> bool {
-                        LOG("\t called renormalise on ", to_string());
-                        if (isContainedByLeftSide()) {
-                            LOG("\t contained in the left side");
-                            writer.pushBit(0);
-                            expandToRight();
-                            return true;
-                        } else if (isContainedByRightSide()) {
-                            LOG("\t contained in the right side");
-                            writer.pushBit(1);
-                            expandToLeft();
-                            return true;
-                        }
-                        LOG("\t contained in neither side");
-                        return false;
-                    };
-
-
-                    while (renormalizeOnce()){};
-                    simplifyFraction();
-
-                }
-
-                void adaptToDenominator(const size_t newDenomExponent) { //assumes newDecomExponent >= exponentOfDenominator
-                    ASSERT(newDenomExponent >= exponentOfDenominator);
-                    const size_t differenceInExp = newDenomExponent - exponentOfDenominator;
-                    const size_t ratio = 1ULL << differenceInExp;
-                    startNumerator *= ratio;
-                    endNumerator *= ratio;
-                    exponentOfDenominator = newDenomExponent;    //technically it should be exponentOfDenominator += differenceInExp
-                }
-
-                void multiply(const size_t other_numerator, const size_t other_exponentOfDenominator) {
-                    startNumerator*=other_numerator;
-                    endNumerator*=other_numerator;
-
-                    exponentOfDenominator += other_exponentOfDenominator;
-                }
-
-                void putOnSameDenominator(StateRange& other) {
-                    const size_t exponentOfLCD = std::max(other.exponentOfDenominator, exponentOfDenominator);
-                    adaptToDenominator(exponentOfLCD);
-                    other.adaptToDenominator(exponentOfLCD);
-                }
-
-                void applySubRange(const StateRange& symbolRange) {
-                    //the range length is represented by (endNumerator-startNumerator)/2^(exponentOfDenominator)
-                    const size_t numeratorOfLength = endNumerator-startNumerator;
-                    const size_t denominatorOfLength = exponentOfDenominator;
-                    StateRange temp_other = symbolRange;
-                    temp_other.multiply(numeratorOfLength, denominatorOfLength);
-                    putOnSameDenominator(temp_other);
-                    const size_t startBefore = startNumerator;
-                    startNumerator = startBefore + temp_other.startNumerator;
-                    endNumerator = startBefore + temp_other.endNumerator;
-                }
-
-                size_t getDenominator() const {
-                    return 1ULL << exponentOfDenominator;
-                }
-
-                bool isRangeFromZeroToOne() {
-                    auto isStartAtZero = [&]() {return startNumerator == 0;};
-                    auto isEndAtOne = [&]() {return endNumerator == getDenominator();};
-                    return isStartAtZero() && isEndAtOne();
-                }
-
-                bool isMostlyOnLeftSide() { //assumes that it's not contained completely on the left or the right
-                    if (isRangeFromZeroToOne())
+            /**
+             * Checks if the range can be renormalised, and if so the normalisation gets emitted into the writer
+             * @param writer where to emit the renorm, 0 if on left side, 1 on right side
+             * @return
+             */
+            void renormalizeAndEmit(AbstractBitWriter &writer) {
+                auto renormalizeOnce = [&]() -> bool {
+                    LOG("\t called renormalise on ", to_string());
+                    if (isContainedByLeftSide()) {
+                        LOG("\t contained in the left side");
+                        writer.pushBit(0);
+                        expandToRight();
                         return true;
-                    const size_t numeratorOfHalf = getDenominator()>>1;
-                    const size_t distanceFromStartToHalf = numeratorOfHalf-startNumerator;
-                    const size_t distanceFromHalfToEnd = endNumerator - numeratorOfHalf;
-
-                    return distanceFromStartToHalf >= distanceFromHalfToEnd;
-                }
-
-                void setStartToZero() {
-                    startNumerator = 0;
-                }
-
-                void setEndToOne() {
-                    endNumerator = getDenominator();
-                }
-
-                void emitApproximatedRange(AbstractBitWriter& writer) {
-                    LOG("Called emitApproximatedRange");
-                    while (!isRangeFromZeroToOne()) {
-                        renormalizeAndEmit(writer);
-                        LOG("range is still not [0,1]");
-                        //should be normalised already
-                        if (isMostlyOnLeftSide()) {
-                            LOG("the range is mostly on the left side");
-                            expandToRight();
-                            setEndToOne();
-                            writer.pushBit(0);
-                        } else { //has to be on the right side
-                            LOG("the range is mostly on the right side");
-                            expandToLeft();
-                            setStartToZero();
-                            writer.pushBit(1);
-                        }
-                        LOG("the range is now ", to_string());
-                        //renormalizeAndEmit(writer);
+                    } else if (isContainedByRightSide()) {
+                        LOG("\t contained in the right side");
+                        writer.pushBit(1);
+                        expandToLeft();
+                        return true;
                     }
-                }
+                    LOG("\t contained in neither side");
+                    return false;
+                };
 
-                std::string to_string() const {
-                    Logger logger;
-                    logger.addVar("startNum", startNumerator);
-                    logger.addVar("endNum", endNumerator);
-                    logger.addVar("denExp", exponentOfDenominator);
-                    return logger.end();
-                }
 
-                std::string to_string_double() const {
-                    Logger logger;
-                    double start = (double)startNumerator/(double)getDenominator();
-                    double end = (double)endNumerator/(double)getDenominator();
-                    logger.addVar("start", start);
-                    logger.addVar("end", end);
-                    return logger.end();
-                }
-                bool simplifyFraction() {
-                    LOG("Simplifying");
-                    auto isEven = [](const size_t x){return x%2==0;};
-                    auto reduceFraction = [&](){
-                        startNumerator/=2;
-                        endNumerator/=2;
-                        exponentOfDenominator--;
-                    };
+                while (renormalizeOnce()){};
+                simplifyFraction();
 
-                    auto isReducible = [&](){
-                        return isEven(startNumerator) && isEven(endNumerator)
-                               && (!(startNumerator==0 && endNumerator==0)) && (exponentOfDenominator != 0);
-                    };
-                    while (isReducible()){ reduceFraction(); }
-                }
-            };
+            }
 
+            void halfLengthLeft(){ //assumes that it's not contained by either side
+                adaptToDenominator(exponentOfDenominator+1);
+                const size_t middleNumerator = (startNumerator+endNumerator)/2;
+                endNumerator = middleNumerator;
+
+            }
+
+            void halfLengthRight() {
+                adaptToDenominator(exponentOfDenominator+1);
+                const size_t middleNumerator = (startNumerator+endNumerator)/2;
+                startNumerator = middleNumerator;
+            }
+
+            void intersectWith(const StateRange& other) { //assumes there is an intersection
+                StateRange tempOther = other;
+                putOnSameDenominator(tempOther);
+                startNumerator = std::max(startNumerator, other.startNumerator);
+                endNumerator = std::min(endNumerator, other.endNumerator);
+            }
+
+            void adaptToDenominator(const size_t newDenomExponent) { //assumes newDecomExponent >= exponentOfDenominator
+                ASSERT(newDenomExponent >= exponentOfDenominator);
+                const size_t differenceInExp = newDenomExponent - exponentOfDenominator;
+                const size_t ratio = 1ULL << differenceInExp;
+                startNumerator *= ratio;
+                endNumerator *= ratio;
+                exponentOfDenominator = newDenomExponent;    //technically it should be exponentOfDenominator += differenceInExp
+            }
+
+            void multiply(const size_t other_numerator, const size_t other_exponentOfDenominator) {
+                startNumerator*=other_numerator;
+                endNumerator*=other_numerator;
+
+                exponentOfDenominator += other_exponentOfDenominator;
+            }
+
+            void putOnSameDenominator(StateRange& other) {
+                const size_t exponentOfLCD = std::max(other.exponentOfDenominator, exponentOfDenominator);
+                adaptToDenominator(exponentOfLCD);
+                other.adaptToDenominator(exponentOfLCD);
+            }
+
+            void applySubRange(const StateRange& symbolRange) {
+                //the range length is represented by (endNumerator-startNumerator)/2^(exponentOfDenominator)
+                const size_t numeratorOfLength = endNumerator-startNumerator;
+                const size_t denominatorOfLength = exponentOfDenominator;
+                StateRange temp_other = symbolRange;
+                temp_other.multiply(numeratorOfLength, denominatorOfLength);
+                putOnSameDenominator(temp_other);
+                const size_t startBefore = startNumerator;
+                startNumerator = startBefore + temp_other.startNumerator;
+                endNumerator = startBefore + temp_other.endNumerator;
+                simplifyFraction();
+            }
+
+            size_t getDenominator() const {
+                return 1ULL << exponentOfDenominator;
+            }
+
+            bool isRangeFromZeroToOne() {
+                auto isStartAtZero = [&]() {return startNumerator == 0;};
+                auto isEndAtOne = [&]() {return endNumerator == getDenominator();};
+                return isStartAtZero() && isEndAtOne();
+            }
+
+            bool isMostlyOnLeftSide() { //assumes that it's not contained completely on the left or the right
+                if (isRangeFromZeroToOne())
+                    return true;
+                const size_t numeratorOfHalf = getDenominator()>>1;
+                const size_t distanceFromStartToHalf = numeratorOfHalf-startNumerator;
+                const size_t distanceFromHalfToEnd = endNumerator - numeratorOfHalf;
+
+                return distanceFromStartToHalf >= distanceFromHalfToEnd;
+            }
+
+            void setStartToZero() {
+                startNumerator = 0;
+            }
+
+            void setEndToOne() {
+                endNumerator = getDenominator();
+            }
+
+            void emitApproximatedRange(AbstractBitWriter& writer) {
+                LOG("Called emitApproximatedRange");
+                while (!isRangeFromZeroToOne()) {
+                    renormalizeAndEmit(writer);
+                    LOG("range is still not [0,1]");
+                    //should be normalised already
+                    if (isMostlyOnLeftSide()) {
+                        LOG("the range is mostly on the left side");
+                        expandToRight();
+                        setEndToOne();
+                        writer.pushBit(0);
+                    } else { //has to be on the right side
+                        LOG("the range is mostly on the right side");
+                        expandToLeft();
+                        setStartToZero();
+                        writer.pushBit(1);
+                    }
+                    LOG("the range is now ", to_string());
+                    //renormalizeAndEmit(writer);
+                }
+            }
+
+            std::string to_string() const {
+                std::stringstream ss;
+                ss<<"{start:"<<startNumerator<<", end:"<<endNumerator<<", denExp:"<<exponentOfDenominator<<"}";
+                return ss.str();
+            }
+
+            std::string to_string_double() const {
+                Logger logger;
+                double start = (double)startNumerator/(double)getDenominator();
+                double end = (double)endNumerator/(double)getDenominator();
+                logger.addVar("start", start);
+                logger.addVar("end", end);
+                return logger.end();
+            }
+            bool simplifyFraction() {
+                LOG("Simplifying");
+                auto isEven = [](const size_t x){return x%2==0;};
+                auto reduceFraction = [&](){
+                    startNumerator/=2;
+                    endNumerator/=2;
+                    exponentOfDenominator--;
+                };
+
+                auto isReducible = [&](){
+                    return isEven(startNumerator) && isEven(endNumerator)
+                           && (!(startNumerator==0 && endNumerator==0)) && (exponentOfDenominator != 0);
+                };
+                while (isReducible()){ reduceFraction(); }
+            }
+
+            bool isWithinRange(const StateRange& other) const {
+                StateRange tempOther = other;
+                StateRange tempSelf = *this;
+                tempSelf.putOnSameDenominator(tempOther);
+                return ((tempSelf.startNumerator>=tempOther.startNumerator) && (tempSelf.endNumerator<=tempOther.endNumerator));
+            }
+        };
+
+        struct RangeEncoder {
+            //types
 
             StateRange currentRange;
             const CQF& cqf;
@@ -338,7 +374,7 @@ namespace GC {
                 resetRange();
             }
 
-            StateRange getRangeOfSymbol(const Unit symbol) {
+            StateRange getRangeOfSymbol(const Unit symbol) const {
                 return {cqf.cumulativeFrequencies[symbol],
                         cqf.cumulativeFrequencies[symbol+1],
                         cqf.exponentOfDenominator};
@@ -370,6 +406,88 @@ namespace GC {
 
         };
 
+        struct RangeDecoder {
+            BitCounter dummyWriter;
+            RangeEncoder dummyEncoder;
+            AbstractBitReader& reader;
+
+            StateRange stateFromInput;
+            StateRange currentRange;
+
+            RangeDecoder(const CQF& cqf, AbstractBitReader& reader) :
+                dummyWriter(),
+                reader(reader),
+                dummyEncoder(cqf, dummyWriter),
+                stateFromInput(),
+                currentRange(){
+            }
+
+            void increaseRangeInformation() {
+                LOG("Increasing the information content");
+                bool nextBit = reader.readBit();
+                LOG("read the next bit being ", nextBit);
+                if (nextBit)
+                    stateFromInput.halfLengthRight();
+                else
+                    stateFromInput.halfLengthLeft();
+
+                LOG("After increasing information, the informationRange is", stateFromInput.to_string());
+                LOG("And the state range is ", currentRange.to_string());
+            }
+
+            std::optional<Unit> extractSymbolFromCurrentRange() const {
+                LOG("Extracting a symbol from the range");
+                for (size_t i = 0;i<256;i++){
+                    const StateRange symbolRange = dummyEncoder.getRangeOfSymbol(i);
+                    StateRange wouldBeRange = currentRange;
+                    LOG("#1:wouldBeRange=", wouldBeRange.to_string());
+                    LOG("#2:symbolRange=", symbolRange.to_string());
+                    wouldBeRange.applySubRange(symbolRange);
+                    LOG("#3:wouldBeRange=", wouldBeRange.to_string());
+                    wouldBeRange.simplifyFraction();
+                    LOG("#4:wouldBeRange=", wouldBeRange.to_string());
+
+
+                    if (stateFromInput.isWithinRange(wouldBeRange)) {
+                        LOG("Found that the range is completely contained within", i, "'s range:", symbolRange.to_string());
+                        return i;
+                    }
+                }
+                LOG("No fitting range found, returning {}");
+                return {};
+            }
+
+            void resetState() {
+                LOG("Resetting the state");
+                currentRange = StateRange(); //resets it to 0, 1
+                stateFromInput = StateRange();
+            }
+
+            Unit getSymbol() {
+                LOG("Requested a symbol");
+                std::optional<Unit> nextSymbol = extractSymbolFromCurrentRange();
+
+                while (!nextSymbol.has_value()) {
+                    increaseRangeInformation();
+                    nextSymbol = extractSymbolFromCurrentRange();
+                    if (nextSymbol.has_value()) {
+                        LOG("nextSymbol has value", (int)nextSymbol.value());
+                    }
+                    else {
+                        LOG("no nextSymbol");
+                    }
+                }
+
+                const Unit symbol = nextSymbol.value();
+                LOG("The symbol is", (int) symbol);
+                dummyEncoder.addSymbol(symbol);
+                currentRange.applySubRange(dummyEncoder.getRangeOfSymbol(symbol));
+                if (dummyEncoder.justFlushed) {resetState();};
+
+                return symbol;
+            }
+        };
+
 
 
     public:
@@ -395,6 +513,7 @@ namespace GC {
             LOG("Encoding the frequencies");
             quantizedFrequencies.encodeIntoWriter(writer);
 #endif
+            LOG("Writing the block length");
             writer.writeSmallAmount(block.size());
             LOG("Constructing the RangeEncoder");
             RangeEncoder rangeEncoder(cqf, writer);
@@ -407,7 +526,20 @@ namespace GC {
         }
 
         Block decompress(AbstractBitReader& reader) const {
+            QuantizedFrequencies qf(reader);
+            CQF cqf(qf);
 
+            LOG("The qf are", qf.to_string());
+            LOG("the cqf are", cqf.to_string());
+
+            const size_t amountOfSymbols = reader.readSmallAmount();
+            LOG("We expect", amountOfSymbols, "symbols");
+
+            RangeDecoder decoder(cqf, reader);
+            Block result;
+
+            LOG("Starting to decode");
+            repeat(amountOfSymbols, [&](){result.push_back(decoder.getSymbol());});
         }
 
 
