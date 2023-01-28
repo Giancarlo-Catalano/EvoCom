@@ -49,7 +49,6 @@ namespace GC {
         settings.log(logger);
         logger.beginList("parsingOfFiles");
         auto parseFile = [&](const FileName& file) {
-            LOG("Processing", file);
             logger.beginUnnamedObject();
             double timeInMilliseconds = timeFunction([&](){ processSingleFileForCompressionDataCollection(file, settings, logger);});
             logger.addVar("timeForFile", timeInMilliseconds);
