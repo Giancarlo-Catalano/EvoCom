@@ -9,6 +9,14 @@
 
 namespace GC {
 
+    /**
+     * This class provides an interface through which a function can emit bits.
+     * Importantly, it also provides implementations for encodings such as Rice encoding, unary etc..
+     * This allows for a bit-emitting function to be able to write in different ways without having to re-implement the
+     * bit emission mechanic.
+     * In some cases we might want to write onto a file, whereas sometime we want to output a boolean vector.
+     * It's even possible to simply count the bits (see BitCounter).
+     */
     class AbstractBitWriter {
     public:
         using BitAmount = size_t;
