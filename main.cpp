@@ -1,41 +1,17 @@
 #include <iostream>
 #include "Utilities/utilities.hpp"
 #include "EvolutionaryFileCompressor/EvolutionaryFileCompressor.hpp"
-#include "BlockReport/BlockReport.hpp"
-#include "Transformation/Transformations/BurrowsWheelerTransform.hpp"
-#include "Utilities/Logger/Logger.hpp"
-#include "Transformation/Transformations/SubMinAdaptiveTransform.hpp"
-#include "Compression/ANSCompression/ANSCompression.hpp"
-#include "AbstractBit/VectorBitReader/VectorBitReader.hpp"
+#include "Dependencies/nlohmann/json.hpp"
 
-#include <future>
-#include <optional>
-#include <queue>
-#include <numeric>
-#include <iterator>
+#include <fstream>
+#include "Dependencies/nlohmann/json.hpp"
 
-namespace GC {
-    Block applyAndUndoCompression(const CCode ccode, const Block &input) {
-        VectorBitWriter writer;
-        EvolutionaryFileCompressor::applyCompressionCode(ccode, input, writer);
-        const std::vector<bool> compressed = writer.getVectorOfBits();
-
-        VectorBitReader reader(compressed);
-        const Block undone = EvolutionaryFileCompressor::undoCompressionCode(ccode, reader);
-        return undone;
-    }
-    bool isInvertedCorrectly(const CCode ccode, const Block& input) {
-        LOG("The input is ", (int)input[0], " ", (int)input[1]);
-        Block undone = applyAndUndoCompression(ccode, input);
-        LOG("The output is ", (int)undone[0], " ", (int)undone[1]);
-        return input == applyAndUndoCompression(ccode, input);
-    }
-}
+using json = nlohmann::json;
 
 int main(int argc, char**argv) {
 
 
-#if 1 //normal application behaviour
+#if 0 //normal application behaviour
     const std::string compressedExtension = "gac";
     using FileName = std::string;
     GC::EvoComSettings settings(argc, argv);
@@ -68,164 +44,11 @@ int main(int argc, char**argv) {
 
 #endif
 
-
-
-#if 0 //futures
-    using Individual = GC::Individual;
-    using Job = std::pair<Block, std::future<Individual>>;
-    using JobQueue = std::queue<Job>;
-
-    LOG("Creating the job queue");
-    JobQueue jobQueue;
-
-    auto getRecipeForBlock = [&](const Block& block, const GC::Evolver::EvolutionSettings) -> Individual {
-        return Individual();
-    };
-
-    GC::Evolver::EvolutionSettings settings;
-
-    auto passBlockToJobQueue = [&](const Block& block) {
-        LOG("Received the block", containerToString(block), ", passing it to the queue");
-        jobQueue.emplace(block, std::async(
-                std::launch::async,
-                getRecipeForBlock,
-                block,
-                settings));
-    };
-
-    bool isFirst = true;
-    auto compressBlockUsingRecipe = [&](const Block& block, const Individual& recipe) {
-        LOG("Received the block", containerToString(block), "and the recipe", recipe.to_string());
-        LOG("isFirst =", isFirst);
-        if (!isFirst) {
-            LOG("I would have written a 1 to indicate that another one is coming!");
-        }
-        isFirst = false;
-        LOG("Here pretend i'm writing to a file");
-    };
-
-    Block a = {1, 1, 1};
-    Block b = {2, 2, 2};
-    Block c = {3, 3, 3};
-
-    passBlockToJobQueue(a);
-    passBlockToJobQueue(b);
-    passBlockToJobQueue(c);
-
-
-    LOG("started to process the queue!");
-
-    while (!jobQueue.empty()) {
-        LOG("waiting for the future");
-        jobQueue.front().second.wait();
-
-        LOG("acquiring the block and the future");
-        Individual recipe = jobQueue.front().second.get();
-        Block block = jobQueue.front().first;
-        compressBlockUsingRecipe(block, recipe);
-        LOG("processed the block ", containerToString(block));
-
-        jobQueue.pop(); //very important!!
-    }
-
-    LOG("all done!");
-
-#endif
-
-#if 0 //BWT
-    Block block = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    Block transformed = GC::BurrowsWheelerTransform().apply_copy(block);
-    LOG("The transformed block is", containerToString(transformed));
-    Block undone = GC::BurrowsWheelerTransform().undo_copy(transformed);
-    LOG("The undone block is", containerToString(undone));
-#endif
-
-#if 0 //Logger
-    GC::Logger logger;
-    logger.addVar("Head", "hello");
-    logger.beginList("List");
-    logger.addListItem(1);
-    logger.addListItem(6);
-    logger.endList();
-    logger.beginObject("Object");
-    logger.addVar("Properties", "Lacking");
-    logger.addVar("Other", 4);
-    logger.endObject();
-
-
-    LOG(logger.end());
-#endif
-
-#if 0 //trying to read from a file
-    std::ifstream inputFile("../SampleFiles/lines.txt");
-    if (!inputFile)  {
-        LOG("There was an error opening the file");
-        return 1;
-    }
-
-    std::string temp;
-    std::vector<std::string> lines;
-    while (getline(inputFile, temp)) {
-        lines.push_back(temp);
-    }
-
-    LOG("There were", lines.size(), "lines in total:");
-    for (const auto item: lines) {
-        LOG("Item: ", item);
-    }
-#endif
-
-#if 0 //testing MaxMin Transform
-    auto logBlock = [&](const Block& block) {
-        std::for_each(block.begin(), block.end(), [&](const Unit unit){ LOG_NONEWLINE((unsigned int)unit, ",");});
-        LOG("");
-    };
-
-    Block testBlock = {6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6};
-    Block result = GC::SubMinAdaptiveTransform().apply_copy(testBlock);
-    Block undone = GC::SubMinAdaptiveTransform().undo_copy(result);
-    LOG("the original is \n");
-    logBlock(testBlock);
-    LOG("the transformed is \n");
-    logBlock(result);
-    LOG("The undone is \n");
-    logBlock(undone);
-#endif
-
-#if 0 //testing the entropy
-    auto getEntropy = [&](const std::vector<double> &frequencies) -> double {
-        auto addToAcc = [](const double acc, const double input) -> double {
-            return acc-(input!=0? std::log2(input)*input : 0);
-        };
-        return std::accumulate(frequencies.begin(), frequencies.end(), (double)0.0, addToAcc);
-    };
-
-    std::vector<double> elems = {0, 0.5, 0.5};
-    double entropy = getEntropy(elems);
-    LOG("the entropy is ", entropy);
-#endif
-
-#if 0 //testing the ANS encoder
-    auto logBlock = [&](const Block& block) {
-        std::for_each(block.begin(), block.end(), [&](const Unit unit){ LOG_NONEWLINE((unsigned int)unit, ",");});
-        LOG("");
-    };
-
-    auto logBoolVec = [&](const std::vector<bool>& boolvec) {
-        std::for_each(boolvec.begin(), boolvec.end(), [&](const bool b) { LOG_NONEWLINE(b, " ");});
-        LOG("");
-    };
-
-    Block testBlock;
-    for (int i=0;i<256;i++) {
-        testBlock.push_back(i);
-    }
-    Block decoded = applyAndUndoCompression(GC::C_ANSCompression, testBlock);
-
-    LOG("The decoded result is", containerToString(decoded));
-
-    bool invertible = GC::isInvertedCorrectly(GC::C_ANSCompression, testBlock);
-    LOG("Inverted:", invertible);
+#if 1 //testing JSON
+    std::ifstream readingStream("/home/gian/CLionProjects/EvoCom/SampleFiles/output.json");
+    json data = json::parse(readingStream);
+    std::string mode = data.at("Settings").at("mode");
+    LOG("The mode is ", mode);
 
 #endif
 
