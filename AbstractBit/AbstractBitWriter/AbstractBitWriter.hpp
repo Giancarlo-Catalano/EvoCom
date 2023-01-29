@@ -18,13 +18,13 @@ namespace GC {
      * It's even possible to simply count the bits (see BitCounter).
      */
     class AbstractBitWriter {
-    public:
-        using BitAmount = size_t;
+    public: //types
+        using BitAmount = size_t;  //represents a quantity of bits
 
-
-
+    public: //minimum requirements
         virtual void pushBit(bool b) = 0;
 
+    public: //functions implemented on top of pushBit
         AbstractBitWriter() {};
         virtual void writeVector(const std::vector<bool>& vec);
         virtual void writeAmountOfBits(const size_t value, const BitAmount amountOfBits);
