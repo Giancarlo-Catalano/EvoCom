@@ -24,6 +24,11 @@ add_subdirectory(AbstractBit)
 
 
 
+#utilities for data processing
+add_subdirectory(DataProcessingUtilities)
+
+
+
 add_subdirectory(Testing)
 enable_testing()
 
