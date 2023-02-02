@@ -71,7 +71,7 @@ namespace GC {
         Evaluator evaluator;
         Population population;
 
-        RunningAverage<Fitness> runningAverageFitness{};
+        RunningAverage<Fitness> runningAverageFitness{0.5};
         size_t generationCount = 0;
         const Chance initialMutationRate; static const size_t mutationRateLevels = 12;
 
@@ -189,8 +189,26 @@ namespace GC {
             generationCount++;
         }
 
+        void evolveSingleUniqueGeneration() {
+            Population elite = selector.selectElite(eliteSize, population);
+
+            selector.preparePool(population);
+
+            auto generateChild = [&]()->Individual {
+                const Individual parentA = selector.select();
+                const Individual parentB = selector.select();
+                Individual newChild = breeder.mutate(breeder.crossover(parentA, parentB));
+                evaluator.decideFitness(newChild, parentA, parentB);
+                return newChild;
+            };
+            population = Breeder::generateUnique<Individual>(populationSize, elite, generateChild);
+
+            runningAverageFitness.registerNewValue(getBestOfPopulation(true).getFitness());
+            generationCount++;
+        }
+
         bool isStagnating() {
-            return runningAverageFitness.getDeviation() > -0.0000000000001; //originally it was >= 0, but equality with 0 if iffy, so this works better
+            return std::abs(runningAverageFitness.getDeviation()) < 0.05; //originally it was >= 0, but equality with 0 if iffy, so this works better
         }
 
         bool isUnstable() {
@@ -198,46 +216,38 @@ namespace GC {
         }
 
         void adjustMutationRate() {
-            Chance oldMutationRate = breeder.getMutationRate();
-            if (isUnstable()) {
-                AM_LOG("Detected unstability, running deviation is ", runningAverageFitness.getDeviation());
-                decreaseMutationRate();
-            }
-            else if (isStagnating()) {
+            if (isStagnating()) {
                 AM_LOG("Detected stagnation, running deviation is ", runningAverageFitness.getDeviation());
                 increaseMutationRate();
             }
-            else {
-                if (breeder.getMutationRate() != initialMutationRate) {
-                    AM_LOG("Resetting mutation rate");
-                    resetMutationRate();
-                }
+            else if (breeder.getMutationRate() > initialMutationRate) {
+                decreaseMutationRate();
             }
-
-            if (breeder.getMutationRate() != oldMutationRate) {
-                AM_LOG("Mutation rate is now", breeder.getMutationRate());
+            else if (breeder.getMutationRate() < initialMutationRate) {
+                resetMutationRate();
             }
 
         }
 
         bool populationIsMature() {
-            return generationCount > amountOfGenerations / 3;
+            static const size_t maturityAge = std::min(generationCount, 3UL);
+            return generationCount > maturityAge;
         }
 
         bool mutationIsExtreme() {
             return breeder.getMutationRate() > 0.75; //TODO arbitrary
         }
 
+        void adaptParameters() {
+            if (usesSimulatedAnnealing && populationIsMature() && !mutationIsExtreme())
+                adjustMutationRate();
+        }
+
         void evolveForGenerations() {
             for (size_t i=0;i<amountOfGenerations;i++) {
-                evolveSingleGeneration();
-                if (usesSimulatedAnnealing) {
-                    if (mutationIsExtreme()) {
-                        AM_LOG("Extreme mutation detected, stopping");
-                        return;
-                    }
-                    if (populationIsMature()) adjustMutationRate();
-                }
+                if (mutationIsExtreme()) return;
+                evolveSingleUniqueGeneration();
+                adaptParameters();
             }
         }
 
@@ -264,8 +274,6 @@ namespace GC {
 
         Individual evolveBest() {
             evolveForGenerations();
-            ////LOG("After evolving a population, the result is");
-            //LOGPopulation();
             return getBestOfPopulation(true);
         }
 
@@ -276,34 +284,26 @@ namespace GC {
         Individual evolveBestAndLogProgress(Logger &logger) {
             size_t generationCounter = 0;
 
-            auto logIndividual = [&](const Individual& i) {
-            };
-
             auto logGenerationData = [&]() {
                 const Individual bestIndividual = getBestOfPopulation(true);
                 const Fitness bestFitness = bestIndividual.getFitness();
 
-                logger.beginObject("Generation #"+std::to_string(generationCounter++));
-                logger.beginObject("Best");
-                logger.addVar("Fitness", bestFitness);
+                logger.beginUnnamedObject();
+                logger.addVar("Generation", generationCounter++);
+                logger.addVar("BestFitness", bestFitness);
                 logger.addVar("BestIndividual:", bestIndividual.to_string());
-                logger.endObject(); //ends Best
-                logger.beginList("Population");
-                std::for_each(population.begin(), population.end(), [&](const Individual& i){logger.addListItem(i.to_string());});
-                logger.endList();
+                logger.addVar("Mutation", breeder.getMutationRate());
+                logger.addVar("runningAverage", runningAverageFitness.getAverage());
+                logger.addVar("deviation", runningAverageFitness.getDeviation());
                 logger.endObject(); //ends Generation#
-
             };
 
             auto evolveForGenerationsAndLog = [&]() { //mimics evolveForGenerations
                 for (size_t i=0;i<amountOfGenerations;i++) {
-                    evolveSingleGeneration();
-                    if (false) {
-                        if (mutationIsExtreme())
-                            return;
-                        if (populationIsMature()) adjustMutationRate();
-                    }
+                    if (mutationIsExtreme()) return;
+                    evolveSingleUniqueGeneration();
                     logGenerationData();
+                    adaptParameters();
                 }
             };
 

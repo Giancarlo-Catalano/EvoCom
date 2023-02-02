@@ -11,6 +11,8 @@
 #include "../../Random/RandomElement.hpp"
 #include "../../Random/RandomIndex.hpp"
 #include <sstream>
+#include <unordered_set>
+
 
 
 namespace GC {
@@ -179,6 +181,36 @@ namespace GC {
 
             return retryUntil<CrossoverRecipe>(chooseRandomBounds, areBoundsAcceptable);
         };
+
+    public:
+
+
+        template <class T, class Generator> //generator is a T generate();
+        static std::vector<T> generateUnique(const size_t howMany, const Generator& generator) {
+            std::unordered_set<T> result;
+            while (result.size() < howMany)
+                result.insert(generator());
+
+            std::vector<T> resultAsVector(result.begin(), result.end());
+            return resultAsVector;
+        }
+
+        template <class T, class Generator> //generator is a T generate();
+        static std::vector<T> generateUnique(const size_t howMany, const std::vector<T>& startingPoint, const Generator& generator) {
+            size_t amountOfAttempts = 0;
+
+            std::unordered_set<T> result(startingPoint.begin(), startingPoint.end());
+            while (result.size() < howMany) {
+                result.insert(generator());
+                amountOfAttempts++;
+            }
+
+            std::vector<T> resultAsVector(result.begin(), result.end());
+            LOG("for", howMany, "items required, starting from", startingPoint.size(), "it took", amountOfAttempts, "attempts");
+
+            return resultAsVector;
+        }
+
 
 
     };

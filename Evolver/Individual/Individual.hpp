@@ -162,6 +162,10 @@ namespace GC {
         }
     };
 
+    inline bool operator==(const Individual& lhs, const Individual& rhs){
+        return (lhs.cCode == rhs.cCode) && (lhs.tList == rhs.tList);
+    }
+
 
     class RandomIndividual {
     private:
@@ -180,5 +184,28 @@ namespace GC {
     };
 
 } // GC
+
+template<>
+struct std::hash<GC::Individual>
+{
+    std::size_t operator()(GC::Individual const& individual) const noexcept
+    {
+        auto TCodeAsInt = [&](const GC::TCode tCode) -> size_t {return (size_t)tCode;};
+        auto CCodeAsInt = [&](const GC::CCode cCode) -> size_t {return (size_t)cCode;};
+
+        size_t accumulator = 0;
+        auto combineWithValue = [&](const size_t val) -> size_t {
+            accumulator = (accumulator<<4)^val;
+        };
+
+        combineWithValue(CCodeAsInt(individual.cCode));
+        std::for_each(individual.tList.begin(), individual.tList.end(), [&](auto tCode) {
+            combineWithValue(TCodeAsInt(tCode));
+        });
+
+        return accumulator;
+
+    }
+};
 
 #endif //DISS_SIMPLEPROTOTYPE_INDIVIDUAL_HPP
