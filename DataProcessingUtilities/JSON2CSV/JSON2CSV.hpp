@@ -21,7 +21,7 @@ namespace GC {
     public: //headers and similar
         using Headers = std::vector<std::string>;
         const Headers dataOriginHeaders = { "SourceFile", "FileExtension", "DataCategory"};
-        const Headers AlgorithmSettingsHeaders = {"SegmMethod", "Generations", "PopulationSize", "MutationRate", "CompCrossoverRate", "Annealing", "EliteSize", "TournamentSize", "MutationThreshold", "VariatonThreshold", "Asynch"};
+        const Headers AlgorithmSettingsHeaders = {"SegmMethod", "Generations", "PopulationSize", "MutationRate", "CompCrossoverRate", "Annealing", "EliteSize", "TournamentSize", "MutationThreshold", "Asynch"};
         const Headers BlockReportShortHeaders = {"Length", "Entropy"};
         const Headers BlockReportLongHeaders = {"Length", "Entropy", "Unit_Average", "Unit_StdDev", "Unit_Min", "Unit_FirstQ", "Unit_Median", "Unit_"}; //TODO continue this
         const Headers TransformHeaders = {"Transform"};
@@ -86,7 +86,6 @@ namespace GC {
             size_t eliteSize;
             size_t tournamentSelectionSize;
             double excessiveMutationThreshold;
-            double excessiveVariationThreshold;
             bool isAsynch;
 
             void fromJSON(const json& root) {
@@ -100,7 +99,6 @@ namespace GC {
                 eliteSize = settings.at("eliteSize");
                 tournamentSelectionSize = settings.at("tournamentSelectionSize");
                 excessiveMutationThreshold = settings.at("excessiveMutationThreshold");
-                excessiveVariationThreshold = settings.at("unstabilityThreshold");
                 isAsynch = settings.at("isAsynch");
             }
         };

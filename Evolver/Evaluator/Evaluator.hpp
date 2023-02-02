@@ -25,8 +25,13 @@ namespace GC {
         mutable RandomChance randomEvaluationChooser;
         FitnessFunction fitnessFunction;
 
-        Similarity getSimilarity(const Individual& A, const Individual& B) const {
-            return 1-A.distanceFrom(B);
+        Similarity getSimilarity(const Individual& A, const Individual& B) const { //1 means they're identical
+            const auto elemsIn = [&](const Individual& i) {
+                return i.getTListLength()+1; //+1 is because there's the compression
+            };
+
+            const Similarity distance = (A.distanceFrom(B))/(elemsIn(A)+elemsIn(B));
+            return 1-distance;
         }
 
         void setFitnessScore(Individual& I, const FitnessScore f) const {
@@ -38,11 +43,11 @@ namespace GC {
         }
 
         FitnessScore combineFitnesses(const FitnessScore fA, const FitnessScore fB, const Reliability rA, const Reliability rB, Similarity sA, const Similarity sB) {
-            return ((sA*rA*fA)+(sB*rB*fB))/(sA*rA + sB*rB);
+            return ((sA*rA*fA)+(sB*rB*fB))/(sA*rA + sB*rB +0.1);
         }
 
         Reliability combineReliabilities(const Reliability rA, const Reliability rB, const Similarity sA, const Similarity sB) {
-            return (square(sA*rA)+ square(sB*rB))/(sA*rA+sB*rB);
+            return (square(sA*rA)+ square(sB*rB))/(sA*rA+sB*rB+0.1);
         }
 
         void assignInheritedFitnessToChild(Individual& child, const Individual& A, const Individual& B) {
@@ -52,12 +57,14 @@ namespace GC {
             Reliability rB = B.getFitnessReliability();
             Similarity sA = getSimilarity(child, A);
             Similarity sB = getSimilarity(child, B);
+            //LOG("Variables:", fA, fB, rA, rB, sA, sB);
 
             setFitnessScore(child, combineFitnesses(fA, fB, rA, rB, sA, sB));
             setReliability(child, combineReliabilities(rA, rB, sA, sB));
         }
 
         bool reliabilityTooLow(const Individual& I) const {
+            //LOG("Checking the reliability, it's", I.getFitnessReliability());
             return I.getFitnessReliability() < reliabilityThreshold;
         }
 
@@ -65,12 +72,13 @@ namespace GC {
     public:
         Evaluator(const FitnessFunction fitnessFunction) :
             fitnessFunction(fitnessFunction),
-            reliabilityThreshold(0.2),
+            reliabilityThreshold(0.5),
             randomEvaluationChooser(0.05){
         }
 
         void decideFitness(Individual& child, const Individual& A, const Individual& B) {
             assignInheritedFitnessToChild(child, A, B);
+            //LOG("A's reliability=", A.getFitnessReliability(), "B's reliability=", B.getFitnessReliability());
             if (reliabilityTooLow(child) || randomEvaluationChooser.shouldDo()) {
                 forceEvaluation(child);
             }

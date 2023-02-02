@@ -34,7 +34,6 @@ namespace GC {
             bool usesSimulatedAnnealing;
             size_t eliteSize;
             double mutationThreshold;
-            double unstabilityThreshold;
 
             EvolutionSettings() :
                 populationSize(40),
@@ -44,8 +43,7 @@ namespace GC {
                 tournamentSelectionProportion(0.80),
                 usesSimulatedAnnealing(true),
                 eliteSize(2),
-                mutationThreshold(0.75),
-                unstabilityThreshold(0.4){}
+                mutationThreshold(0.75){}
 
 
             EvolutionSettings(const EvoComSettings& settings) :
@@ -56,8 +54,7 @@ namespace GC {
                 tournamentSelectionProportion(settings.population / settings.tournamentSelectionSize),
                 usesSimulatedAnnealing(settings.usesAnnealing),
                 eliteSize(settings.eliteSize),
-                mutationThreshold(settings.excessiveMutationThreshold),
-                unstabilityThreshold(settings.unstabilityThreshold){
+                mutationThreshold(settings.excessiveMutationThreshold){
 
             }
         };
@@ -79,7 +76,6 @@ namespace GC {
         size_t amountOfGenerations;
         bool usesSimulatedAnnealing;
         size_t eliteSize;
-        const double unstabilityThreshold;
         const double excessiveMutationThreshold;
 
 
@@ -148,8 +144,7 @@ namespace GC {
             initialMutationRate(settings.chanceOfMutation),
             usesSimulatedAnnealing(settings.usesSimulatedAnnealing),
             eliteSize(settings.eliteSize),
-            excessiveMutationThreshold(settings.mutationThreshold),
-            unstabilityThreshold(settings.unstabilityThreshold)
+            excessiveMutationThreshold(settings.mutationThreshold)
             {
                 initialiseRandomPopulation();
             }
@@ -163,8 +158,7 @@ namespace GC {
                 selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion))),
                 initialMutationRate(settings.chanceOfMutation),
                 usesSimulatedAnnealing(settings.usesSimulatedAnnealing),
-                excessiveMutationThreshold(settings.mutationThreshold),
-                unstabilityThreshold(settings.unstabilityThreshold)
+                excessiveMutationThreshold(settings.mutationThreshold)
         {
             initialiseHintedPopulation(hint);
         }
@@ -203,7 +197,7 @@ namespace GC {
             };
             population = Breeder::generateUnique<Individual>(populationSize, elite, generateChild);
 
-            runningAverageFitness.registerNewValue(getBestOfPopulation(true).getFitness());
+            runningAverageFitness.registerNewValue(getBestOfPopulation(false).getFitness());
             generationCount++;
         }
 
@@ -285,7 +279,7 @@ namespace GC {
             size_t generationCounter = 0;
 
             auto logGenerationData = [&]() {
-                const Individual bestIndividual = getBestOfPopulation(true);
+                const Individual bestIndividual = getBestOfPopulation(false);
                 const Fitness bestFitness = bestIndividual.getFitness();
 
                 logger.beginUnnamedObject();
@@ -295,6 +289,11 @@ namespace GC {
                 logger.addVar("Mutation", breeder.getMutationRate());
                 logger.addVar("runningAverage", runningAverageFitness.getAverage());
                 logger.addVar("deviation", runningAverageFitness.getDeviation());
+                logger.beginList("Population");
+                std::for_each(population.begin(), population.end(), [&](const Individual& i){
+                    logger.addListItem(i.to_string());
+                });
+                logger.endList(); //ends population;
                 logger.endObject(); //ends the unnamed object
             };
 
@@ -309,7 +308,7 @@ namespace GC {
 
             evolveForGenerationsAndLog();
 
-            return getBestOfPopulation(true);
+            return getBestOfPopulation(false);
         }
     };
 

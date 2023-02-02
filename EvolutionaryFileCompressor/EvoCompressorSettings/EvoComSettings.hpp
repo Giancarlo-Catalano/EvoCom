@@ -259,10 +259,7 @@ namespace GC {
                 logger.addVar("eliteSize", eliteSize);
                 logger.addVar("tournamentSelectionSize", tournamentSelectionSize);
                 logger.addVar("excessiveMutationThreshold", excessiveMutationThreshold);
-                logger.addVar("unstabilityThreshold", unstabilityThreshold);
                 logger.addVar("asynchronous", async);
-                logger.addVar("minTransformAmount", minTransformAmount);
-                logger.addVar("maxTransformAmount", maxTransformAmount);
             }
             logger.endObject(); //ends settings
         }

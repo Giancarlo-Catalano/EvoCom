@@ -77,7 +77,7 @@ namespace GC {
                 ss<<"TList:{";
                 bool isFirst = true;
                 std::for_each(tList.begin(), tList.end(), [&](auto t) {
-                    if (!isFirst)ss<<", ";
+                    if (!isFirst) ss<<", ";
                     isFirst = false;
                     ss << TCode_as_string(t);
                 } );
