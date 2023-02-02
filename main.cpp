@@ -5,28 +5,6 @@
 
 #include <fstream>
 
-
-template <class T, class Generator> //generator is a T generate();
-std::vector<T> generateUnique(const size_t howMany, const Generator& generator) {
-    std::unordered_set<T> result;
-    while (result.size() < howMany)
-        result.insert(generator());
-
-    std::vector<T> resultAsVector(result.begin(), result.end());
-    return resultAsVector;
-}
-
-template <class T, class Generator> //generator is a T generate();
-static std::vector<T> generateUnique(const size_t howMany, const std::vector<T>& startingPoint, const Generator& generator) {
-    std::unordered_set<T> result(startingPoint.begin(), startingPoint.end());
-    while (result.size() < howMany)
-        result.insert(generator());
-
-    std::vector<T> resultAsVector(result.begin(), result.end());
-    return resultAsVector;
-}
-
-
 int main(int argc, char**argv) {
 
 
@@ -69,17 +47,6 @@ int main(int argc, char**argv) {
 #endif
 
 #if 1 //testing makeUniqueSet
-    GC::RandomInt<size_t> randomInt(0, 200);
-    auto generateRandomInt = [&]() -> size_t {
-        return randomInt.choose();
-    };
-
-    std::vector<size_t> initialSet = {0, 1, 2, 3};
-
-    const std::vector<size_t> items = generateUnique<size_t>(12, initialSet, generateRandomInt);
-
-    LOG(containerToString(items));
-
 
 #endif
 }

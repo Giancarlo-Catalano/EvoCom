@@ -206,7 +206,6 @@ namespace GC {
             }
 
             std::vector<T> resultAsVector(result.begin(), result.end());
-            LOG("for", howMany, "items required, starting from", startingPoint.size(), "it took", amountOfAttempts, "attempts");
 
             return resultAsVector;
         }
