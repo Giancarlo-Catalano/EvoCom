@@ -110,9 +110,8 @@ namespace GC {
             ASSERT(pool.size() >= amount);
 
             auto copyOfPool = pool;
-            std::nth_element(copyOfPool.begin(), copyOfPool.begin()+amount-1, copyOfPool.end(), isIndividualBetter);
-
-            std::vector<Individual> result(copyOfPool.begin(), copyOfPool.begin()+amount-1);
+            std::nth_element(copyOfPool.begin(), copyOfPool.begin()+amount, copyOfPool.end(), isIndividualBetter);
+            std::vector<Individual> result(copyOfPool.begin(), copyOfPool.begin()+amount);
 
             return result;
         }

@@ -10,7 +10,6 @@
 #include "../Transformation/Transformations/RunLengthTransform.hpp"
 #include "../Compression/HuffmanCompression/HuffmanCompression.hpp"
 #include "../Compression/IdentityCompression/IdentityCompression.hpp"
-#include "../Compression/ANSCompression/ANSCompression.hpp"
 
 #include "../Transformation/Transformations/SplitTransform.hpp"
 #include "../Transformation/Transformations/SubtractAverageTransform.hpp"

@@ -185,7 +185,7 @@ namespace GC {
             repeat(populationSize - eliteSize, addNewIndividual);
             population = children;
 
-            runningAverageFitness.registerNewValue(getBestOfPopulation().getFitness());
+            runningAverageFitness.registerNewValue(getBestOfPopulation(true).getFitness());
             generationCount++;
         }
 
@@ -252,8 +252,8 @@ namespace GC {
             LOG("--------end of evolver population------------------");
         }
 
-        Individual getBestOfPopulation() {
-            forcePopulationFitnessAssessment();
+        Individual getBestOfPopulation(const bool forceAssessment = true) {
+            if (forceAssessment) forcePopulationFitnessAssessment();
             auto getPrecalculatedFitness = [&](const Individual& individual) {
                 return individual.getFitness();
             };
@@ -266,13 +266,51 @@ namespace GC {
             evolveForGenerations();
             ////LOG("After evolving a population, the result is");
             //LOGPopulation();
-            return getBestOfPopulation();
+            return getBestOfPopulation(true);
         }
 
         void reset() {
             initialiseRandomPopulation();
         }
 
+        Individual evolveBestAndLogProgress(Logger &logger) {
+            size_t generationCounter = 0;
+
+            auto logIndividual = [&](const Individual& i) {
+            };
+
+            auto logGenerationData = [&]() {
+                const Individual bestIndividual = getBestOfPopulation(true);
+                const Fitness bestFitness = bestIndividual.getFitness();
+
+                logger.beginObject("Generation #"+std::to_string(generationCounter++));
+                logger.beginObject("Best");
+                logger.addVar("Fitness", bestFitness);
+                logger.addVar("BestIndividual:", bestIndividual.to_string());
+                logger.endObject(); //ends Best
+                logger.beginList("Population");
+                std::for_each(population.begin(), population.end(), [&](const Individual& i){logger.addListItem(i.to_string());});
+                logger.endList();
+                logger.endObject(); //ends Generation#
+
+            };
+
+            auto evolveForGenerationsAndLog = [&]() { //mimics evolveForGenerations
+                for (size_t i=0;i<amountOfGenerations;i++) {
+                    evolveSingleGeneration();
+                    if (false) {
+                        if (mutationIsExtreme())
+                            return;
+                        if (populationIsMature()) adjustMutationRate();
+                    }
+                    logGenerationData();
+                }
+            };
+
+            evolveForGenerationsAndLog();
+
+            return getBestOfPopulation(true);
+        }
     };
 
 } // GC

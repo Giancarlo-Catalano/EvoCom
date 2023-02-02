@@ -17,6 +17,7 @@
 #include "EvoCompressorSettings/EvoComSettings.hpp"
 #include "../Evolver/Evolver.hpp"
 #include "../Evolver/Evaluator/BitCounter/BitCounter.hpp"
+#include "../AbstractBit/FileBitReader/FileBitReader.hpp"
 
 namespace GC {
 
@@ -38,6 +39,8 @@ namespace GC {
         static void processSingleFileForCompressionDataCollection(const FileName& file, const EvoComSettings& settings, Logger& logger);
         static void generateCompressionData(const EvoComSettings &settings, Logger& logger);
 
+
+        static void generateEvolverConvergenceData(const EvoComSettings &settings, Logger &logger);
 
     private:
         static const size_t bitSizeForTransformCode = 4;
@@ -100,6 +103,11 @@ namespace GC {
                                                                  const size_t originalFileSize, const EvoComSettings &settings,
                                                                  Logger &logger);
 
+        static void getEvolverConvergenceData(GC::FileBitReader &reader, const size_t size,
+                                              const EvoComSettings &settings, Logger& logger);
+
+        static Individual
+        evolveIndividualForBlockAndLogProgress(const Block& block, const Evolver::EvolutionSettings& evoSettings, Logger& logger);
     };
 
 } // GC

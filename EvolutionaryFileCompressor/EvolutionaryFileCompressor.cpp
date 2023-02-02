@@ -19,7 +19,6 @@ namespace GC {
 
 
     void EvolutionaryFileCompressor::compress(const EvoComSettings& settings) {
-
         size_t originalFileSize = getFileSize(settings.inputFile);
         std::string outputFile = settings.inputFile+".gac";
         LOG("The original file size is", originalFileSize);
@@ -355,6 +354,15 @@ namespace GC {
         return bestIndividual;
     }
 
+    Individual EvolutionaryFileCompressor::evolveIndividualForBlockAndLogProgress(const Block& block, const Evolver::EvolutionSettings& evoSettings, Logger& logger)  { //based on evolveBestIndividual
+        auto getFitnessOfIndividual = [&](const Individual& i) -> Fitness {
+            return compressionRatioForIndividualOnBlock(i, block);
+        };
+
+        Evolver evolver(evoSettings, getFitnessOfIndividual);
+        return evolver.evolveBestAndLogProgress(logger);
+    }
+
 
 
     void EvolutionaryFileCompressor::clusterFileInSegments(AbstractBitReader &reader,
@@ -387,7 +395,43 @@ namespace GC {
         clusterer.finish();
     }
 
+    void EvolutionaryFileCompressor::generateEvolverConvergenceData(const EvoComSettings &settings, Logger &logger) {
+        size_t originalFileSize = getFileSize(settings.inputFile);
 
+        if (originalFileSize <= 2) {LOG("ERROR: file too small!"); return;}
+
+        std::ifstream inStream(settings.inputFile);
+        FileBitReader reader(inStream);
+
+        if (!inStream) {LOG("ERROR: file could not be opened"); return;}
+
+        getEvolverConvergenceData(reader, originalFileSize, settings, logger);
+    }
+
+
+
+    void
+    EvolutionaryFileCompressor::getEvolverConvergenceData(FileBitReader &reader, const size_t originalFileSize,
+                                                          const EvoComSettings &settings, Logger& logger) {
+        settings.log(logger);
+        logger.beginObject("evolverData");
+
+        size_t segmentCounter = 0;
+        Evolver::EvolutionSettings evoSettings(settings);
+        auto compressBlock = [&](const Block& block) {
+            logger.beginList("Segment#"+std::to_string(segmentCounter));
+            segmentCounter++;
+            evolveIndividualForBlockAndLogProgress(block, evoSettings, logger);  //doesn't use the return value
+            logger.endList();
+        };
+
+if (settings.segmentationMethod == EvoComSettings::Clustered)
+            clusterFileInSegments(reader, compressBlock, originalFileSize, settings);
+        else
+            processFileAsFixedSegments(reader, compressBlock, originalFileSize, settings);
+
+        logger.endList();
+    }
 
 
 } // GC

@@ -27,13 +27,13 @@ namespace GC {
     public: //types
         using Fitness = PseudoFitness;
         using FitnessScore = PseudoFitness::FitnessScore;
-        static constexpr size_t MaxTListLength = 3;
+        static constexpr size_t MaxTListLength = 6;
         static constexpr size_t MinTListLength = 0;
 
 
 
         using TList = std::vector<TCode>;
-    public: //attributes, these are all public
+    public: //attributes, these are all public for convenience
         TList tList;
         CCode cCode;
         Fitness fitness;

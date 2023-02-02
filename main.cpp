@@ -4,12 +4,24 @@
 #include "Dependencies/nlohmann/json.hpp"
 
 #include <fstream>
+#include <unordered_set>
+
+
+template <class T>
+std::vector<T> generateUnique(const size_t howMany, const std::function<T(void)>& generator) {
+    std::unordered_set<T> result;
+    while (result.size() < howMany)
+        result.insert(generator());
+
+    std::vector<T> resultAsVector(result.begin(), result.end());
+    return resultAsVector;
+}
 
 
 int main(int argc, char**argv) {
 
 
-#if 0 //normal application behaviour
+#if 1 //normal application behaviour
     const std::string compressedExtension = "gac";
     using FileName = std::string;
     GC::EvoComSettings settings(argc, argv);
@@ -39,10 +51,15 @@ int main(int argc, char**argv) {
         GC::EvolutionaryFileCompressor::generateCompressionData(settings, logger);
         LOG(logger.end());
     }
+    else if (settings.mode == GC::EvoComSettings::EvolverConvergenceDataCollection) {
+        GC::Logger logger;
+        GC::EvolutionaryFileCompressor::generateEvolverConvergenceData(settings, logger);
+        LOG(logger.end());
+    }
 
 #endif
 
-#if 1 //testing JSON
+#if 0 //testing JSON
     std::ifstream readingStream("/home/gian/CLionProjects/EvoCom/SampleFiles/output.json");
     json data = json::parse(readingStream);
     std::string mode = data.at("Settings").at("mode");

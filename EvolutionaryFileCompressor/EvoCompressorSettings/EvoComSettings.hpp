@@ -20,7 +20,7 @@ namespace GC {
         using Param = std::string;
 
     public:
-        enum Mode {Compress, Decompress, CompressionDataCollection, DecompressionDataCollection} mode;
+        enum Mode {Compress, Decompress, CompressionDataCollection, DecompressionDataCollection, EvolverConvergenceDataCollection} mode;
         FileName inputFile;
         FileName configFile;
         FileName testSetFile;
@@ -137,16 +137,20 @@ namespace GC {
         }
 
         EvoComSettings(const Dictionary& dict){
-            mode = getEnumFromDict<Mode>(dict, "MODE", {{"compress", Compress}, {"decompress", Decompress}, {"compressionDataCollection", CompressionDataCollection}, {"decompressionDataCollection", DecompressionDataCollection}}, Compress);
+            mode = getEnumFromDict<Mode>(dict, "MODE", {{"compress",                         Compress},
+                                                        {"decompress",                       Decompress},
+                                                        {"compressionDataCollection",        CompressionDataCollection},
+                                                        {"decompressionDataCollection",      DecompressionDataCollection},
+                                                        {"evolverConvergenceDataCollection", EvolverConvergenceDataCollection}}, Compress);
             configFile = getStringFromDict(dict, "CONFIG", "../build/simple.config");
 
-            if (mode == Compress || mode == CompressionDataCollection) {
+            if (mode == Compress || mode == CompressionDataCollection || mode == EvolverConvergenceDataCollection) {
 
                 if (mode == CompressionDataCollection) {
                     testSetFile = getStringFromDict(dict, "TESTSET", "../build/testset.txt");
                     testSet = getLinesFromFile(testSetFile);
                 }
-                else if (mode == Compress)
+                else if (mode == Compress || mode == EvolverConvergenceDataCollection)
                     inputFile = getStringFromDict(dict, "FILE", "input");
 
                 segmentationMethod = getEnumFromDict(dict, "SEGMENT_TYPE", {{"fixed", Fixed}, {"clustered", Clustered}}, Fixed);
@@ -224,7 +228,7 @@ namespace GC {
 
         void log(Logger& logger) const {
             logger.beginObject("Settings");
-            const std::map<EvoComSettings::Mode, std::string> modesAsStrings{{Compress, "Compress"}, {Decompress, "Decompress"}, {CompressionDataCollection, "CompressionDataCollection"}, {DecompressionDataCollection, "DecompressionDataCollection"}};
+            const std::map<EvoComSettings::Mode, std::string> modesAsStrings{{Compress, "Compress"}, {Decompress, "Decompress"}, {CompressionDataCollection, "CompressionDataCollection"}, {DecompressionDataCollection, "DecompressionDataCollection"}, {EvolverConvergenceDataCollection, "EvolverConvergenceDataCollection"}};
 
             logger.addVar("mode", modesAsStrings.at(mode));
             logger.addVar("configFile", configFile);
