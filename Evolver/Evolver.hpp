@@ -295,7 +295,7 @@ namespace GC {
                 logger.addVar("Mutation", breeder.getMutationRate());
                 logger.addVar("runningAverage", runningAverageFitness.getAverage());
                 logger.addVar("deviation", runningAverageFitness.getDeviation());
-                logger.endObject(); //ends Generation#
+                logger.endObject(); //ends the unnamed object
             };
 
             auto evolveForGenerationsAndLog = [&]() { //mimics evolveForGenerations

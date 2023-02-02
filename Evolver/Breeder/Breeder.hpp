@@ -206,7 +206,6 @@ namespace GC {
             }
 
             std::vector<T> resultAsVector(result.begin(), result.end());
-
             return resultAsVector;
         }
 
