@@ -42,12 +42,28 @@ namespace GC {
             I.getPseudoFitness().setReliability(r);
         }
 
+
+
         FitnessScore combineFitnesses(const FitnessScore fA, const FitnessScore fB, const Reliability rA, const Reliability rB, Similarity sA, const Similarity sB) {
-            return ((sA*rA*fA)+(sB*rB*fB))/(sA*rA + sB*rB +0.1);
+            const auto canUse = [&](const Reliability r) {
+                return r > 0;
+            };
+
+            if (canUse(rA) || canUse(rB))
+                return ((sA*rA*fA)+(sB*rB*fB))/(sA*rA + sB*rB);
+            else
+                return 2.0; //panic and return a bad fitness;
         }
 
         Reliability combineReliabilities(const Reliability rA, const Reliability rB, const Similarity sA, const Similarity sB) {
-            return (square(sA*rA)+ square(sB*rB))/(sA*rA+sB*rB+0.1);
+            const auto canUse = [&](const Reliability r, const Similarity s) {return r*s > 0;};
+            const bool canUseA = canUse(rA, sA);
+            const bool canUseB = canUse(rB, sB);
+
+            if (canUseA || canUseB)
+                return (square(sA*rA)+ square(sB*rB))/(sA*rA+sB*rB);
+            else
+                return 0; //unreliable
         }
 
         void assignInheritedFitnessToChild(Individual& child, const Individual& A, const Individual& B) {
@@ -72,7 +88,7 @@ namespace GC {
     public:
         Evaluator(const FitnessFunction fitnessFunction) :
             fitnessFunction(fitnessFunction),
-            reliabilityThreshold(0.5),
+            reliabilityThreshold(0.7),
             randomEvaluationChooser(0.05){
         }
 
