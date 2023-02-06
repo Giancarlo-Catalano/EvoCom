@@ -188,7 +188,7 @@ namespace GC {
     private:
 
         static std::vector<Unit> encodeHeader(const size_t terminator) {
-            const size_t bitSize = std::max(floor_log2(terminator), 1UL);
+            const size_t bitSize = std::max(floor_log2(terminator), (typeof (terminator)) 1);
             const size_t bytesRequired = greaterMultipleOf(bitSize, 7)/7;
             std::vector<Unit> result;
             for (size_t i=0;i<bytesRequired;i++) {
