@@ -55,7 +55,7 @@ namespace GC {
 
         static void applyCompressionCode(const CompressionCode &cc, const Block &block, AbstractBitWriter& writer);
 
-        static size_t compressBlockUsingRecipe_DataCollection(const Individual &individual, const Block &block, GC::BitCounter &writer, Logger& logger);
+        static void compressBlockUsingRecipe_DataCollection(const Individual &individual, const Block &block, GC::BitCounter &writer, Logger& logger);
         static void compressBlockUsingRecipe(const Individual &individual, const Block &block, AbstractBitWriter& writer);
 
         static void encodeIndividual(const Individual &individual, AbstractBitWriter& writer);

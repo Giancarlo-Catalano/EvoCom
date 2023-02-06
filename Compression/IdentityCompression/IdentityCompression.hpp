@@ -23,7 +23,7 @@ namespace GC {
 
         Block decompress(AbstractBitReader& reader) const {
             Block result;
-            auto readAndAppendUnit = [&]() -> Unit {
+            auto readAndAppendUnit = [&]() {
                 result.push_back(reader.readAmountOfBits(bitsInType<Unit>()));
             };
 

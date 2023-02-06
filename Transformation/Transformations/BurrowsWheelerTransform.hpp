@@ -100,7 +100,7 @@ namespace GC {
                 return characterOffsetTable[unit];
             };
 
-            auto getPositionInBWT = [&](const Unit unit, const Amount occurrence) -> Index{
+            auto getPositionInBWT = [&](const Unit unit, const Amount occurrence) -> Index {
                 //0 is the first occurrence, 1 is the second, and so on..
                 Amount remainingOccurrences = occurrence;
                 for (size_t i=0;i<block.size();i++) {
@@ -110,6 +110,7 @@ namespace GC {
                         remainingOccurrences--;
                     }
                 }
+                return -1; //panic
             };
 
             Index positionInSorted = terminatorPosition;

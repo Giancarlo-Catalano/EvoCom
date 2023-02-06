@@ -99,6 +99,7 @@ namespace GC {
                 return tournamentSelect();
             else {
                 ERROR_NOT_IMPLEMENTED("The requested selection kind is not implemented yet!");
+                return {};
             }
         }
 

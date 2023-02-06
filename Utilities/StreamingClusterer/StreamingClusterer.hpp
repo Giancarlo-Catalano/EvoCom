@@ -33,6 +33,8 @@ namespace GC {
         T clusterHead;
         T currentItem;
 
+        const size_t maxClusterLength = 1024; //that's the amount of items supplied, not the bytes
+
     public:
 
         StreamingClusterer(const Metric metric, const ClusterHandler handler, const Distance maxDistanceFromClusterHead, const size_t cooldown) :
@@ -70,7 +72,8 @@ namespace GC {
         }
 
         bool isCloseEnoughToHead(const T& item) {
-            return metric(item, clusterHead) < thresholdDistance;
+            const Field distance = metric(item, clusterHead);
+            return distance < thresholdDistance;
         }
 
         void addToCluster(const T& item) {
@@ -83,31 +86,34 @@ namespace GC {
         }
 
         void processNewItem(const T& newItem) {
-            //attempts to add currentItem
-            //if currentItem close enough to the head, addToCluster(currentItem);currentItem = newItem;
-            //otherwise, then it may be pardoned if newItem is close enough to the head
-                //in this case, currentItem will be added, and then currentItem = newItem
 
-
+            //special behaviour if it's the very first item in the stream
             if (!hasProcessedFirstItem) {
                 startNewCluster(newItem);
                 hasProcessedFirstItem = true;
                 return;
             }
 
+            //special behaviour for the second item in the stream
             if (!holdsCurrentItem) {
                 currentItem = newItem;
                 holdsCurrentItem = true;
                 return;
             }
 
-            if (isCloseEnoughToHead(currentItem)) {
+            //for any other item in the stream:
+            if (currentCluster.size() >= maxClusterLength) {  //if the current cluster is too big, don't even consider adding it
+                finishCurrentClusterAndRestartFrom(currentItem);
+                currentItem = newItem;
+                sinceLastPardonOrClusterStart = 0;
+            }
+            else if (isCloseEnoughToHead(currentItem)) {  //if it's close enough, add it to the cluster
                 addToCluster(currentItem);
                 sinceLastPardonOrClusterStart++;
                 currentItem = newItem;
             }
-            else {
-                if (sinceLastPardonOrClusterStart >= cooldownPeriod && isCloseEnoughToHead(newItem))  //we can pardon!
+            else { //it's not close enough, but it might still get added if we can pardon
+                if (sinceLastPardonOrClusterStart >= cooldownPeriod && isCloseEnoughToHead(newItem))  // if it's been long enough since the last pardon, and the item after qualifies..
                     addToCluster(currentItem);
                 else  //cannot be forgiven, start a new cluster
                     finishCurrentClusterAndRestartFrom(currentItem);
