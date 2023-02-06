@@ -352,8 +352,11 @@ namespace GC {
     }
 
     Individual EvolutionaryFileCompressor::evolveBestIndividualForBlock(const Block & block, const Evolver::EvolutionSettings& evoSettings) {
+        //uses a sample of the actual block
+        const size_t blockSampleLength = std::min((size_t)256, block.size());
+        const Block blockSample(block.begin(), block.begin()+blockSampleLength);
         auto getFitnessOfIndividual = [&](const Individual& i){
-            return compressionRatioForIndividualOnBlock(i, block);
+            return compressionRatioForIndividualOnBlock(i, blockSample);
         };
 
         Evolver evolver(evoSettings, getFitnessOfIndividual);

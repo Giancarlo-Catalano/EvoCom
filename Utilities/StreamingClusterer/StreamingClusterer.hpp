@@ -33,7 +33,7 @@ namespace GC {
         T clusterHead;
         T currentItem;
 
-        const size_t maxClusterLength = 1024; //that's the amount of items supplied, not the bytes
+        const size_t maxClusterLength = 65536; //that's the amount of items supplied, not the bytes
 
     public:
 
