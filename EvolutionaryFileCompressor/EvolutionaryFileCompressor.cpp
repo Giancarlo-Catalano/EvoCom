@@ -119,6 +119,7 @@ namespace GC {
             LOG("Progress:", (double) ((double)compressedSoFar*100)/originalFileSize, "%");
 #endif
             const Individual bestIndividual = evolveBestIndividualForBlock(block, evoSettings);
+            //LOG("Generated the best individual, now encoding...");
             if (!isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
             isFirstSegment = false;
             encodeIndividual(bestIndividual, writer);
