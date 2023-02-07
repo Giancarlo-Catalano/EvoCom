@@ -1,0 +1,1 @@
+add_library(SegmentData SegmentData.cpp SegmentData.hpp)

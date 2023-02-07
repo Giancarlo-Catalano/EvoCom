@@ -11,6 +11,7 @@
 #include "../Evolver/Evaluator/BitCounter/BitCounter.hpp"
 #include "../AbstractBit/AbstractBitReader/AbstractBitReader.hpp"
 #include "../AbstractBit/AbstractBitWriter/AbstractBitWriter.hpp"
+#include "../SegmentData/SegmentData.hpp"
 
 #include <future>
 #include <queue>
@@ -88,7 +89,7 @@ namespace GC {
             LOG("Received a block of size", block.size());
             Individual bestIndividual = evolveBestIndividualForBlock(block, evoSettings);
             LOG("For this block, the best individual is", bestIndividual.to_string());
-            if (!isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
+            if (!isFirstSegment) writer.pushBit(true);  //signifies that the segment before had a segment after it
             isFirstSegment = false;
             encodeIndividual(bestIndividual, writer);
             compressBlockUsingRecipe(bestIndividual, block, writer);
@@ -100,7 +101,7 @@ namespace GC {
         else
             processFileAsFixedSegments(reader, compressBlock, originalFileSize, settings);
 
-        writer.pushBit(0);
+        writer.pushBit(false);
         writer.writeLastByte();
     }
 
@@ -120,7 +121,7 @@ namespace GC {
 #endif
             const Individual bestIndividual = evolveBestIndividualForBlock(block, evoSettings);
             //LOG("Generated the best individual, now encoding...");
-            if (!isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
+            if (!isFirstSegment) writer.pushBit(true);  //signifies that the segment before had a segment after it
             isFirstSegment = false;
             encodeIndividual(bestIndividual, writer);
             compressBlockUsingRecipe_DataCollection(bestIndividual, block, writer, logger);
@@ -134,7 +135,7 @@ namespace GC {
             processFileAsFixedSegments(reader, compressBlock, originalFileSize, settings);
 
         logger.endList();
-        writer.pushBit(0);
+        writer.pushBit(false);
     }
 
     void EvolutionaryFileCompressor::compressToStreamsAsync(AbstractBitReader& reader, AbstractBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings) {
@@ -246,9 +247,12 @@ namespace GC {
         const size_t writtenBefore = writer.getAmountOfBits();
         logger.beginUnnamedObject();
         logger.beginObject("StartingState");
-        BlockReport initialReport(block);
+        const SegmentData initialReport(block);
         initialReport.log(logger);
         logger.endObject();//ends StartingState
+
+
+
         logger.beginList("IntermediateStates");
 
         Block toBeProcessed = block;

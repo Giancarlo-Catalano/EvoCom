@@ -21,6 +21,7 @@ add_subdirectory(EvolutionaryFileCompressor)
 add_subdirectory(Random)
 add_subdirectory(Evolver)
 add_subdirectory(AbstractBit)
+add_subdirectory(SegmentData)
 
 
 
