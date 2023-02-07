@@ -4,13 +4,8 @@
 
 #include "EvolutionaryFileCompressor.hpp"
 #include <vector>
-#include "../Evolver/Evolver.hpp"
 #include "../Utilities/StreamingClusterer/StreamingClusterer.hpp"
-#include "../AbstractBit/FileBitReader/FileBitReader.hpp"
 #include "../AbstractBit/FileBitWriter/FileBitWriter.hpp"
-#include "../Evolver/Evaluator/BitCounter/BitCounter.hpp"
-#include "../AbstractBit/AbstractBitReader/AbstractBitReader.hpp"
-#include "../AbstractBit/AbstractBitWriter/AbstractBitWriter.hpp"
 #include "../SegmentData/SegmentData.hpp"
 
 #include <future>
