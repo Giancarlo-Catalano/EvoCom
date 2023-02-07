@@ -57,7 +57,7 @@ namespace GC {
             auto rightRef = std::make_shared<Branch>(rightBranch);
             contents = PairOfBranches{leftRef, rightRef};
         }
-        const bool isLeaf() const {std::holds_alternative<Data>(contents);}
+        const bool isLeaf() const {return std::holds_alternative<Data>(contents);}
         const Weight& getWeight() const {return weight;}
         const Branch& getLeftBranch() const {return *std::get<PairOfBranches>(contents).leftBranch;}
         const Branch& getRightBranch() const {return *std::get<PairOfBranches>(contents).rightBranch;}

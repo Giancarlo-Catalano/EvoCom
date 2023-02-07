@@ -17,7 +17,7 @@ namespace GC {
     public:
         virtual void compress(const Block& block, AbstractBitWriter& writer){};
 
-        virtual Block decompress(AbstractBitReader& reader){};
+        virtual Block decompress(AbstractBitReader& reader){return {};};
 
         virtual std::string to_string() const = 0;
     };

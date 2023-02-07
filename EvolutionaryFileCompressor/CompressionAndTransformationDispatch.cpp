@@ -90,6 +90,7 @@ namespace GC {
             case C_RunLengthCompression:    return NRLCompression().decompress(reader);
             case C_SmallValueCompression:   return SmallValueCompression().decompress(reader);
             case C_LZWCompression:          return LZWCompression().decompress(reader);
+            default: return IdentityCompression().decompress(reader);
         }
     }
 }

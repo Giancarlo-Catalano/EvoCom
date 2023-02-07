@@ -100,7 +100,7 @@ namespace GC {
                 return characterOffsetTable[unit];
             };
 
-            auto getPositionInBWT = [&](const Unit unit, const Amount occurrence) -> Index{
+            auto getPositionInBWT = [&](const Unit unit, const Amount occurrence) -> Index {
                 //0 is the first occurrence, 1 is the second, and so on..
                 Amount remainingOccurrences = occurrence;
                 for (size_t i=0;i<block.size();i++) {
@@ -110,6 +110,7 @@ namespace GC {
                         remainingOccurrences--;
                     }
                 }
+                return -1; //panic
             };
 
             Index positionInSorted = terminatorPosition;
@@ -188,7 +189,7 @@ namespace GC {
     private:
 
         static std::vector<Unit> encodeHeader(const size_t terminator) {
-            const size_t bitSize = std::max(floor_log2(terminator), 1UL);
+            const size_t bitSize = std::max(floor_log2(terminator), (typeof (terminator)) 1);
             const size_t bytesRequired = greaterMultipleOf(bitSize, 7)/7;
             std::vector<Unit> result;
             for (size_t i=0;i<bytesRequired;i++) {

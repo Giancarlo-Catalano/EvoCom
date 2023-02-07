@@ -224,7 +224,7 @@ namespace GC {
         }
 
         bool populationIsMature() {
-            static const size_t maturityAge = std::min(generationCount, 3UL);
+            static const size_t maturityAge = std::min(generationCount, (typeof generationCount) 3);
             return generationCount > maturityAge;
         }
 

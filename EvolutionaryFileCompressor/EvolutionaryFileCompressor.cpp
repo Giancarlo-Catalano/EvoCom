@@ -48,6 +48,7 @@ namespace GC {
         settings.log(logger);
         logger.beginList("parsingOfFiles");
         auto parseFile = [&](const FileName& file) {
+            LOG("Processing file", file);
             logger.beginUnnamedObject();
             double timeInMilliseconds = timeFunction([&](){ processSingleFileForCompressionDataCollection(file, settings, logger);});
             logger.addVar("timeForFile", timeInMilliseconds);
@@ -110,8 +111,15 @@ namespace GC {
                                                                                   Logger &logger) {
         bool isFirstSegment = true;
         Evolver::EvolutionSettings evoSettings(settings);
+
+        size_t compressedSoFar = 0;
         auto compressBlock = [&](const Block& block) {
+#if 1
+            compressedSoFar += block.size();
+            LOG("Progress:", (double) ((double)compressedSoFar*100)/originalFileSize, "%");
+#endif
             const Individual bestIndividual = evolveBestIndividualForBlock(block, evoSettings);
+            //LOG("Generated the best individual, now encoding...");
             if (!isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
             isFirstSegment = false;
             encodeIndividual(bestIndividual, writer);
@@ -233,7 +241,7 @@ namespace GC {
     }
 
 
-    size_t EvolutionaryFileCompressor::compressBlockUsingRecipe_DataCollection(const Individual &individual, const Block &block, BitCounter &writer, Logger& logger) {
+    void EvolutionaryFileCompressor::compressBlockUsingRecipe_DataCollection(const Individual &individual, const Block &block, BitCounter &writer, Logger& logger) {
         ////LOG("Applying individual ", individual.to_string());
         const size_t writtenBefore = writer.getAmountOfBits();
         logger.beginUnnamedObject();
@@ -345,8 +353,11 @@ namespace GC {
     }
 
     Individual EvolutionaryFileCompressor::evolveBestIndividualForBlock(const Block & block, const Evolver::EvolutionSettings& evoSettings) {
+        //uses a sample of the actual block
+        const size_t blockSampleLength = std::min((size_t)256, block.size());
+        const Block blockSample(block.begin(), block.begin()+blockSampleLength);
         auto getFitnessOfIndividual = [&](const Individual& i){
-            return compressionRatioForIndividualOnBlock(i, block);
+            return compressionRatioForIndividualOnBlock(i, blockSample);
         };
 
         Evolver evolver(evoSettings, getFitnessOfIndividual);

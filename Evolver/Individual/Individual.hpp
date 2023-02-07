@@ -194,7 +194,7 @@ struct std::hash<GC::Individual>
         auto CCodeAsInt = [&](const GC::CCode cCode) -> size_t {return (size_t)cCode;};
 
         size_t accumulator = 0;
-        auto combineWithValue = [&](const size_t val) -> size_t {
+        auto combineWithValue = [&](const size_t val) {
             accumulator = (accumulator<<4)^val;
         };
 

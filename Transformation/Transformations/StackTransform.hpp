@@ -32,11 +32,6 @@ namespace GC {
             return result;
         }
 
-        static std::string listToString(const UnitList& list) {
-            LOG("This unit list is:");
-            for (auto item: list) {LOG_NONEWLINE_NOSPACES(item);}
-            LOG("");
-        }
 
 
         /**
