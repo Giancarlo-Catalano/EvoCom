@@ -155,7 +155,7 @@ namespace GC {
             //processedSoFar += block.size();
             //size_t progress = 100.0*(double)(processedSoFar) / (double)originalFileSize;
             //LOG_NOSPACES("(Progress ", progress, "%) Received the block (size ", block.size(), "), and the recipe ", recipe.to_string());
-            if (!isFirstSegment) writer.pushBit(1);  //signifies that the segment before had a segment after it
+            if (!isFirstSegment) writer.pushBit(true);  //signifies that the segment before had a segment after it
             isFirstSegment = false;
             encodeIndividual(recipe, writer);
             compressBlockUsingRecipe(recipe, block, writer);
@@ -182,11 +182,12 @@ namespace GC {
 
         LOG("all done!");
 
-        writer.pushBit(0);
+        writer.pushBit(false);
         writer.writeLastByte();
     }
 
-    void EvolutionaryFileCompressor::processFileAsFixedSegments(AbstractBitReader& reader, std::function<void(const Block&)> blockHandler,
+    void EvolutionaryFileCompressor::processFileAsFixedSegments(AbstractBitReader& reader,
+                                                                const std::function<void(const Block &)> &blockHandler,
                                                                 const size_t fileSize, const EvoComSettings& settings) {
 
         size_t remaining = fileSize;
@@ -320,7 +321,7 @@ namespace GC {
 
         size_t amountOfTransforms = reader.readAmountOfBits(bitsForAmountOfTransforms);
         repeat(amountOfTransforms, addTCode);
-        return Individual(tList, extractCCode());
+        return {tList, extractCCode()};
     }
 
     Block EvolutionaryFileCompressor::decodeUsingIndividual(const Individual& individual, AbstractBitReader& reader) {
@@ -353,7 +354,8 @@ namespace GC {
 
     Individual EvolutionaryFileCompressor::evolveBestIndividualForBlock(const Block & block, const Evolver::EvolutionSettings& evoSettings) {
         //uses a sample of the actual block
-        const size_t blockSampleLength = std::min((size_t)256, block.size());
+        constexpr size_t sampleSize = 1024; //1 KB
+        const size_t blockSampleLength = std::min(sampleSize, block.size());
         const Block blockSample(block.begin(), block.begin()+blockSampleLength);
         auto getFitnessOfIndividual = [&](const Individual& i){
             return compressionRatioForIndividualOnBlock(i, blockSample);
@@ -435,7 +437,7 @@ namespace GC {
             logger.endList();
         };
 
-if (settings.segmentationMethod == EvoComSettings::Clustered)
+        if (settings.segmentationMethod == EvoComSettings::Clustered)
             clusterFileInSegments(reader, compressBlock, originalFileSize, settings);
         else
             processFileAsFixedSegments(reader, compressBlock, originalFileSize, settings);

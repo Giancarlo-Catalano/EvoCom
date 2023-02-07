@@ -89,8 +89,9 @@ namespace GC {
 
         static Individual evolveBestIndividualForBlock(const Block &block, const Evolver::EvolutionSettings& evoSettings);
 
-        static void processFileAsFixedSegments(AbstractBitReader &reader, std::function<void(const Block &)> blockHandler,
-                                        const size_t fileSize, const EvoComSettings &settings);
+        static void processFileAsFixedSegments(AbstractBitReader &reader, const std::function<void(
+                const Block &)> &blockHandler,
+                                               const size_t fileSize, const EvoComSettings &settings);
 
 
         static void compressToStreamsSequentially(AbstractBitReader &reader, AbstractBitWriter &writer, const size_t originalFileSize,
