@@ -222,7 +222,7 @@ namespace GC {
 
     void logBlockAndTransform(const Block& block, const TCode operation, Logger& logger) {
         logger.beginUnnamedObject();
-        BlockReport report(block);
+        SegmentData report(block);
         report.log(logger);
         logger.addVar("Transform", Individual::TCode_as_string(operation));
         logger.endObject();
@@ -230,7 +230,7 @@ namespace GC {
 
     void logBlockAndCompression(const Block& block, const CCode operation, const size_t compressedSize, Logger& logger) {
         logger.beginObject("FinalCompression");
-        BlockReport report(block);
+        SegmentData report(block);
         report.log(logger);
         logger.addVar("Compression", Individual::CCode_as_string(operation));
         logger.addVar("FinalSize", compressedSize);
