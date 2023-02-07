@@ -24,8 +24,10 @@ namespace GC {
         }
 
         S average, standardDeviation;
+#if USING_ALL_STATISTICAL_FEATURES == 1
         S firstQuantile, median, thirdQuantile;
         S minimum, maximum;
+#endif
 
     public:
 
@@ -60,6 +62,7 @@ namespace GC {
             average = getAverage(c);
             standardDeviation = getStandardDeviation(c, average);
 
+#if USING_ALL_STATISTICAL_FEATURES == 1
             Container sorted = c;
             std::sort(sorted.begin(), sorted.end());
             const size_t lastIndex = sorted.size()-1;
@@ -71,17 +74,20 @@ namespace GC {
             median = sorted[middleIndex];
             thirdQuantile = sorted[thirdQuartileIndex];
             maximum = sorted[lastIndex];
+#endif
         }
 
         std::string to_string() const {
             Logger logger;
             logger.addVar("avg", average);
             logger.addVar("stdev", standardDeviation);
+#if USING_ALL_STATISTICAL_FEATURES == 1
             logger.addVar("min", minimum);
             logger.addVar("firstQ", firstQuantile);
             logger.addVar("median", median);
             logger.addVar("thirdQ", thirdQuantile);
             logger.addVar("max", maximum);
+#endif
             return logger.end();
         }
     };

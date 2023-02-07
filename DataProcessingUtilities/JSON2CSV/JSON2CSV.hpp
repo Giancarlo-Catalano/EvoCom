@@ -138,11 +138,13 @@ namespace GC {
             const auto addStatisticalFeatures = [&](const StatisticalFeatures& features) {
                 pushIntoCSV(features.average);
                 pushIntoCSV(features.standardDeviation);
+#if USING_ALL_STATISTICAL_FEATURES == 1
                 pushIntoCSV(features.minimum);
                 pushIntoCSV(features.firstQuantile);
                 pushIntoCSV(features.median);
                 pushIntoCSV(features.thirdQuantile);
                 pushIntoCSV(features.maximum);
+#endif
             };
             pushIntoCSV(br.size);
             pushIntoCSV(br.entropy);

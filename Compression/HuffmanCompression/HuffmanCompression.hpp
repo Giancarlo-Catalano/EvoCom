@@ -34,9 +34,8 @@ namespace GC {
 
         static SmallFrequencyReport getSmallFrequencyReport(const Block& block) {
             auto normalFrequencies = GC::BlockReport::getFrequencyArray(block);
-            StatisticalFeatures frequencyFeatures(normalFrequencies);
-            auto minFreq = frequencyFeatures.minimum;
-            auto maxFreq = frequencyFeatures.maximum;
+            auto minFreq = *std::min_element(normalFrequencies.begin(), normalFrequencies.end());
+            auto maxFreq = *std::max_element(normalFrequencies.begin(), normalFrequencies.end());
 
             auto fitFrequencyBetween0AndEncodable = [&](const auto freq) -> Weight{ //this is a remap from [minFreq, maxFreq] to [0, maxFrequencyEncodable]
                 if (maxFreq != minFreq)

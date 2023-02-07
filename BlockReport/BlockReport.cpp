@@ -30,11 +30,13 @@ namespace GC {
             logger.beginObject(statsName);
             logger.addVar("avg", sf.average);
             logger.addVar("stdev", sf.standardDeviation);
+#if USING_ALL_STATISTICAL_FEATURES == 1
             logger.addVar("min", sf.minimum);
             logger.addVar("firstQ", sf.firstQuantile);
             logger.addVar("median", sf.median);
             logger.addVar("thirdQ", sf.thirdQuantile);
             logger.addVar("max", sf.maximum);
+#endif
             logger.endObject();
         };
         logger.beginObject("BlockReport");
