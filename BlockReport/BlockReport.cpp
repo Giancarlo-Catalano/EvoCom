@@ -118,6 +118,7 @@ namespace GC {
         const size_t defaultSampleSize = 64;
         const size_t sampleSize = std::min({defaultSampleSize, A.size(), B.size()});
 
+        // amount is the length of the segments that will be compared
         auto distanceInSubRange = [&A, &B](auto startA, auto startB, const size_t amount) {
             Byte prevDiff = 0;
             size_t integralValue = 0;
