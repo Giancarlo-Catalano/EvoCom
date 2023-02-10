@@ -52,6 +52,9 @@ namespace GC {
         //this is a rough distance metric, which only assumes that the blocks are non-empty
         static double differentialSampleDistance(const Block& A, const Block& B);
 
+        static double distributionDistance(const Block& A, const Block& B);
+
+
         static double getEntropy(const Frequencies& frequencies);
 
     };

@@ -45,4 +45,21 @@ int main(int argc, char**argv) {
     }
 
 #endif
+
+
+#if 0 //testing the distribution distance
+    Block A;
+    Block B;
+
+    for (int i=0;i<3000;i++) {
+        A.push_back();
+        B.push_back(1);
+    }
+
+
+    double distance = GC::BlockReport::distributionDistance(A, B);
+    LOG("The distance is", distance);
+
+
+#endif
 }

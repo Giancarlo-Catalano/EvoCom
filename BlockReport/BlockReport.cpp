@@ -156,4 +156,20 @@ namespace GC {
         };
         return std::accumulate(frequencies.begin(), frequencies.end(), (double)0, addToAcc);
     }
+
+    double BlockReport::distributionDistance(const Block &A, const Block &B) {
+        const Frequencies freqsA = getFrequencyArray(A);
+        const Frequencies freqsB = getFrequencyArray(B);
+
+        const auto differenceInFrequency = [&](const Unit which) {
+            const Frequency freqA = freqsA.at(which);
+            const Frequency freqB = freqsB.at(which);
+            return std::sqrt(std::abs(square(freqA)-square(freqB)));
+        };
+
+        double result = 0;
+        for (size_t u = 0;u<256;u++) result += differenceInFrequency(u);
+
+        return result / 2.0;
+    }
 } // GC
