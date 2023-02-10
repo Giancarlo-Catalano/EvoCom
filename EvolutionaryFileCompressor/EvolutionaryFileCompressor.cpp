@@ -392,7 +392,7 @@ namespace GC {
             return result;
         };
 
-        StreamingClusterer<Block, double> clusterer(BlockReport::differentialSampleDistance,
+        StreamingClusterer<Block, double> clusterer(BlockReport::distributionDistance,
                                 [&](const std::vector<Block>& cluster){
                                     blockHandler(joinBlocks(cluster));},
                         settings.clusteredSegmentThreshold,
