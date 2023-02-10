@@ -34,15 +34,17 @@ namespace GC {
         T currentItem;
 
         const size_t maxClusterLength = 65536; //that's the amount of items supplied, not the bytes
+        const size_t minClusterLength; //set by the constructor
 
     public:
 
-        StreamingClusterer(const Metric metric, const ClusterHandler handler, const Distance maxDistanceFromClusterHead, const size_t cooldown) :
+        StreamingClusterer(const Metric metric, const ClusterHandler handler, const Distance maxDistanceFromClusterHead, const size_t cooldown, const size_t minClusterLength) :
                 metric(metric),
                 handler(handler),
                 thresholdDistance(maxDistanceFromClusterHead),
                 currentCluster(),
                 cooldownPeriod(cooldown),
+                minClusterLength(minClusterLength),
                 sinceLastPardonOrClusterStart(0),
                 hasProcessedFirstItem(false),
                 holdsCurrentItem(false){}
@@ -107,7 +109,7 @@ namespace GC {
                 currentItem = newItem;
                 sinceLastPardonOrClusterStart = 0;
             }
-            else if (isCloseEnoughToHead(currentItem)) {  //if it's close enough, add it to the cluster
+            else if (isCloseEnoughToHead(currentItem) || (currentCluster.size() < minClusterLength)) {  //if it's close enough, add it to the cluster
                 addToCluster(currentItem);
                 sinceLastPardonOrClusterStart++;
                 currentItem = newItem;

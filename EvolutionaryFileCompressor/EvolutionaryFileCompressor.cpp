@@ -381,7 +381,7 @@ namespace GC {
                                                            std::function<void(const Block&)> blockHandler,
                                                            const size_t fileSize, const EvoComSettings& settings) {
 
-        const size_t microUnitSize = 256; //bytes
+        const size_t microUnitSize = 1024; //bytes
         size_t remaining = fileSize;
 
         auto joinBlocks = [&](const std::vector<Block>& cluster) -> Block {
@@ -396,7 +396,8 @@ namespace GC {
                                 [&](const std::vector<Block>& cluster){
                                     blockHandler(joinBlocks(cluster));},
                         settings.clusteredSegmentThreshold,
-                        settings.clusteredSegmentCooldown);
+                        settings.clusteredSegmentCooldown,
+                        0); //temporary value before I actually implement this properly
 
 
         while (remaining > microUnitSize * 2) {  //this is so that the last micro unit has always size at least microUnitSize
