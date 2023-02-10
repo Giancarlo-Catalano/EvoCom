@@ -27,7 +27,7 @@ namespace GC {
 
         SECTION("Works on small streams") {
             Accumulator acc;
-            Clusterer c(metric, [&](auto newClust){addToAccumulator(newClust, acc);}, 10000, 1);
+            Clusterer c(metric, [&](auto newClust){addToAccumulator(newClust, acc);}, 10000, 1, 0);
 
             GIVEN("A trivial clusterer") {
                 WHEN("Accepting an empty stream") {

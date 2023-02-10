@@ -38,7 +38,7 @@ namespace GC {
 
     public:
 
-        StreamingClusterer(const Metric metric, const ClusterHandler handler, const Distance maxDistanceFromClusterHead, const size_t cooldown, const size_t minClusterLength) :
+        StreamingClusterer(const Metric metric, const ClusterHandler handler, const Distance maxDistanceFromClusterHead, const size_t cooldown = 1, const size_t minClusterLength = 0) :
                 metric(metric),
                 handler(handler),
                 thresholdDistance(maxDistanceFromClusterHead),
