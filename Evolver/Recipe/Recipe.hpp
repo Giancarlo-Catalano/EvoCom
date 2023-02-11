@@ -19,7 +19,7 @@
 
 namespace GC {
 
-    class Individual {
+    class Recipe {
 
 #define GC_PRINT_TCODE_NAMES 1
 #define GC_PRINT_CCODE_NAMES 1
@@ -39,13 +39,13 @@ namespace GC {
         Fitness fitness;
 
     public: //methods
-        Individual() :
+        Recipe() :
             tList(),
             cCode(C_IdentityCompression),
             fitness(){}
 
 
-        Individual(const TList& tList, const CCode cCode) :
+        Recipe(const TList& tList, const CCode cCode) :
             tList(tList),
             cCode(cCode),
             fitness(){
@@ -115,11 +115,11 @@ namespace GC {
             return cCode;
         }
 
-        void copyTCodeFrom(const size_t index, const Individual& A) {
+        void copyTCodeFrom(const size_t index, const Recipe& A) {
             getTCode(index) = A.readTCode(index);
         }
 
-        void copyCCodeFrom(const Individual& A) {
+        void copyCCodeFrom(const Recipe& A) {
             getCCode() = A.readCCode();
         }
 
@@ -136,7 +136,7 @@ namespace GC {
         PseudoFitness::Reliability getFitnessReliability() const {return fitness.getReliability();}
 
 
-        double distanceFrom(const Individual& other) const {
+        double distanceFrom(const Recipe& other) const {
             return LevenshteinDistance<TCode, MaxTListLength>(tList, other.readTList())+(cCode!=other.readCCode());
         }
 
@@ -162,33 +162,33 @@ namespace GC {
         }
     };
 
-    inline bool operator==(const Individual& lhs, const Individual& rhs){
+    inline bool operator==(const Recipe& lhs, const Recipe& rhs){
         return (lhs.cCode == rhs.cCode) && (lhs.tList == rhs.tList);
     }
 
 
     class RandomIndividual {
     private:
-        RandomInt<size_t> randomLength{Individual::MinTListLength, Individual::MaxTListLength};
+        RandomInt<size_t> randomLength{Recipe::MinTListLength, Recipe::MaxTListLength};
         RandomElement<TCode> randomTCode{availableTCodes};
         RandomElement<CCode> randomCCode{availableCCodes};
     public:
         RandomIndividual() = default;
-        Individual makeIndividual() {
-            Individual::TList tList(randomLength.choose());
+        Recipe makeIndividual() {
+            Recipe::TList tList(randomLength.choose());
             for (TCode& tCode: tList)
                 randomTCode.assignRandomValue(tCode);
             CCode cCode = randomCCode.choose();
-            return Individual(tList, cCode);
+            return Recipe(tList, cCode);
         }
     };
 
 } // GC
 
 template<>
-struct std::hash<GC::Individual>
+struct std::hash<GC::Recipe>
 {
-    std::size_t operator()(GC::Individual const& individual) const noexcept
+    std::size_t operator()(GC::Recipe const& individual) const noexcept
     {
         auto TCodeAsInt = [&](const GC::TCode tCode) -> size_t {return (size_t)tCode;};
         auto CCodeAsInt = [&](const GC::CCode cCode) -> size_t {return (size_t)cCode;};

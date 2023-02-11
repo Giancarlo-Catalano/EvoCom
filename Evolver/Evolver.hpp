@@ -4,7 +4,7 @@
 
 #ifndef DISS_SIMPLEPROTOTYPE_EVOLVER_HPP
 #define DISS_SIMPLEPROTOTYPE_EVOLVER_HPP
-#include "Individual/Individual.hpp"
+#include "Recipe/Recipe.hpp"
 #include "Breeder/Breeder.hpp"
 #include "Selector/Selector.hpp"
 #include "../Utilities/utilities.hpp"
@@ -24,7 +24,7 @@ namespace GC {
 
     class Evolver {
     public: //types
-        using Population = std::vector<Individual>;
+        using Population = std::vector<Recipe>;
         struct EvolutionSettings { //this is a convenient way of passing a lot of parameters to the evolver
             size_t populationSize;
             size_t generationCount;
@@ -59,7 +59,7 @@ namespace GC {
             }
         };
 
-        using Fitness = Individual::FitnessScore;
+        using Fitness = Recipe::FitnessScore;
         using FitnessFunction = Evaluator::FitnessFunction;
 
     private:
@@ -82,7 +82,7 @@ namespace GC {
     private: //methods
         void initialiseRandomPopulation() {
             RandomIndividual randomIndividualMaker;
-            population = std::vector<Individual>();
+            population = std::vector<Recipe>();
             auto addRandomIndividual = [&]() {
                 population.push_back(randomIndividualMaker.makeIndividual());
             };
@@ -91,17 +91,17 @@ namespace GC {
             forcePopulationFitnessAssessment();
         }
 
-        void initialiseHintedPopulation(const std::vector<Individual>& hint) {
+        void initialiseHintedPopulation(const std::vector<Recipe>& hint) {
             for (auto hintItem: hint) {
                 ASSERT(hintItem.isWithinAcceptedBounds());
             }
 
-            RandomElement<Individual> randomHint(hint);
+            RandomElement<Recipe> randomHint(hint);
             RandomIndividual randomIndividualMaker;
             RandomChance chooseIfRandom(0.5);//(1.0/(hint.size()+1));
-            population = std::vector<Individual>();
+            population = std::vector<Recipe>();
 
-            auto makeIndividual = [&]() -> Individual {
+            auto makeIndividual = [&]() -> Recipe {
                 if (chooseIfRandom.choose()) return randomIndividualMaker.makeIndividual();
                 else return randomHint.choose();
             };
@@ -150,7 +150,7 @@ namespace GC {
             }
 
 
-        Evolver(const EvolutionSettings settings, const FitnessFunction fitnessFunction, std::vector<Individual>& hint) :
+        Evolver(const EvolutionSettings settings, const FitnessFunction fitnessFunction, std::vector<Recipe>& hint) :
                 populationSize(settings.populationSize),
                 amountOfGenerations(settings.generationCount),
                 evaluator(fitnessFunction),
@@ -170,9 +170,9 @@ namespace GC {
             selector.preparePool(population);
             auto addNewIndividual = [&]() {
                 //LOG("Adding a new member to the population");
-                Individual parentA = selector.select();
-                Individual parentB = selector.select();
-                Individual newChild = breeder.mutate(breeder.crossover(parentA, parentB));
+                Recipe parentA = selector.select();
+                Recipe parentB = selector.select();
+                Recipe newChild = breeder.mutate(breeder.crossover(parentA, parentB));
                 evaluator.decideFitness(newChild, parentA, parentB);
                 children.emplace_back(newChild);
             };
@@ -188,14 +188,14 @@ namespace GC {
 
             selector.preparePool(population);
 
-            auto generateChild = [&]()->Individual {
-                const Individual parentA = selector.select();
-                const Individual parentB = selector.select();
-                Individual newChild = breeder.mutate(breeder.crossover(parentA, parentB));
+            auto generateChild = [&]()->Recipe {
+                const Recipe parentA = selector.select();
+                const Recipe parentB = selector.select();
+                Recipe newChild = breeder.mutate(breeder.crossover(parentA, parentB));
                 evaluator.decideFitness(newChild, parentA, parentB);
                 return newChild;
             };
-            population = Breeder::generateUnique<Individual>(populationSize, elite, generateChild);
+            population = Breeder::generateUnique<Recipe>(populationSize, elite, generateChild);
 
             runningAverageFitness.registerNewValue(getBestOfPopulation(false).getFitness());
             generationCount++;
@@ -247,18 +247,18 @@ namespace GC {
 
         void forcePopulationFitnessAssessment() {
             std::for_each(population.begin(), population.end(),
-                          [&](Individual& i){evaluator.forceEvaluation(i);});
+                          [&](Recipe& i){evaluator.forceEvaluation(i);});
         }
 
         void LOGPopulation() {
             LOG("The evolver's population is ");
-            std::for_each(population.begin(), population.end(), [&](Individual i){LOG(i.to_string());});
+            std::for_each(population.begin(), population.end(), [&](Recipe i){LOG(i.to_string());});
             LOG("--------end of evolver population------------------");
         }
 
-        Individual getBestOfPopulation(const bool forceAssessment = true) {
+        Recipe getBestOfPopulation(const bool forceAssessment = true) {
             if (forceAssessment) forcePopulationFitnessAssessment();
-            auto getPrecalculatedFitness = [&](const Individual& individual) {
+            auto getPrecalculatedFitness = [&](const Recipe& individual) {
                 return individual.getFitness();
             };
 
@@ -266,7 +266,7 @@ namespace GC {
         }
 
 
-        Individual evolveBest() {
+        Recipe evolveBest() {
             evolveForGenerations();
             return getBestOfPopulation(true);
         }
@@ -275,11 +275,11 @@ namespace GC {
             initialiseRandomPopulation();
         }
 
-        Individual evolveBestAndLogProgress(Logger &logger) {
+        Recipe evolveBestAndLogProgress(Logger &logger) {
             size_t generationCounter = 0;
 
             auto logGenerationData = [&]() {
-                const Individual bestIndividual = getBestOfPopulation(false);
+                const Recipe bestIndividual = getBestOfPopulation(false);
                 const Fitness bestFitness = bestIndividual.getFitness();
 
                 logger.beginUnnamedObject();
@@ -290,7 +290,7 @@ namespace GC {
                 logger.addVar("runningAverage", runningAverageFitness.getAverage());
                 logger.addVar("deviation", runningAverageFitness.getDeviation());
                 logger.beginList("Population");
-                std::for_each(population.begin(), population.end(), [&](const Individual& i){
+                std::for_each(population.begin(), population.end(), [&](const Recipe& i){
                     logger.addListItem(i.to_string());
                 });
                 logger.endList(); //ends population;

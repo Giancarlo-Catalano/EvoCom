@@ -82,7 +82,7 @@ namespace GC {
         Evolver::EvolutionSettings evoSettings(settings);
         auto compressBlock = [&](const Block& block) {
             LOG("Received a block of size", block.size());
-            Individual bestIndividual = evolveBestIndividualForBlock(block, evoSettings);
+            Recipe bestIndividual = evolveBestIndividualForBlock(block, evoSettings);
             LOG("For this block, the best individual is", bestIndividual.to_string());
             if (!isFirstSegment) writer.pushBit(true);  //signifies that the segment before had a segment after it
             isFirstSegment = false;
@@ -114,7 +114,7 @@ namespace GC {
             compressedSoFar += block.size();
             LOG("Progress:", (double) ((double)compressedSoFar*100)/originalFileSize, "%");
 #endif
-            const Individual bestIndividual = evolveBestIndividualForBlock(block, evoSettings);
+            const Recipe bestIndividual = evolveBestIndividualForBlock(block, evoSettings);
             //LOG("Generated the best individual, now encoding...");
             if (!isFirstSegment) writer.pushBit(true);  //signifies that the segment before had a segment after it
             isFirstSegment = false;
@@ -134,7 +134,7 @@ namespace GC {
     }
 
     void EvolutionaryFileCompressor::compressToStreamsAsync(AbstractBitReader& reader, AbstractBitWriter& writer, const size_t originalFileSize, const EvoComSettings& settings) {
-        using Job = std::pair<Block, std::future<Individual>>;
+        using Job = std::pair<Block, std::future<Recipe>>;
         using JobQueue = std::queue<Job>;
 
         JobQueue jobQueue;
@@ -151,7 +151,7 @@ namespace GC {
 
         bool isFirstSegment = true;
         //size_t processedSoFar = 0;
-        auto compressBlock = [&](const Block& block, const Individual& recipe) {
+        auto compressBlock = [&](const Block& block, const Recipe& recipe) {
             //processedSoFar += block.size();
             //size_t progress = 100.0*(double)(processedSoFar) / (double)originalFileSize;
             //LOG_NOSPACES("(Progress ", progress, "%) Received the block (size ", block.size(), "), and the recipe ", recipe.to_string());
@@ -173,7 +173,7 @@ namespace GC {
             jobQueue.front().second.wait();
 
             //LOG("acquiring the block and the future");
-            Individual recipe = jobQueue.front().second.get();
+            Recipe recipe = jobQueue.front().second.get();
             Block block = jobQueue.front().first;
             compressBlock(block, recipe);
 
@@ -213,7 +213,7 @@ namespace GC {
 
 
 
-    void EvolutionaryFileCompressor::compressBlockUsingRecipe(const Individual &individual, const Block &block, AbstractBitWriter& writer) {
+    void EvolutionaryFileCompressor::compressBlockUsingRecipe(const Recipe &individual, const Block &block, AbstractBitWriter& writer) {
         ////LOG("Applying individual ", individual.to_string());
         Block toBeProcessed = block;
         for (auto tCode : individual.tList) applyTransformCode(tCode, toBeProcessed);
@@ -224,7 +224,7 @@ namespace GC {
         logger.beginUnnamedObject();
         SegmentData report(block);
         report.log(logger);
-        logger.addVar("Transform", Individual::TCode_as_string(operation));
+        logger.addVar("Transform", Recipe::TCode_as_string(operation));
         logger.endObject();
     }
 
@@ -232,13 +232,13 @@ namespace GC {
         logger.beginObject("FinalCompression");
         SegmentData report(block);
         report.log(logger);
-        logger.addVar("Compression", Individual::CCode_as_string(operation));
+        logger.addVar("Compression", Recipe::CCode_as_string(operation));
         logger.addVar("FinalSize", compressedSize);
         logger.endObject();
     }
 
 
-    void EvolutionaryFileCompressor::compressBlockUsingRecipe_DataCollection(const Individual &individual, const Block &block, BitCounter &writer, Logger& logger) {
+    void EvolutionaryFileCompressor::compressBlockUsingRecipe_DataCollection(const Recipe &individual, const Block &block, BitCounter &writer, Logger& logger) {
         ////LOG("Applying individual ", individual.to_string());
         const size_t writtenBefore = writer.getAmountOfBits();
         logger.beginUnnamedObject();
@@ -266,7 +266,7 @@ namespace GC {
     }
 
 
-    void EvolutionaryFileCompressor::encodeIndividual(const Individual& individual, AbstractBitWriter& writer){
+    void EvolutionaryFileCompressor::encodeIndividual(const Recipe& individual, AbstractBitWriter& writer){
         auto encodeTransform = [&](const TCode tc) {
             writer.writeAmountOfBits(tc, bitSizeForCompressionCode);
         };
@@ -290,7 +290,7 @@ namespace GC {
         FileBitWriter writer(outStream);
 
         auto decodeAndWriteOnFile = [&]() {
-            const Individual individual = decodeIndividual(reader);
+            const Recipe individual = decodeIndividual(reader);
             const Block decodedBlock = decodeUsingIndividual(individual, reader);
             writeBlock(decodedBlock, writer);
         };
@@ -309,7 +309,7 @@ namespace GC {
 
     }
 
-    Individual EvolutionaryFileCompressor::decodeIndividual(AbstractBitReader& reader) {
+    Recipe EvolutionaryFileCompressor::decodeIndividual(AbstractBitReader& reader) {
         std::vector<TCode> tList;
         auto addTCode = [&](){
             tList.push_back(static_cast<TCode>(reader.readAmountOfBits(bitSizeForTransformCode)));
@@ -324,7 +324,7 @@ namespace GC {
         return {tList, extractCCode()};
     }
 
-    Block EvolutionaryFileCompressor::decodeUsingIndividual(const Individual& individual, AbstractBitReader& reader) {
+    Block EvolutionaryFileCompressor::decodeUsingIndividual(const Recipe& individual, AbstractBitReader& reader) {
         Block transformedBlock = undoCompressionCode(individual.cCode, reader);
         std::for_each(individual.tList.rbegin(), individual.tList.rend(), [&](auto tc){
             undoTransformCode(tc, transformedBlock);});
@@ -339,7 +339,7 @@ namespace GC {
     }
 
 
-    EvolutionaryFileCompressor::Fitness EvolutionaryFileCompressor::compressionRatioForIndividualOnBlock(const Individual& individual, const Block& block) {
+    EvolutionaryFileCompressor::Fitness EvolutionaryFileCompressor::compressionRatioForIndividualOnBlock(const Recipe& individual, const Block& block) {
         size_t originalSize = block.size()*8;
 
         BitCounter counterWriter;
@@ -352,22 +352,22 @@ namespace GC {
         return (double) (compressedSize) / (originalSize);
     }
 
-    Individual EvolutionaryFileCompressor::evolveBestIndividualForBlock(const Block & block, const Evolver::EvolutionSettings& evoSettings) {
+    Recipe EvolutionaryFileCompressor::evolveBestIndividualForBlock(const Block & block, const Evolver::EvolutionSettings& evoSettings) {
         //uses a sample of the actual block
         constexpr size_t sampleSize = 1024; //1 KB
         const size_t blockSampleLength = std::min(sampleSize, block.size());
         const Block blockSample(block.begin(), block.begin()+blockSampleLength);
-        auto getFitnessOfIndividual = [&](const Individual& i){
+        auto getFitnessOfIndividual = [&](const Recipe& i){
             return compressionRatioForIndividualOnBlock(i, blockSample);
         };
 
         Evolver evolver(evoSettings, getFitnessOfIndividual);
-        Individual bestIndividual = evolver.evolveBest();
+        Recipe bestIndividual = evolver.evolveBest();
         return bestIndividual;
     }
 
-    Individual EvolutionaryFileCompressor::evolveIndividualForBlockAndLogProgress(const Block& block, const Evolver::EvolutionSettings& evoSettings, Logger& logger)  { //based on evolveBestIndividual
-        auto getFitnessOfIndividual = [&](const Individual& i) -> Fitness {
+    Recipe EvolutionaryFileCompressor::evolveIndividualForBlockAndLogProgress(const Block& block, const Evolver::EvolutionSettings& evoSettings, Logger& logger)  { //based on evolveBestIndividual
+        auto getFitnessOfIndividual = [&](const Recipe& i) -> Fitness {
             return compressionRatioForIndividualOnBlock(i, block);
         };
 

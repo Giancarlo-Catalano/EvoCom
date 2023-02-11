@@ -11,7 +11,7 @@
 #include "../Transformation/Transformation.hpp"
 #include "../Compression/Compression.hpp"
 #include "../BlockReport/BlockReport.hpp"
-#include "../Evolver/Individual/Individual.hpp"
+#include "../Evolver/Recipe/Recipe.hpp"
 #include "../AbstractBit/AbstractBitWriter/AbstractBitWriter.hpp"
 #include "../AbstractBit/AbstractBitReader/AbstractBitReader.hpp"
 #include "EvoCompressorSettings/EvoComSettings.hpp"
@@ -26,9 +26,9 @@ namespace GC {
     public:
         using FileName = std::string;
         using TransformCode = TCode;
-        using TList = Individual::TList;
+        using TList = Recipe::TList;
         using CompressionCode = CCode;
-        using Fitness = Individual::FitnessScore;
+        using Fitness = Recipe::FitnessScore;
 
 
         EvolutionaryFileCompressor() {};
@@ -55,10 +55,10 @@ namespace GC {
 
         static void applyCompressionCode(const CompressionCode &cc, const Block &block, AbstractBitWriter& writer);
 
-        static void compressBlockUsingRecipe_DataCollection(const Individual &individual, const Block &block, GC::BitCounter &writer, Logger& logger);
-        static void compressBlockUsingRecipe(const Individual &individual, const Block &block, AbstractBitWriter& writer);
+        static void compressBlockUsingRecipe_DataCollection(const Recipe &individual, const Block &block, GC::BitCounter &writer, Logger& logger);
+        static void compressBlockUsingRecipe(const Recipe &individual, const Block &block, AbstractBitWriter& writer);
 
-        static void encodeIndividual(const Individual &individual, AbstractBitWriter& writer);
+        static void encodeIndividual(const Recipe &individual, AbstractBitWriter& writer);
 
         static void undoTransformCode(const TransformCode &tc, Block &block);
 
@@ -76,18 +76,18 @@ namespace GC {
 
         static void writeBlock(const Block &block, AbstractBitWriter &writer);
 
-        static Fitness compressionRatioForIndividualOnBlock(const Individual &individual, const Block &block);
+        static Fitness compressionRatioForIndividualOnBlock(const Recipe &individual, const Block &block);
 
-        static Individual decodeIndividual(AbstractBitReader &reader);
+        static Recipe decodeIndividual(AbstractBitReader &reader);
 
-        static Block decodeUsingIndividual(const Individual &individual, AbstractBitReader &reader);
+        static Block decodeUsingIndividual(const Recipe &individual, AbstractBitReader &reader);
 
         static void
         clusterFileInSegments(AbstractBitReader &reader, std::function<void(const Block &)> blockHandler,
                               const size_t fileSize, const EvoComSettings& settings);
 
 
-        static Individual evolveBestIndividualForBlock(const Block &block, const Evolver::EvolutionSettings& evoSettings);
+        static Recipe evolveBestIndividualForBlock(const Block &block, const Evolver::EvolutionSettings& evoSettings);
 
         static void processFileAsFixedSegments(AbstractBitReader &reader, const std::function<void(
                 const Block &)> &blockHandler,
@@ -107,7 +107,7 @@ namespace GC {
         static void getEvolverConvergenceData(GC::FileBitReader &reader, const size_t size,
                                               const EvoComSettings &settings, Logger& logger);
 
-        static Individual
+        static Recipe
         evolveIndividualForBlockAndLogProgress(const Block& block, const Evolver::EvolutionSettings& evoSettings, Logger& logger);
     };
 

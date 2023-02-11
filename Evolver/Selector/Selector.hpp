@@ -5,7 +5,7 @@
 #ifndef DISS_SIMPLEPROTOTYPE_SELECTOR_HPP
 #define DISS_SIMPLEPROTOTYPE_SELECTOR_HPP
 #include <vector>
-#include "../Individual/Individual.hpp"
+#include "../Recipe/Recipe.hpp"
 #include "../../Random/RandomElement.hpp"
 #include "../../Utilities/utilities.hpp"
 #include "../Evaluator/Evaluator.hpp"
@@ -36,10 +36,10 @@ namespace GC {
 
         using SelectionKind = std::variant<TournamentSelection, FitnessProportionateSelection>;
     private:
-        std::vector<Individual> pool;
+        std::vector<Recipe> pool;
         SelectionKind selectionKind;
 
-        RandomElement<Individual> randomIndividualChooser;
+        RandomElement<Recipe> randomIndividualChooser;
 
     public:
 
@@ -94,7 +94,7 @@ namespace GC {
             }
         }
 
-        Individual select() {
+        Recipe select() {
             if (isTournamentSelection())
                 return tournamentSelect();
             else {
@@ -104,15 +104,15 @@ namespace GC {
         }
 
 
-        std::vector<Individual> selectElite(const size_t amount, const std::vector<Individual>& pool) {
-            auto isIndividualBetter = [&](const Individual& A, const Individual& B) {
+        std::vector<Recipe> selectElite(const size_t amount, const std::vector<Recipe>& pool) {
+            auto isIndividualBetter = [&](const Recipe& A, const Recipe& B) {
                 return A.getFitness() < B.getFitness();
             };
             ASSERT(pool.size() >= amount);
 
             auto copyOfPool = pool;
             std::nth_element(copyOfPool.begin(), copyOfPool.begin()+amount, copyOfPool.end(), isIndividualBetter);
-            std::vector<Individual> result(copyOfPool.begin(), copyOfPool.begin()+amount);
+            std::vector<Recipe> result(copyOfPool.begin(), copyOfPool.begin() + amount);
 
             return result;
         }
@@ -120,8 +120,8 @@ namespace GC {
 
     private:
 
-        Individual tournamentSelect() {
-            std::vector<Individual> tournament;//TODO: this copies the individuals into the tournament, which is very inefficient, in the future this should just reference them in some way
+        Recipe tournamentSelect() {
+            std::vector<Recipe> tournament;//TODO: this copies the individuals into the tournament, which is very inefficient, in the future this should just reference them in some way
             randomIndividualChooser.setElementPool(pool);
             auto addRandomIndividual = [&]() {
                 tournament.push_back(randomIndividualChooser.choose());
@@ -132,7 +132,7 @@ namespace GC {
             repeat(howManyToSelect, addRandomIndividual);
 
 
-            auto getFitness = [&](const Individual& i) -> Fitness {return i.getFitness();};
+            auto getFitness = [&](const Recipe& i) -> Fitness {return i.getFitness();};
             return getMinimumBy(tournament, getFitness);
         }
 
@@ -140,8 +140,8 @@ namespace GC {
 
 
 
-        std::vector<Individual> selectMany(const size_t amount) {
-            std::vector<Individual> result;
+        std::vector<Recipe> selectMany(const size_t amount) {
+            std::vector<Recipe> result;
             repeat(amount, [&](){result.emplace_back(select());});
             return result;
         }

@@ -6,7 +6,7 @@
 #define DISS_SIMPLEPROTOTYPE_EVALUATOR_HPP
 #include "../../Utilities/utilities.hpp"
 #include "../PseudoFitness/PseudoFitness.hpp"
-#include "../Individual/Individual.hpp"
+#include "../Recipe/Recipe.hpp"
 #include "../../Random/RandomChance.hpp"
 #include <sstream>
 #include <iomanip>
@@ -18,15 +18,15 @@ namespace GC {
         using FitnessScore = PseudoFitness::FitnessScore;
         using Reliability = PseudoFitness::Reliability;
         using Similarity = PseudoFitness::Similarity;
-        using FitnessFunction = std::function<FitnessScore(Individual)>;
+        using FitnessFunction = std::function<FitnessScore(Recipe)>;
 
     private:
         Reliability reliabilityThreshold; //what is the minimum accepted reliability? (always in [0, 1])
         mutable RandomChance randomEvaluationChooser;
         FitnessFunction fitnessFunction;
 
-        Similarity getSimilarity(const Individual& A, const Individual& B) const { //1 means they're identical
-            const auto elemsIn = [&](const Individual& i) {
+        Similarity getSimilarity(const Recipe& A, const Recipe& B) const { //1 means they're identical
+            const auto elemsIn = [&](const Recipe& i) {
                 return i.getTListLength()+1; //+1 is because there's the compression
             };
 
@@ -34,11 +34,11 @@ namespace GC {
             return 1-distance;
         }
 
-        void setFitnessScore(Individual& I, const FitnessScore f) const {
+        void setFitnessScore(Recipe& I, const FitnessScore f) const {
             I.getPseudoFitness().setFitnessScore(f);
         }
 
-        void setReliability(Individual& I, const Reliability r) const {
+        void setReliability(Recipe& I, const Reliability r) const {
             I.getPseudoFitness().setReliability(r);
         }
 
@@ -66,7 +66,7 @@ namespace GC {
                 return 0; //unreliable
         }
 
-        void assignInheritedFitnessToChild(Individual& child, const Individual& A, const Individual& B) {
+        void assignInheritedFitnessToChild(Recipe& child, const Recipe& A, const Recipe& B) {
             FitnessScore fA = A.getFitness();
             FitnessScore fB = B.getFitness();
             Reliability rA = A.getFitnessReliability();
@@ -79,7 +79,7 @@ namespace GC {
             setReliability(child, combineReliabilities(rA, rB, sA, sB));
         }
 
-        bool reliabilityTooLow(const Individual& I) const {
+        bool reliabilityTooLow(const Recipe& I) const {
             //LOG("Checking the reliability, it's", I.getFitnessReliability());
             return I.getFitnessReliability() < reliabilityThreshold;
         }
@@ -92,7 +92,7 @@ namespace GC {
             randomEvaluationChooser(0.05){
         }
 
-        void decideFitness(Individual& child, const Individual& A, const Individual& B) {
+        void decideFitness(Recipe& child, const Recipe& A, const Recipe& B) {
             assignInheritedFitnessToChild(child, A, B);
             //LOG("A's reliability=", A.getFitnessReliability(), "B's reliability=", B.getFitnessReliability());
             if (reliabilityTooLow(child) || randomEvaluationChooser.shouldDo()) {
@@ -102,7 +102,7 @@ namespace GC {
         }
 
 
-        void forceEvaluation(Individual& I) const {
+        void forceEvaluation(Recipe& I) const {
             setFitnessScore(I, fitnessFunction(I));
             setReliability(I, 1.0);
         }

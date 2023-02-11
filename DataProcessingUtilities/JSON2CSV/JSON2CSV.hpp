@@ -5,8 +5,8 @@
 #ifndef EVOCOM_JSON2CSV_HPP
 #define EVOCOM_JSON2CSV_HPP
 #include "../../Dependencies/nlohmann/json.hpp"
-#include "../../Evolver/Individual/CCodes.hpp"
-#include "../../Evolver/Individual/TCodes.hpp"
+#include "../../Evolver/Recipe/CCodes.hpp"
+#include "../../Evolver/Recipe/TCodes.hpp"
 #include "../../EvolutionaryFileCompressor/EvoCompressorSettings/EvoComSettings.hpp"
 #include "../../BlockReport/BlockReport.hpp"
 #include <unordered_set>

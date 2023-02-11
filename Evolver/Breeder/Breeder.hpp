@@ -6,7 +6,7 @@
 #define DISS_SIMPLEPROTOTYPE_BREEDER_HPP
 #include "../../Utilities/utilities.hpp"
 #include "../../names.hpp"
-#include "../Individual/Individual.hpp"
+#include "../Recipe/Recipe.hpp"
 #include "../../Random/RandomChance.hpp"
 #include "../../Random/RandomElement.hpp"
 #include "../../Random/RandomIndex.hpp"
@@ -19,7 +19,7 @@ namespace GC {
 
     class Breeder {
     public: //types
-        using TList = Individual::TList;
+        using TList = Recipe::TList;
         using Index = size_t;
         using CrossoverBounds = std::pair<Index, Index>;
         using CrossoverRecipe = std::pair<CrossoverBounds, CrossoverBounds>;
@@ -47,21 +47,21 @@ namespace GC {
             chooseCCodeCrossover(chanceOfCCodeCrossover){};
 
 
-        Individual mutate(const Individual& individual) {
+        Recipe mutate(const Recipe& individual) {
             //LOG("Mutating an individual");
-            Individual child = individual;
+            Recipe child = individual;
             mutateElements(child);
             mutateCCode(child);
             mutateLength(child); //adds or removes a transform
             return child;
         }
 
-        Individual crossover(const Individual& A, const Individual& B) {
+        Recipe crossover(const Recipe& A, const Recipe& B) {
             CrossoverRecipe recipe = generateValidCrossoverRecipe(A, B);
 
             TList newTList = crossoverLists(A.readTList(), B.readTList(), recipe.first, recipe.second);
             CCode newCCode = chooseCCodeCrossover.choose() ? A.readCCode() : B.readCCode();
-            return Individual(newTList, newCCode);
+            return Recipe(newTList, newCCode);
         }
 
 
@@ -95,17 +95,17 @@ namespace GC {
             tList.erase(tList.begin()+position);
         }
 
-        void mutateElements(Individual& individual) {
+        void mutateElements(Recipe& individual) {
             for (TCode& tCode : individual.getTList())
                 randomChanceOfMutation.doWithChance([&]{randomTCode.assignRandomValue(tCode);});
         }
 
-        void mutateCCode(Individual& individual) {
+        void mutateCCode(Recipe& individual) {
             randomChanceOfMutation.doWithChance([&](){
                 randomCCode.assignRandomValue(individual.getCCode());});
         }
 
-        void mutateLength(Individual& individual) {
+        void mutateLength(Recipe& individual) {
             auto addTransform = [&]() -> void { addRandomElement(individual.getTList());};
             auto removeTransform = [&]() -> void { removeRandomElement(individual.getTList());};
 
@@ -158,8 +158,8 @@ namespace GC {
             return result;
         }
 
-        CrossoverRecipe generateValidCrossoverRecipe(const Individual& A, const Individual& B) {
-            auto chooseIndex = [&](const Individual& X) {
+        CrossoverRecipe generateValidCrossoverRecipe(const Recipe& A, const Recipe& B) {
+            auto chooseIndex = [&](const Recipe& X) {
                 return randomIndexChooser.chooseInRange(0, X.readTList().size()); //note that the size is also a possible option
             };
             auto orderBounds = [&](const CrossoverBounds& b) -> CrossoverBounds {
@@ -176,7 +176,7 @@ namespace GC {
                 //LOG("requested to check {(", bounds.first.first, ", ", bounds.first.second, "), (", bounds.second.first, ", ", bounds.second.second, ")}");
                 //LOG("A has length ", A.getTListLength(), "while B has length", B.getTListLength());
                 //LOG("The predicted final length is ", predictLengthOfChild(bounds.first, bounds.second));
-                return isInInterval_inclusive(predictLengthOfChild(bounds.first, bounds.second), Individual::MinTListLength, Individual::MaxTListLength);
+                return isInInterval_inclusive(predictLengthOfChild(bounds.first, bounds.second), Recipe::MinTListLength, Recipe::MaxTListLength);
             };
 
             return retryUntil<CrossoverRecipe>(chooseRandomBounds, areBoundsAcceptable);
