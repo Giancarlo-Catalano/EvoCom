@@ -204,7 +204,7 @@ namespace GC {
         }
 
         bool isStagnating() {
-            return std::abs(runningAverageFitness.getDeviation()) < 0.05; //originally it was >= 0, but equality with 0 if iffy, so this works better
+            return std::abs(runningAverageFitness.getDeviation()) < 0.01; //originally it was >= 0, but equality with 0 if iffy, so this works better
         }
 
         bool isUnstable() {
