@@ -20,7 +20,7 @@
 #define AM_LOG(...)
 #endif
 
-#define FORCE_DISTINCT_POPULATION 1
+#define FORCE_DISTINCT_POPULATION 0
 
 namespace GC {
 
@@ -243,7 +243,7 @@ namespace GC {
 #if FORCE_DISTINCT_POPULATION
             evolveSingleUniqueGeneration();
 #else
-            evolveSingleGeneration();
+            evolveRepetitiveSingleGeneration();
 #endif
         }
 
