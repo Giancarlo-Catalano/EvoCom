@@ -20,6 +20,8 @@
 #define AM_LOG(...)
 #endif
 
+#define FORCE_DISTINCT_POPULATION 1
+
 namespace GC {
 
     class Evolver {
@@ -163,7 +165,7 @@ namespace GC {
             initialiseHintedPopulation(hint);
         }
 
-        void evolveSingleGeneration() {
+        void evolveRepetitiveSingleGeneration() {
             //LOG("The current population is"); for (auto individual: population) LOG(individual.to_string());
             Population children = selector.selectElite(eliteSize, population);
 
@@ -179,7 +181,7 @@ namespace GC {
             repeat(populationSize - eliteSize, addNewIndividual);
             population = children;
 
-            runningAverageFitness.registerNewValue(getBestOfPopulation(true).getFitness());
+            runningAverageFitness.registerNewValue(getBestOfPopulation(false).getFitness());
             generationCount++;
         }
 
@@ -237,10 +239,19 @@ namespace GC {
                 adjustMutationRate();
         }
 
+        void evolveGenerationOnce() {
+#if FORCE_DISTINCT_POPULATION
+            evolveSingleUniqueGeneration();
+#else
+            evolveSingleGeneration();
+#endif
+        }
+
+
         void evolveForGenerations() {
             for (size_t i=0;i<amountOfGenerations;i++) {
                 if (mutationIsExtreme()) return;
-                evolveSingleUniqueGeneration();
+                evolveGenerationOnce();
                 adaptParameters();
             }
         }
@@ -300,7 +311,7 @@ namespace GC {
             auto evolveForGenerationsAndLog = [&]() { //mimics evolveForGenerations
                 for (size_t i=0;i<amountOfGenerations;i++) {
                     if (mutationIsExtreme()) return;
-                    evolveSingleUniqueGeneration();
+                    evolveGenerationOnce();
                     logGenerationData();
                     adaptParameters();
                 }

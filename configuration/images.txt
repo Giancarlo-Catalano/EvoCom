@@ -1,3 +1,1 @@
-../SampleFiles/small.png
-../SampleFiles/lines.txt
 ../SampleFiles/repetition.txt

@@ -11,6 +11,8 @@
 #include <future>
 #include <queue>
 
+#define LOG_PROGRESS 1
+
 namespace GC {
 
 
@@ -110,7 +112,7 @@ namespace GC {
 
         size_t compressedSoFar = 0;
         auto compressBlock = [&](const Block& block) {
-#if 1
+#if LOG_PROGRESS
             compressedSoFar += block.size();
             LOG("Progress:", (double) ((double)compressedSoFar*100)/originalFileSize, "%");
 #endif
@@ -434,19 +436,17 @@ namespace GC {
 
         size_t segmentCounter = 0;
         Evolver::EvolutionSettings evoSettings(settings);
+
         auto compressBlock = [&](const Block& block) {
-            logger.beginList("Segment#"+std::to_string(segmentCounter));
+            LOG("Compressing a block that's of size", block.size());
             segmentCounter++;
             evolveIndividualForBlockAndLogProgress(block, evoSettings, logger);  //doesn't use the return value
-            logger.endList();
         };
 
-        if (settings.segmentationMethod == EvoComSettings::Clustered)
-            clusterFileInSegments(reader, compressBlock, originalFileSize, settings);
-        else
-            processFileAsFixedSegments(reader, compressBlock, originalFileSize, settings);
+        const Block header = readBlock(1024, reader);
+        compressBlock(header);
+        logger.endObject();
 
-        logger.endList();
     }
 
 
