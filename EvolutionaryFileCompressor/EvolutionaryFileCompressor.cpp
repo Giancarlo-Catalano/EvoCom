@@ -355,6 +355,16 @@ namespace GC {
         return (double) (compressedSize) / (originalSize);
     }
 
+    double getAdjustedFitnessOfIndividual(const EvolutionaryFileCompressor::Fitness oldFitness, const Recipe& recipe) {
+        const auto getMultiplierMalusForIndividual = [&](const Recipe& recipe) -> double{
+            const size_t amountOfTransforms = recipe.getTListLength();
+            return 1.0+(amountOfTransforms/6.0);
+        };
+
+        const double malusMultiplier = getMultiplierMalusForIndividual(recipe);
+        return malusMultiplier*oldFitness;
+    }
+
     Recipe EvolutionaryFileCompressor::evolveBestIndividualForBlock(const Block & block, const Evolver::EvolutionSettings& evoSettings) {
         //uses a sample of the actual block
         constexpr size_t sampleSize = 1024; //1 KB
