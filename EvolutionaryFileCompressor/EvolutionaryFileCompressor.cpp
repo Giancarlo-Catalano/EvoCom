@@ -60,8 +60,9 @@ namespace GC {
     void EvolutionaryFileCompressor::processSingleFileForCompressionDataCollection(
             const EvolutionaryFileCompressor::FileName &file, const EvoComSettings &settings, Logger &logger) {
         logger.addVar("fileName", file);
-        size_t originalFileSize = getFileSize(file);
-        logger.addVar("originalFileSize", originalFileSize);
+        const size_t originalFileSize = getFileSize(file);
+        const size_t originalFileSizeInBits = originalFileSize*8;
+        logger.addVar("originalFileSize", originalFileSizeInBits);
 
         if (originalFileSize <= 2) {logger.addVar("Error_FileTooSmall", true); logger.endObject(); return;}
 
@@ -74,7 +75,7 @@ namespace GC {
         //ignores async settings
         compressToStreamsSequentially_DataCollection(reader, writer, originalFileSize, settings, logger);
 
-        logger.addVar("FinalFileSize", writer.getAmountOfBytes());
+        logger.addVar("FinalFileSizeInBits", writer.getAmountOfBytes());
     }
 
 
