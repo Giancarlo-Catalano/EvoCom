@@ -16,8 +16,13 @@
 
 namespace GC {
 
+    /** class used to obtain stastitical data regarding a segment, here also called a Block
+     * This class has been changed many times, and slowly became almost obsolete.
+     * A lot of code is sub-optimal in both performance and quality, forgive me.
+     * The main purpose of this class is static functions such as getFrequencyArray
+     */
     class BlockReport {
-    public:
+    public: //types
         static const size_t AmountOfValues = typeVolume<Unit>();
         using Frequency = double; //here intented to be normalised, ie 0.5 means that something appeared half of the time
         using Frequencies = std::array<Frequency, AmountOfValues>;
@@ -29,13 +34,15 @@ namespace GC {
         explicit BlockReport();
 
         std::string to_string() const;
-        void log(Logger& log) const;
+        void log(Logger& log) const; //to convert it into a JSON friendly format
 
 
 
-    public: //structs
+    public: //members
         size_t size;
         double entropy;
+
+        //the following are slow to compute and often unused
         StatisticalFeatures unitFeatures;
         StatisticalFeatures frequencyFeatures;
         StatisticalFeatures deltaFeatures;

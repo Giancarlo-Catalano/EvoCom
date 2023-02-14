@@ -13,11 +13,18 @@
 namespace GC {
 #define ASSERT_BLOCK_NOT_EMPTY() ASSERT_NOT_EMPTY(block)
 
+
+    /*
+     * Creates a BlockReport instance containing statistical information about the given block
+     */
     BlockReport::BlockReport(const Block &block):
             size(block.size()),
+            entropy(getEntropy(getFrequencyArray(block)))
+#if USING_ALL_STATISTICAL_FEATURES == 1
             unitFeatures(block),
             deltaFeatures(getDeltaArray(block)),
             frequencyFeatures()
+#endif
     {
         ASSERT_GREATER(block.size(), 1);
         Frequencies frequencies = getFrequencyArray(block);
@@ -25,6 +32,9 @@ namespace GC {
         frequencyFeatures = StatisticalFeatures(frequencies);
     }
 
+    /* sends a description of itself to the logger
+     *  Note that it might not
+    */
     void BlockReport::log(Logger& logger) const {
         auto pushStats = [&](const std::string& statsName, const  StatisticalFeatures& sf) {
             logger.beginObject(statsName);
@@ -50,13 +60,21 @@ namespace GC {
         logger.endObject(); //ends BlockReport
     }
 
+    // returns itself in string form
     std::string BlockReport::to_string() const{
         Logger logger;
         log(logger);
         return logger.end();
     }
 
+    /**
+     * Returns a list of the frequency of each byte value in the given block
+     * NOTE: passing an empty block will crash this.
+     * @param block the block to be analysed
+     * @return an array of 256 doubles, where result[val] is the frequency of val in the block. NOTE the frequency is the proportion of the value in the input, so it is always in the range [0, 1]
+     */
     BlockReport::Frequencies BlockReport::getFrequencyArray(const Block &block) {
+        ASSERT_BLOCK_NOT_EMPTY();
         Frequencies result;
         size_t blockSize = block.size();
         for (auto& item: result) item = 0;
@@ -67,15 +85,11 @@ namespace GC {
         return result;
     }
 
-    double BlockReport::distanceFrom(const BlockReport& other) const {
-
-        auto simpleDistance = [&](const auto first, const auto second, const auto min, const auto max) -> double {
-            return (double) safeAbsDifference(first, second) / (max-min);
-        };
-        return 0;
-
-    }
-
+    /** returns the "XOR average" of the block
+     * The nth bit in the result is the bit value which appears most commonly in the nth bits of the input
+     * @param block the block to be analysed, cannot be empty.
+     * @return the xor average, a single byte
+     */
     Unit BlockReport::getXorAverage(const Block &block) {
         ASSERT_BLOCK_NOT_EMPTY();
         const size_t bitsInUnit = bitsInType<Unit>();
@@ -105,6 +119,12 @@ namespace GC {
         return result;
     }
 
+    /**
+     * returns the delta transform of the block.
+     * This function is vestigial, and shouldn't be used
+     * @param block the block to be converted
+     * @return the transformed block
+     */
     std::vector<int> BlockReport::getDeltaArray(const Block &block) {
         std::vector<int> result(block.size()-1);
         for (size_t i=0;i<result.size();i++) {
@@ -113,10 +133,16 @@ namespace GC {
         return result;
     }
 
+    /** Vestigial implementation of a distance metric between blocks
+     * Returns a distance in [0, 1] describing how similar two blocks are
+     * @param A A block (non-empty)
+     * @param B A block (non-empty)
+     * @return the distance metric, as a double (0 = identical, 1=very different)
+     */
     double BlockReport::differentialSampleDistance(const Block &A, const Block &B) {
 
-        const size_t defaultSampleSize = 64;
-        const size_t sampleSize = std::min({defaultSampleSize, A.size(), B.size()});
+        const size_t defaultSampleSize = 64;  //to compare, it takes smaller segments of this size
+        const size_t sampleSize = std::min({defaultSampleSize, A.size(), B.size()}); //the sample size might be too big, so this is used instead
 
         // amount is the length of the segments that will be compared
         auto distanceInSubRange = [&A, &B](auto startA, auto startB, const size_t amount) {
@@ -136,6 +162,7 @@ namespace GC {
         const size_t leftoverInA = A.size()-sampleSize;
         const size_t leftoverInB = B.size()-sampleSize;
 
+        //checks the difference in the header, body and tail
         const double headerDistance = distanceInSubRange(0, 0, sampleSize);
         const double tailDistance = distanceInSubRange(leftoverInA, leftoverInB, sampleSize);
         const double bodyDistance = distanceInSubRange(leftoverInA/2, leftoverInB/2, sampleSize);
@@ -144,12 +171,16 @@ namespace GC {
         //LOG("bodyDistance =", bodyDistance);
         //LOG("tailDistance =", tailDistance);
 
+        //returns the minimum of the sampled distances (we want this to be lenient after all..
         return std::min({headerDistance, tailDistance, bodyDistance});
-
-
-
     }
 
+    /** returns the entropy of the given frequency array
+     * NOTE: there is no function to calculate directly from the block because there's usually a frequency list present already,
+     * and it's more efficient to pass it to this function rather than recalculaiting it.
+     * @param frequencies the kind of frequency array returned by ::getFrequencyArray(block)
+     * @return the entropy, as a double
+     */
     double BlockReport::getEntropy(const BlockReport::Frequencies &frequencies) {
         auto addToAcc = [&](const double acc, const double input) -> double {
             return acc-(input!=0? std::log2(input)*input : 0);
@@ -157,6 +188,14 @@ namespace GC {
         return std::accumulate(frequencies.begin(), frequencies.end(), (double)0, addToAcc);
     }
 
+    /** The final distance metric between blocks
+     * Simply checks how similar the distribution of values is between blocks
+     * NOTE: the order of the byte values doesn't actually matter
+     * NOTE: the distance will always be positive, but might exceed 1
+     * @param A Non-empty block
+     * @param B Non-empty block
+     * @return the distance between them (0=very similar, 1=very different)
+     */
     double BlockReport::distributionDistance(const Block &A, const Block &B) {
         const Frequencies freqsA = getFrequencyArray(A);
         const Frequencies freqsB = getFrequencyArray(B);

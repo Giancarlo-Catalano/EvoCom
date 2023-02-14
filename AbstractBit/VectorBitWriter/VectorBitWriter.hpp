@@ -10,8 +10,11 @@
 
 namespace GC {
 
+    /** Implementation of AbstractBitWriter to write onto vectors of booleans
+     * Mainly used for testing, but also useful to see a minimal implementation of AbstractBitWriter
+     */
     class VectorBitWriter : public AbstractBitWriter {
-    private:
+    private: //members
         std::vector<bool> savedBits;
     public:
         VectorBitWriter() : savedBits() {
@@ -21,24 +24,18 @@ namespace GC {
             savedBits.push_back(b);
         }
 
-        void LOG_INFO() {
-            LOG("the pushed bits are:");
-            for (size_t i=0;i<savedBits.size();i++) {
-                if (i%8 == 0) {
-                    LOG_NONEWLINE_NOSPACES("[");
-                }
-                LOG_NONEWLINE_NOSPACES(savedBits[i]);
-                if (i%8 == 7) {
-                    LOG_NOSPACES("]");
-                }
-            }
-        }
-
-
+        /**
+         * Used to get the result of out the class
+         * @return
+         */
         std::vector<bool> getVectorOfBits() {
             return savedBits;
         }
 
+        /** helper function used for testing, shows how the bits would be grouped together if this had been written onto a file
+         * NOTE: this is not implemented elegantly, and is also never used.
+         * @return the vector of bytes
+         */
         std::vector<Unit> getVectorOfBytes() {
             auto vectorOfBitsToVectorOfBytes = [&](const std::vector<bool>& bitVector) -> std::vector<Unit>{
                 std::vector<Unit> result;
@@ -64,6 +61,9 @@ namespace GC {
         }
 
 
+        /** used so that this can be compatible with the AbstractBitWriter interface, and it mimics what would be done in a file
+         * This is not really useful other than allowing compatibility with functions written for AbstractBitWriter.
+         */
         void writeLastByte() override {
             const size_t amountOfBits = savedBits.size();
             const size_t roundToBytes = greaterMultipleOf(amountOfBits, 8);
