@@ -14,6 +14,8 @@
 #include "../../Utilities/utilities.hpp"
 #include "../../AbstractBit/VectorBitWriter/VectorBitWriter.hpp"
 
+
+//THIS REALLY NEEDS TO BE OPTIMISIZED
 namespace GC {
 
     using Index = size_t;
