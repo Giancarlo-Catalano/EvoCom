@@ -85,11 +85,13 @@ namespace GC {
         void initialiseRandomPopulation() {
             RandomIndividual randomIndividualMaker;
             population = std::vector<Recipe>();
+
             auto addRandomIndividual = [&]() {
                 population.push_back(randomIndividualMaker.makeIndividual());
             };
 
             repeat(populationSize, addRandomIndividual);
+
             forcePopulationFitnessAssessment();
         }
 

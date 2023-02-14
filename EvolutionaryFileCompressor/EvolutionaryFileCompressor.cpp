@@ -219,7 +219,8 @@ namespace GC {
     void EvolutionaryFileCompressor::compressBlockUsingRecipe(const Recipe &individual, const Block &block, AbstractBitWriter& writer) {
         ////LOG("Applying individual ", individual.to_string());
         Block toBeProcessed = block;
-        for (auto tCode : individual.tList) applyTransformCode(tCode, toBeProcessed);
+        for (auto tCode : individual.tList)
+            applyTransformCode(tCode, toBeProcessed);
         applyCompressionCode(individual.cCode, toBeProcessed, writer);
     }
 
@@ -355,23 +356,34 @@ namespace GC {
         return (double) (compressedSize) / (originalSize);
     }
 
-    double getAdjustedFitnessOfIndividual(const EvolutionaryFileCompressor::Fitness oldFitness, const Recipe& recipe) {
+    double EvolutionaryFileCompressor::adjustFitness(const double oldFitness, const Recipe& recipe) {
         const auto getMultiplierMalusForIndividual = [&](const Recipe& recipe) -> double{
             const size_t amountOfTransforms = recipe.getTListLength();
-            return 1.0+(amountOfTransforms/6.0);
+            return 1.0+(amountOfTransforms/12.0);
         };
 
         const double malusMultiplier = getMultiplierMalusForIndividual(recipe);
         return malusMultiplier*oldFitness;
     }
 
-    Recipe EvolutionaryFileCompressor::evolveBestIndividualForBlock(const Block & block, const Evolver::EvolutionSettings& evoSettings) {
-        //uses a sample of the actual block
+    double EvolutionaryFileCompressor::getAdjustedFitnessOfIndividual(const Recipe& recipe, const Block& block) {
+        const double originalFitness = compressionRatioForIndividualOnBlock(recipe, block);
+        return adjustFitness(originalFitness, recipe);
+    }
+
+    Block EvolutionaryFileCompressor::getBlockSample(const Block& block) {
         constexpr size_t sampleSize = 1024; //1 KB
         const size_t blockSampleLength = std::min(sampleSize, block.size());
         const Block blockSample(block.begin(), block.begin()+blockSampleLength);
-        auto getFitnessOfIndividual = [&](const Recipe& i){
-            return compressionRatioForIndividualOnBlock(i, blockSample);
+        return blockSample;
+    }
+
+
+    Recipe EvolutionaryFileCompressor::evolveBestIndividualForBlock(const Block & block, const Evolver::EvolutionSettings& evoSettings) {
+        //uses a sample of the actual block
+        const Block blockSample = getBlockSample(block);
+        auto getFitnessOfIndividual = [&](const Recipe& recipe){
+            return getAdjustedFitnessOfIndividual(recipe, blockSample);
         };
 
         Evolver evolver(evoSettings, getFitnessOfIndividual);
@@ -380,8 +392,9 @@ namespace GC {
     }
 
     Recipe EvolutionaryFileCompressor::evolveIndividualForBlockAndLogProgress(const Block& block, const Evolver::EvolutionSettings& evoSettings, Logger& logger)  { //based on evolveBestIndividual
-        auto getFitnessOfIndividual = [&](const Recipe& i) -> Fitness {
-            return compressionRatioForIndividualOnBlock(i, block);
+        const Block blockSample = getBlockSample(block);
+        auto getFitnessOfIndividual = [&](const Recipe& recipe) -> Fitness {
+            return getAdjustedFitnessOfIndividual(recipe, blockSample);
         };
 
         Evolver evolver(evoSettings, getFitnessOfIndividual);
@@ -459,6 +472,5 @@ namespace GC {
         logger.endObject();
 
     }
-
 
 } // GC

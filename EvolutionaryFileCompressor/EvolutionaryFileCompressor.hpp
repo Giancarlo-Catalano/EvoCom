@@ -110,7 +110,11 @@ namespace GC {
         static Recipe
         evolveIndividualForBlockAndLogProgress(const Block& block, const Evolver::EvolutionSettings& evoSettings, Logger& logger);
 
-        static Fitness getAdjustedFitnessOfIndividual(double oldFitness, const Recipe& recipe);
+        static double adjustFitness(const double oldFitness, const Recipe& recipe);
+
+        static double getAdjustedFitnessOfIndividual(const Recipe &recipe, const Block &block);
+
+        static Block getBlockSample(const Block &block);
     };
 
 } // GC

@@ -38,6 +38,7 @@ namespace GC {
 
     void EvolutionaryFileCompressor::applyTransformCode(const EvolutionaryFileCompressor::TransformCode &tc,
                                                         Block &block) {
+        LOG("Called transformCode of", Recipe::TCode_as_string(tc), "on a block of size", block.size());
 #define GC_APPLY_T_CASE_X(TRANS, ...) case T_##TRANS : TRANS(__VA_ARGS__).apply(block);break
 #define GC_APPLY_T_STRIDE_CASE_X(NUM) case T_StrideTransform_##NUM : StrideTransform(NUM).apply(block); break;
         switch (tc) {
