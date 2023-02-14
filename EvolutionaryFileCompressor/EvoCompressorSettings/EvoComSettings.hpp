@@ -233,8 +233,8 @@ namespace GC {
             logger.addVar("mode", modesAsStrings.at(mode));
             logger.addVar("configFile", configFile);
 
-            if (mode == Compress || CompressionDataCollection) {
-                if (mode == Compress)
+            if ((mode == Compress) || (mode == CompressionDataCollection) || (mode==EvolverConvergenceDataCollection) ) {
+                if ((mode == Compress) || (mode == EvolverConvergenceDataCollection))
                     logger.addVar("inputFile", inputFile);
                 else if (mode == CompressionDataCollection) {
                     logger.addVar("testSetFile", testSetFile);

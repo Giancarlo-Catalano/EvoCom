@@ -13,6 +13,11 @@
 
 namespace GC {
 
+    /** The compression interface provides a common interface for all of the implementations of other compressions.
+     * The minimum requirements are: an empty constructor, compress(const Block&, Writer&), decompress(const& reader) Block, and to_string();
+     *
+     * To_string is now unused, but was originally for debug purposes.
+     */
     class Compression {
     public:
         virtual void compress(const Block& block, AbstractBitWriter& writer){};

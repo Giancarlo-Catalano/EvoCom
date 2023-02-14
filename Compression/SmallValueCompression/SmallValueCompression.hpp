@@ -10,6 +10,9 @@
 
 namespace GC {
 
+    /** This compression simply rewrites every byte using Elias delta encoding
+     * This compresses well for values which are small (specifically under 21 IIRC)
+     */
     class SmallValueCompression : public Compression {
     public:
 
