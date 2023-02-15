@@ -249,8 +249,6 @@ namespace GC {
 
             int terminatorPosition = sais_bwt(block.data(), transformed, temp, block.size());
 
-            LOG("The terminator is at", terminatorPosition);
-
             std::vector<Unit> header = encodeHeader(terminatorPosition);
             Block result = header;
             result.insert(result.end(), transformed, transformed + block.size());

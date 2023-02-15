@@ -62,7 +62,7 @@ namespace GC {
         logger.addVar("fileName", file);
         const size_t originalFileSize = getFileSize(file);
         const size_t originalFileSizeInBits = originalFileSize*8;
-        logger.addVar("originalFileSize", originalFileSizeInBits);
+        logger.addVar("originalFileSizeInBits", originalFileSizeInBits);
 
         if (originalFileSize <= 2) {logger.addVar("Error_FileTooSmall", true); logger.endObject(); return;}
 
