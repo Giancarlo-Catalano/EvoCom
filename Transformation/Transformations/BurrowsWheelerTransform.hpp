@@ -14,6 +14,8 @@
 #include "../../Utilities/utilities.hpp"
 #include "../../AbstractBit/VectorBitWriter/VectorBitWriter.hpp"
 
+#include "../../Dependencies/SAIS/sais.h"
+
 
 //THIS REALLY NEEDS TO BE OPTIMISIZED
 namespace GC {
@@ -129,7 +131,7 @@ namespace GC {
 
 
 
-        /////////EXperimental
+        /////////Experimental
 
         static bool E_less_lexicographic(const Block& block, const Index startA, const Index startB) {
             const size_t blockSize = block.size();
@@ -213,7 +215,8 @@ namespace GC {
 
     public:
         std::string to_string() const { return "{BWTransform}";}
-        Block apply_copy(const Block& block) const {
+
+        Block LEGACY_apply_copy(const Block& block) const {
             BWT_Helper::BlockWithTerminator blockWithTerminator = BWT_Helper::E_apply(block);
             std::vector<Unit> header = encodeHeader(blockWithTerminator.terminatorPosition);
             Block result = header;
@@ -234,6 +237,27 @@ namespace GC {
             const size_t positionOfTerminator = decodeHeader(header);
             const Block body(block.begin()+header.size(), block.end());
             return BWT_Helper::undo(body, positionOfTerminator);
+        }
+
+
+        Block apply_copy(const Block& block) const {
+            const size_t blockLength = block.size();
+            unsigned char * transformed  = new Unit[blockLength];
+            int * temp = new int[blockLength];
+            //transformed.reserve(block.size());
+            //temp.reserve(block.size());
+
+            int terminatorPosition = sais_bwt(block.data(), transformed, temp, block.size());
+
+            LOG("The terminator is at", terminatorPosition);
+
+            std::vector<Unit> header = encodeHeader(terminatorPosition);
+            Block result = header;
+            result.insert(result.end(), transformed, transformed + block.size());
+
+            delete[] transformed;
+            delete[] temp;
+            return result;
         }
 
     };

@@ -3,6 +3,8 @@
 #include "EvolutionaryFileCompressor/EvolutionaryFileCompressor.hpp"
 #include "Dependencies/nlohmann/json.hpp"
 
+#include "Transformation/Transformations/BurrowsWheelerTransform.hpp"
+
 #include <fstream>
 
 int main(int argc, char**argv) {
@@ -59,6 +61,35 @@ int main(int argc, char**argv) {
 
     double distance = GC::BlockReport::distributionDistance(A, B);
     LOG("The distance is", distance);
+#endif
+
+
+#if 0 //tesing BWT
+    //add data to the original
+
+    auto fromString = [&](const std::string& str) -> Block{
+        Block result;
+        std::for_each(str.begin(), str.end(), [&](const char c) {result.push_back(c);});
+        return result;
+    };
+
+    auto toString = [&](const Block& block) -> std::string {
+        std::stringstream ss;
+        std::for_each(block.begin(), block.end(), [&](const Unit u) {ss<<((char)u);});
+        return ss.str();
+    };
+
+    Block original;
+    for (int i=0;i<1024;i++) {
+        original.push_back(i%256);
+    }
+    Block transformed = GC::BurrowsWheelerTransform().apply_copy(original);
+    LOG("The transformed block has size", transformed.size());
+
+    Block undone = GC::BurrowsWheelerTransform().undo_copy(transformed);
+    LOG("The undone block has size", undone.size());
+    LOG("Are they identical?", (original == undone));
+
 
 
 #endif
