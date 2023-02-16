@@ -148,6 +148,7 @@ namespace GC {
 
                 if (mode == CompressionDataCollection) {
                     testSetFile = getStringFromDict(dict, "TESTSET", "../build/testset.txt");
+                    async = false;
                     testSet = getLinesFromFile(testSetFile);
                 }
                 else if (mode == Compress || mode == EvolverConvergenceDataCollection)
@@ -176,7 +177,7 @@ namespace GC {
                 minTransformAmount = getIntFromDict(dict, "MIN_TRANSFORM_AMOUNT", 0);
                 maxTransformAmount = getIntFromDict(dict, "MAX_TRANSFORM_AMOUNT", 6);
 
-                async = getBoolFromDict(dict, "ASYNC", true);
+                async = (mode == CompressionDataCollection) ? false : getBoolFromDict(dict, "ASYNC", true);
             }
             else if (mode == Decompress) {
                 inputFile = getStringFromDict(dict, "FILE", "input");
