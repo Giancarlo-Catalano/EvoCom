@@ -260,6 +260,8 @@ namespace GC {
                 logger.addVar("tournamentSelectionSize", tournamentSelectionSize);
                 logger.addVar("excessiveMutationThreshold", excessiveMutationThreshold);
                 logger.addVar("asynchronous", async);
+                logger.addVar("minTransformAmount", minTransformAmount);
+                logger.addVar("maxTransformAmount", maxTransformAmount);
             }
             logger.endObject(); //ends settings
         }
