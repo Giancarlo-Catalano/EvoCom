@@ -359,7 +359,7 @@ namespace GC {
     double EvolutionaryFileCompressor::adjustFitness(const double oldFitness, const Recipe& recipe) {
         const auto getMultiplierMalusForIndividual = [&](const Recipe& recipe) -> double{
             const size_t amountOfTransforms = recipe.getTListLength();
-            return 1.0+(amountOfTransforms/12.0);
+            return 1.0+(amountOfTransforms/30.0);
         };
 
         const double malusMultiplier = getMultiplierMalusForIndividual(recipe);
