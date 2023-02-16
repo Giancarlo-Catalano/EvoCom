@@ -83,7 +83,7 @@ namespace GC {
 
     private: //methods
         void initialiseRandomPopulation() {
-            RandomIndividual randomIndividualMaker;
+            Breeder::RandomIndividual randomIndividualMaker;
             population = std::vector<Recipe>();
 
             auto addRandomIndividual = [&]() {
@@ -101,7 +101,7 @@ namespace GC {
             }
 
             RandomElement<Recipe> randomHint(hint);
-            RandomIndividual randomIndividualMaker;
+            Breeder::RandomIndividual randomIndividualMaker;
             RandomChance chooseIfRandom(0.5);//(1.0/(hint.size()+1));
             population = std::vector<Recipe>();
 

@@ -167,21 +167,7 @@ namespace GC {
     }
 
 
-    class RandomIndividual {
-    private:
-        RandomInt<size_t> randomLength{Recipe::MinTListLength, Recipe::MaxTListLength};
-        RandomElement<TCode> randomTCode{availableTCodes};
-        RandomElement<CCode> randomCCode{availableCCodes};
-    public:
-        RandomIndividual() = default;
-        Recipe makeIndividual() {
-            Recipe::TList tList(randomLength.choose());
-            for (TCode& tCode: tList)
-                randomTCode.assignRandomValue(tCode);
-            CCode cCode = randomCCode.choose();
-            return Recipe(tList, cCode);
-        }
-    };
+
 
 } // GC
 
