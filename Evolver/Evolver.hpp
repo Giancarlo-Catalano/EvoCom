@@ -37,6 +37,8 @@ namespace GC {
             size_t eliteSize;
             double mutationThreshold;
 
+            size_t minTransformAmount, maxTransformAmount;
+
             EvolutionSettings() :
                 populationSize(40),
                 generationCount(100),
@@ -45,10 +47,12 @@ namespace GC {
                 tournamentSelectionProportion(0.80),
                 usesSimulatedAnnealing(true),
                 eliteSize(2),
-                mutationThreshold(0.75){}
+                mutationThreshold(0.75),
+                minTransformAmount(0),
+                maxTransformAmount(6){}
 
 
-            EvolutionSettings(const EvoComSettings& settings) :
+            explicit EvolutionSettings(const EvoComSettings& settings) :
                 populationSize(settings.population),
                 generationCount(settings.generations),
                 chanceOfMutation(settings.mutationRate),
@@ -56,7 +60,9 @@ namespace GC {
                 tournamentSelectionProportion(settings.population / settings.tournamentSelectionSize),
                 usesSimulatedAnnealing(settings.usesAnnealing),
                 eliteSize(settings.eliteSize),
-                mutationThreshold(settings.excessiveMutationThreshold){
+                mutationThreshold(settings.excessiveMutationThreshold),
+                minTransformAmount(settings.minTransformAmount),
+                maxTransformAmount(settings.maxTransformAmount){
 
             }
         };
@@ -83,7 +89,7 @@ namespace GC {
 
     private: //methods
         void initialiseRandomPopulation() {
-            Breeder::RandomIndividual randomIndividualMaker;
+            Breeder::RandomIndividual randomIndividualMaker = breeder.getRandomIndividualFactory();
             population = std::vector<Recipe>();
 
             auto addRandomIndividual = [&]() {
@@ -97,11 +103,10 @@ namespace GC {
 
         void initialiseHintedPopulation(const std::vector<Recipe>& hint) {
             for (auto hintItem: hint) {
-                ASSERT(hintItem.isWithinAcceptedBounds());
             }
 
             RandomElement<Recipe> randomHint(hint);
-            Breeder::RandomIndividual randomIndividualMaker;
+            Breeder::RandomIndividual randomIndividualMaker = breeder.getRandomIndividualFactory();
             RandomChance chooseIfRandom(0.5);//(1.0/(hint.size()+1));
             population = std::vector<Recipe>();
 
@@ -143,7 +148,7 @@ namespace GC {
             populationSize(settings.populationSize),
             amountOfGenerations(settings.generationCount),
             evaluator(fitnessFunction),
-            breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
+            breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover, settings.minTransformAmount, settings.maxTransformAmount),
             selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion))),
             initialMutationRate(settings.chanceOfMutation),
             usesSimulatedAnnealing(settings.usesSimulatedAnnealing),
@@ -158,7 +163,7 @@ namespace GC {
                 populationSize(settings.populationSize),
                 amountOfGenerations(settings.generationCount),
                 evaluator(fitnessFunction),
-                breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover),
+                breeder(settings.chanceOfMutation, settings.chanceOfCompressionCrossover, settings.minTransformAmount, settings.maxTransformAmount),
                 selector(Selector::SelectionKind(Selector::TournamentSelection(settings.tournamentSelectionProportion))),
                 initialMutationRate(settings.chanceOfMutation),
                 usesSimulatedAnnealing(settings.usesSimulatedAnnealing),

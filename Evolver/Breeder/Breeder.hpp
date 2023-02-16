@@ -25,6 +25,7 @@ namespace GC {
         using CrossoverRecipe = std::pair<CrossoverBounds, CrossoverBounds>;
 
 
+
     private:
         //for mutation
         RandomChance randomChanceOfMutation;
@@ -36,15 +37,20 @@ namespace GC {
         RandomInt<Index> randomIndexChooser;
         RandomChance chooseCCodeCrossover;
 
+        size_t minTransformAmount;
+        size_t maxTransformAmount;
+
     public:
 
 
-        Breeder(const Chance mutationChance, const Chance chanceOfCCodeCrossover) :
+        Breeder(const Chance mutationChance, const Chance chanceOfCCodeCrossover, const size_t minTransformAmount, const size_t maxTransformAmount) :
             randomChanceOfMutation(mutationChance),
             addOrRemoveElement(),
             randomTCode(availableTCodes),
             randomCCode(availableCCodes),
-            chooseCCodeCrossover(chanceOfCCodeCrossover){};
+            chooseCCodeCrossover(chanceOfCCodeCrossover),
+            minTransformAmount(minTransformAmount),
+            maxTransformAmount(maxTransformAmount){};
 
 
         Recipe mutate(const Recipe& individual) {
@@ -61,7 +67,7 @@ namespace GC {
 
             TList newTList = crossoverLists(A.readTList(), B.readTList(), recipe.first, recipe.second);
             CCode newCCode = chooseCCodeCrossover.choose() ? A.readCCode() : B.readCCode();
-            return Recipe(newTList, newCCode);
+            return Recipe{newTList, newCCode};
         }
 
 
@@ -105,19 +111,27 @@ namespace GC {
                 randomCCode.assignRandomValue(individual.getCCode());});
         }
 
+        bool canAddMoreTransforms(const Recipe& individual) {
+            return individual.getTListLength()  < maxTransformAmount;
+        }
+
+        bool canRemoveTransforms(const Recipe& individual) {
+            return individual.getTListLength() > minTransformAmount;
+        }
+
         void mutateLength(Recipe& individual) {
             auto addTransform = [&]() -> void { addRandomElement(individual.getTList());};
             auto removeTransform = [&]() -> void { removeRandomElement(individual.getTList());};
 
             if (randomChanceOfMutation.choose()) {
-                if (individual.canAddMoreTransforms()) {
-                    if (individual.canRemoveMoreTransforms())
+                if (canAddMoreTransforms(individual)) {
+                    if (canRemoveTransforms(individual))
                         addOrRemoveElement.doWithChanceOrElse(addTransform, removeTransform);
                     else
                         addTransform();
                 }
                 else {
-                    if (individual.canRemoveMoreTransforms())
+                    if (canRemoveTransforms(individual))
                         removeTransform();
                 }
             }
@@ -176,7 +190,7 @@ namespace GC {
                 //LOG("requested to check {(", bounds.first.first, ", ", bounds.first.second, "), (", bounds.second.first, ", ", bounds.second.second, ")}");
                 //LOG("A has length ", A.getTListLength(), "while B has length", B.getTListLength());
                 //LOG("The predicted final length is ", predictLengthOfChild(bounds.first, bounds.second));
-                return isInInterval_inclusive(predictLengthOfChild(bounds.first, bounds.second), Recipe::MinTListLength, Recipe::MaxTListLength);
+                return isInInterval_inclusive(predictLengthOfChild(bounds.first, bounds.second), minTransformAmount, maxTransformAmount);
             };
 
             return retryUntil<CrossoverRecipe>(chooseRandomBounds, areBoundsAcceptable);
@@ -212,11 +226,15 @@ namespace GC {
 
         class RandomIndividual {
         private:
-            RandomInt<size_t> randomLength{Recipe::MinTListLength, Recipe::MaxTListLength};
+            RandomInt<size_t> randomLength;
             RandomElement<TCode> randomTCode{availableTCodes};
             RandomElement<CCode> randomCCode{availableCCodes};
         public:
-            RandomIndividual() = default;
+            RandomIndividual(const size_t minTransformAmount, const size_t maxTransformAmount) :
+                randomLength(minTransformAmount, maxTransformAmount){
+            }
+
+
             Recipe makeIndividual() {
                 Recipe::TList tList(randomLength.choose());
                 for (TCode& tCode: tList)
@@ -226,6 +244,10 @@ namespace GC {
             }
         };
 
+
+        RandomIndividual getRandomIndividualFactory() {
+            return RandomIndividual{minTransformAmount, maxTransformAmount};
+        }
 
 
     };

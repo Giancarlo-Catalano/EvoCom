@@ -27,8 +27,8 @@ namespace GC {
     public: //types
         using Fitness = PseudoFitness;
         using FitnessScore = PseudoFitness::FitnessScore;
-        static constexpr size_t MaxTListLength = 6;
-        static constexpr size_t MinTListLength = 0;
+
+        static constexpr size_t maxTransformAmount_STATIC = 6;
 
 
 
@@ -49,7 +49,7 @@ namespace GC {
             tList(tList),
             cCode(cCode),
             fitness(){
-            ASSERT_LESS_EQ(tList.size(), MaxTListLength);
+            ASSERT_LESS_EQ(tList.size(), maxTransformAmount_STATIC);
         }
 
         TList& getTList() { return tList;}
@@ -137,7 +137,7 @@ namespace GC {
 
 
         double distanceFrom(const Recipe& other) const {
-            return LevenshteinDistance<TCode, MaxTListLength>(tList, other.readTList())+(cCode!=other.readCCode());
+            return LevenshteinDistance<TCode, maxTransformAmount_STATIC>(tList, other.readTList())+(cCode!=other.readCCode());
         }
 
 
@@ -147,18 +147,6 @@ namespace GC {
 
         const TList& readTList() const {
             return tList;
-        }
-
-        bool canAddMoreTransforms() const {
-            return getTListLength() < MaxTListLength;
-        }
-
-        bool canRemoveMoreTransforms() const {
-            return getTListLength() > MinTListLength;
-        }
-
-        bool isWithinAcceptedBounds() const {
-            return isInInterval_inclusive(getTListLength(), MinTListLength, MaxTListLength);
         }
     };
 

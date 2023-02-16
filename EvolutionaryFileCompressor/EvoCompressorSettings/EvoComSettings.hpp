@@ -40,9 +40,9 @@ namespace GC {
 
         size_t tournamentSelectionSize;
         double excessiveMutationThreshold;
-        double unstabilityThreshold;
+        double unstabilityThreshold; //unused
 
-        size_t minTransformAmount, maxTransformAmount; //not hooked yet
+        size_t minTransformAmount, maxTransformAmount;
 
         bool async;
 
