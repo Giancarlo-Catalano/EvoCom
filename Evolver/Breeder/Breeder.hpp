@@ -235,6 +235,10 @@ namespace GC {
             }
 
 
+            RandomIndividual(const Breeder& breeder):
+                randomLength(breeder.minTransformAmount, breeder.maxTransformAmount){
+            }
+
             Recipe makeIndividual() {
                 Recipe::TList tList(randomLength.choose());
                 for (TCode& tCode: tList)
@@ -243,11 +247,6 @@ namespace GC {
                 return Recipe(tList, cCode);
             }
         };
-
-
-        RandomIndividual getRandomIndividualFactory() {
-            return RandomIndividual{minTransformAmount, maxTransformAmount};
-        }
 
 
     };
