@@ -11,7 +11,7 @@ namespace GC {
 
     class SubMinAdaptiveTransform : public Transformation{
     private: //types & constants
-        using BlockIter = typeof(Block::const_iterator);
+        using BlockIter = Block::const_iterator;
         static const size_t peekDistance = 3;
 
         struct SubsegmentBounds {
