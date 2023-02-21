@@ -5,4 +5,6 @@
 #include "LempelZivWelchTransform.hpp"
 
 namespace GC {
-} // GC
+
+
+} //end of GC

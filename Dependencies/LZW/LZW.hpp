@@ -5,9 +5,24 @@
 #ifndef EVOCOM_LZW_HPP
 #define EVOCOM_LZW_HPP
 
+
+#include <algorithm>
+#include <array>
+#include <climits>
+#include <cstddef>
+#include <fstream>
+#include <iostream>
+#include <limits>
+#include <memory>
+#include <ostream>
+#include <stdexcept>
+#include <utility>
+#include <vector>
+
+
 namespace JP {
 /// Type used to store and retrieve codes.
-    using CodeType = std::uint16_t;
+    using CodeType = std::uint16_t;//
     namespace globals {
 /// Dictionary Maximum Size (when reached, the dictionary will be reset)
         const CodeType dms{std::numeric_limits<CodeType>::max()};
