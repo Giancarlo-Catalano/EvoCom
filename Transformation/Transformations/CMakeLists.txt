@@ -8,6 +8,7 @@ add_library(SubtractXORAverageTransform SubtractXORAverageTransform.hpp Subtract
 add_library(IdentityTransform IdentityTransform.cpp IdentityTransform.hpp)
 add_library(StackTransform StackTransform.cpp StackTransform.hpp)
 add_library(LempelZivWelchTransform LempelZivWelchTransform.cpp LempelZivWelchTransform.hpp)
+target_link_libraries(LempelZivWelchTransform LZW)
 add_library(BurrowsWheelerTransform BurrowsWheelerTransform.cpp BurrowsWheelerTransform.hpp)
 target_link_libraries(BurrowsWheelerTransform SAIS )
 add_library(SubMinimumAdaptiveTransform SubMinAdaptiveTransform.cpp SubMinAdaptiveTransform.hpp)

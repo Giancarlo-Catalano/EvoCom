@@ -10,3 +10,4 @@ FetchContent_MakeAvailable(Catch2)
 
 
 add_subdirectory(SAIS)
+add_subdirectory(LZW)

@@ -37,7 +37,7 @@ enable_testing()
 add_executable(EvoCom main.cpp Utilities names.hpp)
 
 #declare which directories are used for linking
-target_link_libraries(${PROJECT_NAME} Utilities Recipe EvolutionaryFileCompressor Breeder Random Selector Evolver PseudoFitness Evaluator SAIS)
+target_link_libraries(${PROJECT_NAME} Utilities Recipe EvolutionaryFileCompressor Breeder Random Selector Evolver PseudoFitness Evaluator SAIS LZW)
 
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -pthread")

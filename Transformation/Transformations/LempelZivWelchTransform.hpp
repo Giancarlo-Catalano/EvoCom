@@ -19,7 +19,7 @@
 #include <vector>
 #include "../../Utilities/utilities.hpp"
 #include "../Transformation.hpp"
-#include "../../Compression/LZWCompression/LZW.hpp"
+#include "../../Dependencies/LZW/LZW.hpp"
 
 
 namespace JP {
@@ -28,7 +28,7 @@ namespace JP {
 /// @param [in] is      input stream
 /// @param [out] os     output stream
 ///
-    Block compress(const Block &input) {
+    Block compressBlock(const Block &input) {
         EncoderDictionary ed;
         CodeType i{globals::dms}; // Index
         char c;
@@ -67,7 +67,7 @@ namespace JP {
 /// @param [in] is      input stream
 /// @param [out] os     output stream
 ///
-    Block decompress(const Block &input) {
+    Block decompressBlock(const Block &input) {
 
         std::vector<std::pair<CodeType, char>> dictionary;
 
@@ -162,10 +162,10 @@ namespace GC {
     public:
         std::string to_string() const { return "{LempelZivWelchTransform}";}
         Block apply_copy(const Block& block) const {
-            return JP::compress(block);
+            return JP::compressBlock(block);
         }
         Block undo_copy(const Block& block) const {
-            return JP::decompress(block);
+            return JP::decompressBlock(block);
         }
     };
 

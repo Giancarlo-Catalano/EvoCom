@@ -5,10 +5,12 @@
 #ifndef EVOCOM_LZWCOMPRESSION_HPP
 #define EVOCOM_LZWCOMPRESSION_HPP
 
-#include "LZW.hpp"
+#include "../../Dependencies/LZW/LZW.hpp"
 #include "../Compression.hpp"
 
 namespace JP {
+
+    using CodeType = uint16_t;
 ///
 /// @brief Compresses the contents of `is` and writes the result to `os`.
 /// @param [in] is      input stream
