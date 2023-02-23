@@ -1,16 +1,13 @@
 #include <iostream>
 #include "Utilities/utilities.hpp"
 #include "EvolutionaryFileCompressor/EvolutionaryFileCompressor.hpp"
-#include "Dependencies/nlohmann/json.hpp"
+#include "AbstractBit/VectorBitWriter/VectorBitWriter.hpp"
 
-#include "Transformation/Transformations/BurrowsWheelerTransform.hpp"
-
-#include <fstream>
 
 int main(int argc, char**argv) {
 
 
-#if 1 //normal application behaviour
+#if 0 //normal application behaviour
     const std::string compressedExtension = "gac";
     using FileName = std::string;
     GC::EvoComSettings settings(argc, argv);
@@ -89,8 +86,5 @@ int main(int argc, char**argv) {
     Block undone = GC::BurrowsWheelerTransform().undo_copy(transformed);
     LOG("The undone block has size", undone.size());
     LOG("Are they identical?", (original == undone));
-
-
-
 #endif
 }
