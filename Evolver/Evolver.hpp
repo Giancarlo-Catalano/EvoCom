@@ -78,7 +78,7 @@ namespace GC {
 
         RunningAverage<Fitness> runningAverageFitness{0.5};
         size_t generationCount = 0;
-        const Chance initialMutationRate; static const size_t mutationRateLevels = 12;
+        const Chance initialMutationRate; static const size_t mutationRateLevels = 6;
 
         size_t populationSize;
         size_t amountOfGenerations;
