@@ -122,7 +122,7 @@ namespace GC {
 
 
         Chance getMutationRateUnit() const{
-            return (1.0 - initialMutationRate) / mutationRateLevels;
+            return (excessiveMutationThreshold - initialMutationRate) / mutationRateLevels;
         }
 
 #define ASSERT_MUTATION_VALID() ASSERT_WITHIN(breeder.getMutationRate(), 0.0, 1.0);
@@ -257,7 +257,10 @@ namespace GC {
 
         void evolveForGenerations() {
             for (size_t i=0;i<amountOfGenerations;i++) {
-                if (mutationIsExtreme()) return;
+                if (mutationIsExtreme()) {
+                    LOG("Terminated evolution at generation", i);
+                    return;
+                }
                 evolveGenerationOnce();
                 adaptParameters();
             }
@@ -326,7 +329,7 @@ namespace GC {
 
             evolveForGenerationsAndLog();
 
-            return getBestOfPopulation(false);
+            return getBestOfPopulation(true);
         }
     };
 

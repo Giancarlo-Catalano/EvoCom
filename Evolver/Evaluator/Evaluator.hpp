@@ -88,7 +88,7 @@ namespace GC {
     public:
         Evaluator(const FitnessFunction fitnessFunction) :
             fitnessFunction(fitnessFunction),
-            reliabilityThreshold(0.7),
+            reliabilityThreshold(0.8),
             randomEvaluationChooser(0.05){
         }
 
