@@ -7,7 +7,7 @@
 int main(int argc, char**argv) {
 
 
-#if 0 //normal application behaviour
+#if 1 //normal application behaviour
     const std::string compressedExtension = "gac";
     using FileName = std::string;
     GC::EvoComSettings settings(argc, argv);
