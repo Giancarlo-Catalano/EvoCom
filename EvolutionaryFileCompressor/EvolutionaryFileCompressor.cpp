@@ -60,7 +60,6 @@ namespace GC {
     void EvolutionaryFileCompressor::processSingleFileForCompressionDataCollection(
             const EvolutionaryFileCompressor::FileName &file, const EvoComSettings &settings, Logger &logger) {
 
-        LOG("processSingleFileForDataCollection(", file);
         logger.addVar("fileName", file);
         const size_t originalFileSize = getFileSize(file);
         const size_t originalFileSizeInBits = originalFileSize*8;
