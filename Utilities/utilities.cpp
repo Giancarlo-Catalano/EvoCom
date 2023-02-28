@@ -137,12 +137,10 @@ std::vector<std::string> getLinesFromFile(const std::string &fileName) {
     auto getLastCharater = [&](const std::string& str) {return str.at(str.size()-1);};
 
     auto cleanLine = [&](const std::string& str) -> std::string {
-        LOG("original line was", str, "size", str.size());
         std::string temp = str;
         while (isUnwantedCharacter(getLastCharater(temp)))
             temp = temp.substr(0, temp.size()-1);
 
-        LOG("result has size", temp.size());
         return temp;
     };
 
