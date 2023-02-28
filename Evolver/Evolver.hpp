@@ -258,7 +258,6 @@ namespace GC {
         void evolveForGenerations() {
             for (size_t i=0;i<amountOfGenerations;i++) {
                 if (mutationIsExtreme()) {
-                    LOG("Terminated evolution at generation", i);
                     return;
                 }
                 evolveGenerationOnce();

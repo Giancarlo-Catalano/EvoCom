@@ -1,1 +1,12 @@
-silesia.txt
+../SampleFiles/dickens
+../SampleFiles/mozilla
+../SampleFiles/mr
+../SampleFiles/nci
+../SampleFiles/ooffice
+../SampleFiles/osdb
+../SampleFiles/reymont
+../SampleFiles/samba
+../SampleFiles/sao
+../SampleFiles/webster
+../SampleFiles/xml
+../SampleFiles/x-ray

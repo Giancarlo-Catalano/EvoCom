@@ -1,3 +1,5 @@
-../SampleFiles/small.png
-../SampleFiles/lines.txt
-../SampleFiles/repetition.txt
+apple.jpg
+bike.png
+mondrian.jpg
+tower.jpeg
+sunset.png

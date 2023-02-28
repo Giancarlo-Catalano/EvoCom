@@ -11,7 +11,7 @@
 #include <future>
 #include <queue>
 
-#define LOG_PROGRESS 1
+#define LOG_PROGRESS 0
 
 namespace GC {
 
@@ -46,7 +46,7 @@ namespace GC {
         settings.log(logger);
         logger.beginList("parsingOfFiles");
         auto parseFile = [&](const FileName& file) {
-            LOG("Processing file", file);
+            LOG("Parsing ", file);
             logger.beginUnnamedObject();
             double timeInMilliseconds = timeFunction([&](){ processSingleFileForCompressionDataCollection(file, settings, logger);});
             logger.addVar("timeForFile", timeInMilliseconds);
@@ -59,6 +59,8 @@ namespace GC {
 
     void EvolutionaryFileCompressor::processSingleFileForCompressionDataCollection(
             const EvolutionaryFileCompressor::FileName &file, const EvoComSettings &settings, Logger &logger) {
+
+        LOG("processSingleFileForDataCollection(", file);
         logger.addVar("fileName", file);
         const size_t originalFileSize = getFileSize(file);
         const size_t originalFileSizeInBits = originalFileSize*8;
