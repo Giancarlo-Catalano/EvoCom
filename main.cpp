@@ -2,6 +2,7 @@
 #include "Utilities/utilities.hpp"
 #include "EvolutionaryFileCompressor/EvolutionaryFileCompressor.hpp"
 #include "AbstractBit/VectorBitWriter/VectorBitWriter.hpp"
+#include "DataProcessingUtilities/JSON2CSV/JSON2CSV.hpp"
 
 
 int main(int argc, char**argv) {
@@ -61,7 +62,7 @@ int main(int argc, char**argv) {
 #endif
 
 
-#if 0 //tesing BWT
+#if 0 //testing BWT
     //add data to the original
 
     auto fromString = [&](const std::string& str) -> Block{
@@ -86,5 +87,25 @@ int main(int argc, char**argv) {
     Block undone = GC::BurrowsWheelerTransform().undo_copy(transformed);
     LOG("The undone block has size", undone.size());
     LOG("Are they identical?", (original == undone));
+#endif
+
+#if 0 //JSON
+
+    std::string fileName = "/home/gian/Documents/DataCollection/thirdRun/C/out_C_0_6_can_124.txt";
+
+    std::ifstream readingStream(fileName);
+    json asJSON = json::parse(readingStream);
+
+    const json parsingOfFiles = asJSON.at("parsingOfFiles");
+
+    for (const auto file: parsingOfFiles) {
+        for (const auto report: file.at("Reports")) {
+            const size_t evolutionTime = report.at("EvolutionTime").get<size_t>();
+            LOG("The evolutionTime is", evolutionTime);
+
+        }
+    }
+
+
 #endif
 }
