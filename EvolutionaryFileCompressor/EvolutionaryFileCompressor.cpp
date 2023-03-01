@@ -46,7 +46,7 @@ namespace GC {
         settings.log(logger);
         logger.beginList("parsingOfFiles");
         auto parseFile = [&](const FileName& file) {
-            LOG("Parsing ", file);
+            //LOG("Parsing ", file);
             logger.beginUnnamedObject();
             double timeInMilliseconds = timeFunction([&](){ processSingleFileForCompressionDataCollection(file, settings, logger);});
             logger.addVar("timeForFile", timeInMilliseconds);
@@ -118,13 +118,18 @@ namespace GC {
             compressedSoFar += block.size();
             LOG("Progress:", (double) ((double)compressedSoFar*100)/originalFileSize, "%");
 #endif
-            const Recipe bestIndividual = evolveBestIndividualForBlock(block, evoSettings);
+            Recipe bestIndividual;
+            const size_t timeInMillisecondsForEvolution = timeFunction([&](){
+                bestIndividual = evolveBestIndividualForBlock(block, evoSettings);
+            });
+            logger.beginUnnamedObject();
+            logger.addVar("EvolutionTime", timeInMillisecondsForEvolution);
+
             //LOG("Generated the best individual, now encoding...");
             if (!isFirstSegment) writer.pushBit(true);  //signifies that the segment before had a segment after it
             isFirstSegment = false;
             encodeIndividual(bestIndividual, writer);
             compressBlockUsingRecipe_DataCollection(bestIndividual, block, writer, logger);
-
         };
 
         logger.beginList("Reports");
@@ -246,7 +251,7 @@ namespace GC {
     void EvolutionaryFileCompressor::compressBlockUsingRecipe_DataCollection(const Recipe &individual, const Block &block, BitCounter &writer, Logger& logger) {
         ////LOG("Applying individual ", individual.to_string());
         const size_t writtenBefore = writer.getAmountOfBits();
-        logger.beginUnnamedObject();
+
         logger.beginObject("StartingState");
         const SegmentData initialReport(block);
         initialReport.log(logger);
